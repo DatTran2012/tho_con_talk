@@ -1,0 +1,64 @@
+  :root {
+    --bg-dark: #0c0a09;
+    --text-light: #f5f5f4;
+    --amber-border: rgba(251, 191, 36, 0.24);
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    overflow-x: hidden;
+  }
+
+  .font-serif-story {
+    font-family: 'Lora', Georgia, serif;
+  }
+
+  .font-mono-code {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .cafe-panel {
+    background: linear-gradient(165deg, rgba(28, 25, 23, 0.94), rgba(15, 13, 12, 0.97));
+    border: 1px solid var(--amber-border);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(10px);
+  }
+
+  .dialogue-box {
+    background: linear-gradient(180deg, rgba(24, 21, 19, 0.96), rgba(12, 10, 9, 0.98));
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65);
+  }
+
+  .no-touch-select {
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+  }
+
+  @keyframes brewShake {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(-12deg) scale(1.08); }
+    50% { transform: rotate(12deg) scale(1.08); }
+    75% { transform: rotate(-8deg) scale(1.04); }
+  }
+
+  .brew-shake-anim {
+    animation: brewShake 0.28s ease-in-out;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(28, 25, 23, 0.5);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(217, 119, 6, 0.45);
+    border-radius: 999px;
+  }

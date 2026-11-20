@@ -12,6 +12,30 @@ const BREW_TUNING = {
 };
 const inRange = (v, [lo, hi]) => v >= lo && v <= hi;
 
+/* Luật thử thách: hỏng ly thì buộc pha lại (tối đa maxAttempts lần). Pha lại chỉ đạt tối đa Chuẩn Vị. */
+const BREW_RULES = { maxAttempts: 3 };
+
+/* Độ khó tăng dần theo tuần: kim nhanh hơn, vùng vàng hẹp hơn, nhịp lắc chặt hơn. */
+function getScaledBrewTuning() {
+  const week = runState ? Math.max(0, Math.min(3, Math.floor(runState.nightIndex / 7))) : 0;
+  const base = BREW_TUNING;
+  return {
+    week,
+    shaker: { ...base.shaker, steadyMinMs: base.shaker.steadyMinMs + 10 * week, steadyMaxMs: base.shaker.steadyMaxMs - 30 * week },
+    drip: {
+      ...base.drip,
+      speed: Math.round(base.drip.speed * (1 + 0.1 * week)),
+      perfect: [base.drip.perfect[0] + week, base.drip.perfect[1] - week]
+    },
+    ember: {
+      ...base.ember,
+      rate: Math.round(base.ember.rate * (1 + 0.08 * week)),
+      perfect: [base.ember.perfect[0] + week * 2, base.ember.perfect[1] - week * 2]
+    },
+    quality: base.quality
+  };
+}
+
 function lockChallengeButton(btn) {
   btn.disabled = true;
   btn.classList.add("opacity-70", "cursor-default");
@@ -166,8 +190,10 @@ function renderThreeStepBrewingStation(guests) {
     actionArea.appendChild(wrap);
   };
 
-  const renderStep3Challenge = () => {
+  let brewAttempt = 1; // số lần thử còn nhớ khi quay lại bước 2 (tránh lách luật pha lại)
+  const renderStep3Challenge = (attempt = brewAttempt) => {
     cancelActiveBrewAnimation();
+    const T = getScaledBrewTuning();
     actionArea.innerHTML = "";
     const wrap = document.createElement("div");
     wrap.className = "p-3.5 rounded-2xl bg-stone-900/95 border border-amber-400/35 space-y-3";
@@ -178,7 +204,7 @@ function renderThreeStepBrewingStation(guests) {
     wrap.innerHTML = `
       <div class="flex items-center justify-between text-xs border-b border-stone-800 pb-2">
         <span class="font-bold text-amber-200">🍸 Bước 3/3: Hoàn Thiện Ly Nước</span>
-        <span id="challenge-status-pill" class="text-[11px] font-mono-code text-amber-300">⏳ Chưa hoàn thành thao tác</span>
+        <span id="challenge-status-pill" class="text-[11px] font-mono-code text-amber-300">⏳ Chưa hoàn thành thao tác • Lần ${attempt}/${BREW_RULES.maxAttempts}</span>
       </div>
       <div id="challenge-body" class="space-y-2.5 p-2.5 rounded-xl bg-stone-950/60 border border-stone-800 transition-all"></div>
       <div class="flex gap-2 pt-1">
@@ -201,13 +227,38 @@ function renderThreeStepBrewingStation(guests) {
       btnServeFinal.innerHTML = "🥂 Hoàn Thành &amp; Mời Khách Thưởng Thức";
     };
 
-    const markChallengeResult = (bonus, labelText) => {
+    const markChallengeResult = (rawBonus, labelText) => {
       challengeFinished = true;
       cancelActiveBrewAnimation();
+      // Hỏng ly: buộc pha lại, trừ khi đã hết lượt (khi đó ly chỉ đạt mức Mộc Mạc để không kẹt game)
+      if (rawBonus === 0 && attempt < BREW_RULES.maxAttempts) {
+        statusPill.textContent = `💥 Hỏng ly! Phải pha lại (lần ${attempt}/${BREW_RULES.maxAttempts})`;
+        statusPill.className = "text-[11px] font-mono-code text-rose-300 font-bold";
+        body.className = "space-y-2.5 p-2.5 rounded-xl bg-rose-500/10 border border-rose-400/40 transition-all";
+        body.innerHTML = `
+          <p class="text-xs text-rose-200">${labelText}</p>
+          <p class="text-[11px] text-stone-400">Ly này không thể mời khách. Làm lại thao tác nhé (pha lại chỉ đạt tối đa Chuẩn Vị). Còn ${BREW_RULES.maxAttempts - attempt} lần thử.</p>
+          <button type="button" id="btn-brew-retry" class="min-h-[44px] px-4 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/50 text-rose-100 font-bold text-xs cursor-pointer">🔁 Pha Lại Ly Này</button>
+        `;
+        document.getElementById("btn-brew-retry").addEventListener("click", (e) => {
+          e.stopPropagation();
+          brewAttempt = attempt + 1;
+          renderStep3Challenge(brewAttempt);
+        });
+        audioEngine.playChime(220, 0.35, 0.05);
+        return;
+      }
+      let bonus = rawBonus;
+      let text = labelText;
+      if (attempt > 1 && bonus === 2) {
+        bonus = 1;
+        text = `${labelText} (pha lại nên chỉ đạt Chuẩn Vị)`;
+      }
+      if (rawBonus === 0) text = `${labelText} Hết lượt thử, ly chỉ đạt mức Mộc Mạc.`;
       challengeBonus = bonus;
-      challengeResultText = labelText;
+      challengeResultText = text;
       const tone = bonus === 2 ? "emerald" : bonus === 1 ? "amber" : "rose";
-      statusPill.textContent = labelText;
+      statusPill.textContent = text;
       statusPill.className = `text-[11px] font-mono-code text-${tone}-300 font-bold`;
       body.className = `space-y-2.5 p-2.5 rounded-xl bg-${tone}-500/10 border border-${tone}-400/40 transition-all`;
       unlockServeButton();
@@ -238,14 +289,14 @@ function renderThreeStepBrewingStation(guests) {
         const fb = document.getElementById("shake-feedback");
         if (shakes > 0) {
           const gap = now - lastTap;
-          if (gap < BREW_TUNING.shaker.minGapMs) return; // chống bấm dồn
-          if (gap > BREW_TUNING.shaker.breakGapMs) {
+          if (gap < T.shaker.minGapMs) return; // chống bấm dồn
+          if (gap > T.shaker.breakGapMs) {
             shakes = 0;
             gaps.length = 0;
             fb.textContent = "⏱️ Nhịp bị đứt, lắc lại từ đầu nhé!";
           } else {
             gaps.push(gap);
-            fb.textContent = gap < BREW_TUNING.shaker.steadyMinMs ? "⚡ Hơi gấp!" : gap > BREW_TUNING.shaker.steadyMaxMs ? "🐢 Hơi chậm!" : "👌 Đều tay!";
+            fb.textContent = gap < T.shaker.steadyMinMs ? "⚡ Hơi gấp!" : gap > T.shaker.steadyMaxMs ? "🐢 Hơi chậm!" : "👌 Đều tay!";
           }
         }
         lastTap = now;
@@ -256,11 +307,12 @@ function renderThreeStepBrewingStation(guests) {
         audioEngine.playChime(350 + shakes * 50, 0.12, 0.04);
         document.getElementById("shake-count").textContent = Math.min(6, shakes);
         document.getElementById("shake-bar").style.width = `${Math.min(100, (shakes / 6) * 100)}%`;
-        if (shakes >= BREW_TUNING.shaker.taps) {
+        if (shakes >= T.shaker.taps) {
           lockChallengeButton(btnShake);
-          const steady = gaps.length > 0 && gaps.every((g) => inRange(g, [BREW_TUNING.shaker.steadyMinMs, BREW_TUNING.shaker.steadyMaxMs]));
-          if (steady) markChallengeResult(2, "🌟 Lắc đều nhịp, bọt mịn Hoàn Hảo!");
-          else markChallengeResult(1, "✨ Đã lắc xong, nhưng nhịp chưa thật đều nên bọt hơi thô.");
+          const sloppy = gaps.filter((g) => !inRange(g, [T.shaker.steadyMinMs, T.shaker.steadyMaxMs])).length;
+          if (sloppy === 0) markChallengeResult(2, "🌟 Lắc đều nhịp, bọt mịn Hoàn Hảo!");
+          else if (sloppy <= 2) markChallengeResult(1, "✨ Đã lắc xong, nhưng nhịp chưa thật đều nên bọt hơi thô.");
+          else markChallengeResult(0, "🫧 Nhịp lắc quá loạn, bọt vỡ hết rồi.");
         }
       });
     } else if (challengeType === "drip") {
@@ -270,7 +322,7 @@ function renderThreeStepBrewingStation(guests) {
       body.innerHTML = `
         <p class="text-xs text-stone-300">Canh kim rơi đúng <strong>vùng vàng đậm ở chính giữa</strong> rồi bấm <em>Chốt Giọt Tinh Túy</em>. Vùng nhạt bên ngoài chỉ đạt Chuẩn Vị, trượt ra ngoài là hỏng vị!</p>
         <div class="relative h-6 rounded-full bg-stone-950 border border-stone-700 overflow-hidden">
-          <div class="absolute inset-y-0 left-[30%] right-[30%] bg-amber-500/15"></div><div class="absolute inset-y-0 left-[43%] right-[43%] bg-amber-500/45 border-x border-amber-400"></div>
+          <div class="absolute inset-y-0 left-[30%] right-[30%] bg-amber-500/15"></div><div class="absolute inset-y-0 bg-amber-500/45 border-x border-amber-400" style="left:${T.drip.perfect[0]}%;right:${100 - T.drip.perfect[1]}%"></div>
           <div id="drip-needle" class="absolute top-0 bottom-0 w-2 bg-amber-300 rounded-full shadow" style="left: 10%"></div>
         </div>
         <button type="button" id="btn-challenge-drip" class="min-h-[44px] px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 text-amber-200 font-semibold text-xs cursor-pointer">
@@ -286,7 +338,7 @@ function renderThreeStepBrewingStation(guests) {
         }
         const dt = Math.min(0.05, (now - lastTime) / 1000);
         lastTime = now;
-        pos += dir * BREW_TUNING.drip.speed * dt;
+        pos += dir * T.drip.speed * dt;
         if (pos >= 92) {
           pos = 92;
           dir = -1;
@@ -303,22 +355,22 @@ function renderThreeStepBrewingStation(guests) {
         e.stopPropagation();
         if (challengeFinished) return;
         lockChallengeButton(btnDrip);
-        if (inRange(pos, BREW_TUNING.drip.perfect)) {
+        if (inRange(pos, T.drip.perfect)) {
           markChallengeResult(2, "🌟 Tuyệt vời! Giọt chiết xuất đạt độ cân bằng Hoàn Hảo!");
-        } else if (inRange(pos, BREW_TUNING.drip.ok)) {
+        } else if (inRange(pos, T.drip.ok)) {
           markChallengeResult(1, "✨ Đã chiết xuất xong, hương vị khá ổn nhưng chưa cân bằng hẳn.");
         } else {
           markChallengeResult(0, "💧 Giọt rơi lệch nhịp, vị cà phê hơi gắt.");
         }
       });
     } else if (challengeType === "ember") {
-      let heat = BREW_TUNING.ember.start;
+      let heat = T.ember.start;
       let holding = false;
       let lastTime = performance.now();
       body.innerHTML = `
-        <p class="text-xs text-stone-300">Nhấn giữ nút <strong>Ủ Ấm Trên Bếp Than</strong> đến đúng vùng cam ấm (60%–85%) rồi thả tay. Thả sớm thì nhạt, giữ quá tay thì cháy khét!</p>
+        <p class="text-xs text-stone-300">Nhấn giữ nút <strong>Ủ Ấm Trên Bếp Than</strong> đến đúng vùng cam ấm (${T.ember.perfect[0]}%–${T.ember.perfect[1]}%) rồi thả tay. Thả sớm thì nhạt, giữ quá tay thì cháy khét!</p>
         <div class="relative h-6 rounded-full bg-stone-950 border border-stone-700 overflow-hidden">
-          <div class="absolute inset-y-0 left-[60%] right-[15%] bg-orange-500/35 border-x border-orange-400"></div>
+          <div class="absolute inset-y-0 bg-orange-500/35 border-x border-orange-400" style="left:${T.ember.perfect[0]}%;right:${100 - T.ember.perfect[1]}%"></div>
           <div id="ember-fill" class="h-full bg-gradient-to-r from-amber-500 to-orange-500" style="width: 12%"></div>
         </div>
         <button type="button" id="btn-challenge-ember" class="no-touch-select min-h-[48px] px-5 py-2.5 rounded-xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-400/50 text-orange-200 font-bold text-xs cursor-pointer">
@@ -336,7 +388,7 @@ function renderThreeStepBrewingStation(guests) {
         const dt = Math.min(0.05, (now - lastTime) / 1000);
         lastTime = now;
         if (holding) {
-          heat = Math.min(100, heat + BREW_TUNING.ember.rate * dt);
+          heat = Math.min(100, heat + T.ember.rate * dt);
           fill.style.width = `${heat}%`;
           if (heat >= 100) {
             holding = false;
@@ -357,8 +409,8 @@ function renderThreeStepBrewingStation(guests) {
         e.stopPropagation();
         if (!holding || challengeFinished) return;
         holding = false;
-        if (heat < BREW_TUNING.ember.minHold) {
-          heat = BREW_TUNING.ember.start;
+        if (heat < T.ember.minHold) {
+          heat = T.ember.start;
           const fill = document.getElementById("ember-fill");
           if (fill) fill.style.width = "12%";
           audioEngine.playChime(240, 0.16, 0.03);
@@ -366,14 +418,14 @@ function renderThreeStepBrewingStation(guests) {
           return;
         }
         lockChallengeButton(btnEmber);
-        if (inRange(heat, BREW_TUNING.ember.perfect)) {
+        if (inRange(heat, T.ember.perfect)) {
           markChallengeResult(2, "🌟 Nhiệt độ than hồng đạt mức Hoàn Hảo!");
-        } else if (heat >= BREW_TUNING.ember.okLow && heat < BREW_TUNING.ember.perfect[0]) {
+        } else if (heat >= T.ember.okLow && heat < T.ember.perfect[0]) {
           markChallengeResult(1, "✨ Ly nước ấm vừa, hơi thiếu độ nồng.");
-        } else if (heat > BREW_TUNING.ember.perfect[1] && heat < BREW_TUNING.ember.okHigh) {
+        } else if (heat > T.ember.perfect[1] && heat < T.ember.okHigh) {
           markChallengeResult(1, "✨ Hơi nóng tay một chút nhưng vẫn giữ được hương.");
         } else {
-          markChallengeResult(0, heat < BREW_TUNING.ember.okLow ? "🧊 Ly nước còn nhạt, chưa kịp ấm." : "🔥 Than quá nóng, ly nước hơi khét.");
+          markChallengeResult(0, heat < T.ember.okLow ? "🧊 Ly nước còn nhạt, chưa kịp ấm." : "🔥 Than quá nóng, ly nước hơi khét.");
         }
       };
 

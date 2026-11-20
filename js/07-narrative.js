@@ -31,14 +31,7 @@ function startNight(nightIdx) {
   runState.lastDrinkReflectionText = "";
   runState.drawnCardData = null;
 
-  if (persistentArchive.autoCycleSeasons && nightIdx > 0) {
-    const nextSeason = SEASON_THEMES[nightIdx % SEASON_THEMES.length];
-    persistentArchive.selectedSeasonTheme = nextSeason.id;
-    persistentArchive.visitedSeasons[nextSeason.id] = true;
-    saveArchive();
-    audioEngine.applySeasonSoundscape();
-    checkAndUnlockAchievements();
-  }
+  applyNightAmbience(nightIdx);
 
   if (runState.shiftMode === "midnight_mysteries") {
     const unused = MIDNIGHT_ENCOUNTERS.filter((e) => !runState.usedEncounterIds.includes(e.id));
@@ -84,6 +77,30 @@ function startNight(nightIdx) {
   } else {
     launchNightCutscenes();
   }
+}
+
+/* Mỗi đêm tự đổi mùa và không gian quán (đèn, quầy, góc trang trí) nếu người chơi để chế độ tự động. */
+function applyNightAmbience(nightIdx) {
+  if (nightIdx <= 0) return;
+  let changed = false;
+  if (persistentArchive.autoCycleSeasons) {
+    const nextSeason = SEASON_THEMES[nightIdx % SEASON_THEMES.length];
+    persistentArchive.selectedSeasonTheme = nextSeason.id;
+    persistentArchive.visitedSeasons[nextSeason.id] = true;
+    changed = true;
+  }
+  if (persistentArchive.autoCycleCafe) {
+    if (!persistentArchive.cafeCustom) persistentArchive.cafeCustom = {};
+    Object.entries(CAFE_CUSTOM_OPTIONS).forEach(([slot, group], slotIdx) => {
+      const available = group.choices.filter((c) => !c.requires || isSecretUnlocked(c.requires));
+      persistentArchive.cafeCustom[slot] = available[(nightIdx + slotIdx) % available.length].id;
+    });
+    changed = true;
+  }
+  if (!changed) return;
+  saveArchive();
+  audioEngine.applySeasonSoundscape();
+  checkAndUnlockAchievements();
 }
 
 function resumeRun() {
@@ -134,7 +151,7 @@ function renderSoloNightBeat(guest, beat) {
     if (sub === 0) {
       setDialogue(
         guest.name,
-        isChapter2 ? `${guest.role} • Chương 2` : guest.role,
+        isChapter2 ? `${guest.role} • Gặp Lại` : guest.role,
         guest.avatar,
         isChapter2 ? ch2.greeting : `${script.entranceNarration}\n\n"${script.greeting}"`,
         true

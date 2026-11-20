@@ -314,6 +314,16 @@ function manualSave() {
   }
 }
 
+/* Bỏ ca đang lưu và mở ca mới từ Đêm 1 (sổ lưu trữ vẫn giữ). */
+function restartRunFromSave() {
+  if (hasSavedRun() && !window.confirm("Chơi lại từ Đêm 1? Ca trực đang lưu sẽ bị bỏ (sổ lưu trữ vẫn được giữ).")) return;
+  cancelActiveBrewAnimation();
+  closeModal("mobile-drawer");
+  safeRemoveItem(STORAGE_KEY_RUN);
+  runState = null;
+  switchScreen("screen-rules");
+}
+
 function hasSavedRun() {
   return Boolean(runState && runState.nightIndex < 28);
 }
@@ -402,7 +412,142 @@ function renderRulesScreenControls() {
   });
 }
 
+/* ---- Tiến độ hoàn thành game (0–100%) ---- */
+const PROGRESS_WEIGHTS = [
+  { id: "endings", label: "🎭 Kết cục", weight: 30 },
+  { id: "chapters", label: "🌙 Chặng hoàn thành", weight: 15 },
+  { id: "secrets", label: "🗝️ Kho bí mật", weight: 15 },
+  { id: "cards", label: "🎴 Lá bài DRINK", weight: 8 },
+  { id: "keepsakes", label: "🏺 Kỷ vật", weight: 8 },
+  { id: "achievements", label: "🏅 Thành tựu", weight: 8 },
+  { id: "signatures", label: "🍹 Công thức độc quyền", weight: 6 },
+  { id: "eggs", label: "🥚 Bí mật quán", weight: 6 },
+  { id: "twist", label: "🕊️ Cánh Cửa Thứ Hai", weight: 4 }
+];
+
+function computeGameProgress(a = persistentArchive) {
+  const counts = {
+    endings: [Math.min(TOTAL_ENDINGS, countUnlockedEndings(a)), TOTAL_ENDINGS],
+    chapters: [SHIFT_MODES.filter((m) => a.completedModes[m.id]).length, SHIFT_MODES.length],
+    secrets: [SECRET_VAULT.filter((s) => isSecretUnlocked(s.id)).length, SECRET_VAULT.length],
+    cards: [Object.keys(a.unlockedDrinkCards).length, DRINK_CARDS.length],
+    keepsakes: [STANDARD_GUEST_ORDER.filter((g) => a.unlockedKeepsakes[g]).length, STANDARD_GUEST_ORDER.length],
+    achievements: [
+      ACHIEVEMENTS.filter((x) => x.id !== "ach_twist" && a.unlockedAchievements[x.id]).length,
+      ACHIEVEMENTS.filter((x) => x.id !== "ach_twist").length
+    ],
+    signatures: [Object.keys(a.unlockedSignatures).length, SIGNATURE_RECIPES.length],
+    eggs: [getDiscoveredEggs(a).length, EASTER_EGGS.length],
+    twist: [a.twistEndingSeen ? 1 : 0, 1]
+  };
+  let total = 0;
+  const rows = PROGRESS_WEIGHTS.map((w) => {
+    const [cur, max] = counts[w.id];
+    const ratio = max > 0 ? Math.min(1, cur / max) : 0;
+    total += w.weight * ratio;
+    return { ...w, cur: Math.min(cur, max), max, ratio };
+  });
+  return { percent: Math.min(100, Math.floor(total + 1e-9)), rows };
+}
+
+function renderGameProgress() {
+  const { percent, rows } = computeGameProgress();
+  document.querySelectorAll("[data-progress-percent]").forEach((el) => (el.textContent = `${percent}%`));
+  document.querySelectorAll("[data-progress-bar]").forEach((el) => (el.style.width = `${percent}%`));
+  const menuBtn = document.getElementById("btn-open-drawer");
+  if (menuBtn) menuBtn.textContent = `☰ Menu • ${percent}%`;
+  const list = document.getElementById("progress-breakdown");
+  if (list) {
+    list.innerHTML = rows
+      .map(
+        (r) => `
+        <div class="space-y-0.5">
+          <div class="flex justify-between text-[11px]"><span class="text-stone-300">${r.label}</span><span class="font-mono-code ${r.ratio >= 1 ? "text-emerald-300" : "text-amber-300"}">${r.cur}/${r.max}${r.ratio >= 1 ? " ✓" : ""}</span></div>
+          <div class="h-1.5 rounded-full bg-stone-950 overflow-hidden"><div class="h-full ${r.ratio >= 1 ? "bg-emerald-400" : "bg-amber-400"}" style="width:${Math.round(r.ratio * 100)}%"></div></div>
+        </div>`
+      )
+      .join("");
+  }
+  const note = document.getElementById("progress-note");
+  if (note) {
+    note.textContent =
+      percent >= 100 ? "🌟 Bạn đã hoàn thành trọn vẹn Tiệm Nước Nửa Đêm!" : "Hoàn thành mọi mục để đạt 100% và mở cánh cửa cuối cùng.";
+  }
+}
+
+/* ---- Giọng đọc: giao diện trong Menu ---- */
+function renderVoiceControls() {
+  const btn = document.getElementById("btn-toggle-voice");
+  if (!btn) return;
+  const on = Boolean(persistentArchive.voiceEnabled) && CafeVoice.supported;
+  const replay = document.getElementById("btn-voice-replay");
+  if (replay) replay.classList.toggle("hidden", !on);
+  const quick = document.getElementById("btn-quick-voice");
+  if (quick) {
+    quick.textContent = on ? "🗣️ Bật" : "🗣️";
+    quick.className = on
+      ? "min-h-[36px] px-2.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/50 text-xs text-emerald-200 cursor-pointer"
+      : "min-h-[36px] px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer";
+  }
+  btn.textContent = on ? "Bật" : "Tắt";
+  btn.className = on
+    ? "px-2.5 py-1 rounded-xl bg-emerald-500/20 border border-emerald-400/50 text-[11px] text-emerald-200 cursor-pointer"
+    : "px-2.5 py-1 rounded-xl bg-stone-950 border border-stone-700 text-[11px] text-stone-300 cursor-pointer";
+  const rate = Number(persistentArchive.voiceRate) || 0.95;
+  document.getElementById("voice-rate-slider").value = Math.round(rate * 100);
+  document.getElementById("voice-rate-label").textContent = `${rate.toFixed(2)}x`;
+  document.getElementById("voice-controls").classList.toggle("opacity-50", !CafeVoice.supported);
+  const viVoices = CafeVoice.supported ? CafeVoice.vietnameseVoices() : [];
+  const row = document.getElementById("voice-select-row");
+  const sel = document.getElementById("voice-select");
+  row.classList.toggle("hidden", viVoices.length < 2);
+  sel.innerHTML = viVoices
+    .map((v) => `<option value="${v.name}" ${v.name === persistentArchive.voiceName ? "selected" : ""}>${v.name}</option>`)
+    .join("");
+  const note = document.getElementById("voice-note");
+  if (!CafeVoice.supported) note.textContent = "Trình duyệt này chưa hỗ trợ giọng đọc.";
+  else if (!viVoices.length) note.textContent = "Chưa tìm thấy giọng tiếng Việt trên thiết bị; sẽ dùng giọng mặc định.";
+  else if (on) note.textContent = "Đang BẬT: đọc toàn bộ lời thoại, cutscene, hồi tưởng và tổng kết. Mỗi nhân vật có cao độ giọng riêng.";
+  else note.textContent = "Đang TẮT: game hoàn toàn im lặng, không đọc bất kỳ nội dung nào.";
+}
+
+function bindVoiceControls() {
+  const toggleVoice = () => {
+    if (!CafeVoice.supported) {
+      showToast("🗣️ Trình duyệt này chưa hỗ trợ giọng đọc.");
+      return;
+    }
+    persistentArchive.voiceEnabled = !persistentArchive.voiceEnabled;
+    saveArchive();
+    if (persistentArchive.voiceEnabled) {
+      CafeVoice.speak("Giọng đọc đã được bật.", "", true);
+    } else {
+      CafeVoice.stop();
+    }
+    renderVoiceControls();
+    showToast(persistentArchive.voiceEnabled ? "🗣️ Đã bật giọng đọc" : "🔇 Đã tắt giọng đọc");
+  };
+  document.getElementById("btn-toggle-voice").addEventListener("click", toggleVoice);
+  document.getElementById("btn-quick-voice").addEventListener("click", toggleVoice);
+  document.getElementById("voice-rate-slider").addEventListener("input", (e) => {
+    persistentArchive.voiceRate = Number(e.target.value) / 100;
+    document.getElementById("voice-rate-label").textContent = `${persistentArchive.voiceRate.toFixed(2)}x`;
+  });
+  document.getElementById("voice-rate-slider").addEventListener("change", saveArchive);
+  document.getElementById("voice-select").addEventListener("change", (e) => {
+    persistentArchive.voiceName = e.target.value;
+    saveArchive();
+    CafeVoice.speak("Xin chào, mình là Thỏ Con. Mời bạn một ly nước nóng.", "", true);
+  });
+  document.getElementById("btn-voice-test").addEventListener("click", () => {
+    CafeVoice.speak("Xin chào, mình là Thỏ Con. Mời bạn một ly nước nóng, rồi kể mình nghe chuyện đêm nay nhé.", "", true);
+  });
+}
+
 function updateAllProgressBadges() {
+  renderGameProgress();
+  renderVoiceControls();
+  renderChapterInfo();
   const a = persistentArchive;
   document.getElementById("mobile-cutscene-badge").textContent = `${Object.keys(a.unlockedCutscenes).length}/${CUTSCENE_CATALOG.length}`;
   document.getElementById("mobile-album-badge").textContent = `${Object.keys(a.unlockedSignatures).length}`;
@@ -854,20 +999,26 @@ function openEasterEggsModal() {
   }
   const grid = document.getElementById("easter-eggs-grid");
   grid.innerHTML = "";
+  // Bí mật chưa tìm thấy được giữ kín: không lộ tên, gợi ý hay cách mở khóa.
   EASTER_EGGS.forEach((egg) => {
     const unlocked = Boolean(persistentArchive.discoveredEasterEggs[egg.id]);
     const el = document.createElement("div");
     el.className = unlocked
       ? "p-3 rounded-2xl border text-xs bg-emerald-500/15 border-emerald-400/40"
       : "p-3 rounded-2xl border text-xs bg-stone-950/80 border-stone-800";
-    el.innerHTML = `
-      <div class="font-bold ${unlocked ? "text-emerald-200" : "text-stone-300"}">${unlocked ? egg.icon : "❓"} ${egg.name}</div>
-      <div class="text-stone-400 mt-1">${unlocked ? `✅ Đã khám phá! Mảnh ghép: “${EGG_FRAGMENTS[egg.id]}”` : `💡 ${egg.hint}`}</div>
-    `;
+    el.innerHTML = unlocked
+      ? `<div class="font-bold text-emerald-200">${egg.icon} ${egg.name}</div>
+         <div class="text-stone-400 mt-1">✅ Đã khám phá! Mảnh ghép: “${EGG_FRAGMENTS[egg.id]}”</div>`
+      : `<div class="font-bold text-stone-500">❓ ???</div>
+         <div class="text-stone-600 mt-1">Một bí mật vẫn đang ngủ yên trong quán…</div>`;
     grid.appendChild(el);
   });
-  if (!grid.children.length) {
-    grid.innerHTML = `<div class="text-xs text-stone-400">Chưa có bí mật nào lộ diện… Quán nhỏ này còn nhiều điều bất ngờ đang chờ bạn.</div>`;
+  const hiddenLeft = EASTER_EGGS.length - getDiscoveredEggs().length;
+  if (hiddenLeft > 0) {
+    const nudge = document.createElement("p");
+    nudge.className = "text-[11px] text-stone-500 italic sm:col-span-2";
+    nudge.textContent = `Còn ${hiddenLeft} bí mật chưa lộ diện. Hãy tự khám phá quán nhỏ này…`;
+    grid.appendChild(nudge);
   }
   openModal("modal-easter-eggs");
 }
@@ -911,6 +1062,16 @@ function openAmbienceModal() {
       ? "🔄 Tự Đổi Mùa Mỗi Đêm: Bật"
       : "🔄 Tự Đổi Mùa Mỗi Đêm: Tắt";
     autoBtn.className = persistentArchive.autoCycleSeasons
+      ? "px-2.5 py-1 rounded-xl bg-emerald-500/20 border border-emerald-400/50 text-[11px] text-emerald-200 cursor-pointer"
+      : "px-2.5 py-1 rounded-xl bg-stone-950 border border-stone-700 text-[11px] text-stone-300 cursor-pointer";
+  }
+
+  const cafeBtn = document.getElementById("btn-toggle-auto-cafe");
+  if (cafeBtn) {
+    cafeBtn.textContent = persistentArchive.autoCycleCafe
+      ? "🪑 Tự Đổi Không Gian Quán Mỗi Đêm: Bật"
+      : "🪑 Tự Đổi Không Gian Quán Mỗi Đêm: Tắt";
+    cafeBtn.className = persistentArchive.autoCycleCafe
       ? "px-2.5 py-1 rounded-xl bg-emerald-500/20 border border-emerald-400/50 text-[11px] text-emerald-200 cursor-pointer"
       : "px-2.5 py-1 rounded-xl bg-stone-950 border border-stone-700 text-[11px] text-stone-300 cursor-pointer";
   }
@@ -1128,6 +1289,14 @@ function bindAllUIEvents() {
   });
 
   document.getElementById("btn-quick-save").addEventListener("click", manualSave);
+  bindVoiceControls();
+  const replayBtn = document.getElementById("btn-voice-replay");
+  if (replayBtn && CafeVoice.supported) {
+    replayBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      CafeVoice.speak(currentFullDialogueText, document.getElementById("speaker-name").textContent, true);
+    });
+  }
   // Tự lưu khi đóng tab / chuyển app (quan trọng trên điện thoại)
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") {
@@ -1242,6 +1411,8 @@ function bindAllUIEvents() {
       updateAllProgressBadges();
       const btnContinue = document.getElementById("btn-welcome-continue");
       if (btnContinue) btnContinue.classList.toggle("hidden", !(runState && runState.nightIndex < 28));
+      const btnRestart = document.getElementById("btn-welcome-restart");
+      if (btnRestart) btnRestart.classList.toggle("hidden", !(runState && runState.nightIndex < 28));
       renderRulesScreenControls();
       syncGameHUD();
       showToast("✅ Khôi phục dữ liệu thành công!");
@@ -1252,13 +1423,8 @@ function bindAllUIEvents() {
 
   document.getElementById("btn-night8-secret").addEventListener("click", startSecretNight8Reunion);
   document.getElementById("btn-twist-ending").addEventListener("click", startTwistEnding);
-  document.getElementById("btn-restart-run").addEventListener("click", () => {
-    cancelActiveBrewAnimation();
-    closeModal("mobile-drawer");
-    safeRemoveItem(STORAGE_KEY_RUN);
-    runState = null;
-    switchScreen("screen-rules");
-  });
+  document.getElementById("btn-restart-run").addEventListener("click", restartRunFromSave);
+  document.getElementById("btn-welcome-restart").addEventListener("click", restartRunFromSave);
 
   // Ambience & Cutscene Player Controls
   document.getElementById("btn-toggle-sound").addEventListener("click", () => {
@@ -1277,6 +1443,17 @@ function bindAllUIEvents() {
     );
   });
 
+  document.getElementById("btn-toggle-auto-cafe").addEventListener("click", () => {
+    persistentArchive.autoCycleCafe = !persistentArchive.autoCycleCafe;
+    saveArchive();
+    openAmbienceModal();
+    showToast(
+      persistentArchive.autoCycleCafe
+        ? "🪑 Đã bật tự động đổi không gian quán sau mỗi đêm"
+        : "🪑 Đã tắt tự động đổi không gian quán (giữ nguyên lựa chọn của bạn)"
+    );
+  });
+
   document.getElementById("rain-volume-slider").addEventListener("input", (e) => {
     audioEngine.updateRainVolume(Number(e.target.value) / 100);
   });
@@ -1289,6 +1466,7 @@ function bindAllUIEvents() {
       return;
     }
     activeCutscenePages = null;
+    CafeVoice.stop();
     closeModal("modal-cutscene-player");
     const cb = activeCutsceneCallback;
     activeCutsceneCallback = null;

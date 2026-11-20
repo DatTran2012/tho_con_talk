@@ -13,7 +13,9 @@ function createDefaultArchive() {
     selectedTitleId: "auto",
     selectedShiftMode: "standard",
     selectedSeasonTheme: "autumn_rain",
-    autoCycleSeasons: false,
+    autoCycleSeasons: true,
+    autoCycleCafe: true,
+    autoCycleV2: true,
     visitedSeasons: { autumn_rain: true },
     cafeCustom: {
       lantern: "lantern_classic",
@@ -22,6 +24,10 @@ function createDefaultArchive() {
     },
     selectedLofiChannel: "seasonal_auto",
     rainVolume: 0.45,
+    voiceEnabled: true,
+    voiceV2: true,
+    voiceRate: 0.95,
+    voiceName: "",
     unlockedEndings: {},
     unlockedCutscenes: { origin_thocon_1: true },
     unlockedKeepsakes: {},
@@ -62,9 +68,18 @@ function sanitizeArchive(rawObj) {
     selectedShiftMode: validMode,
     selectedSeasonTheme: validSeason,
     rainVolume: Math.min(1, Math.max(0, Number(rawObj.rainVolume) || 0.45)),
+    // Save cũ: bật giọng đọc một lần, sau đó giữ đúng lựa chọn của người chơi
+    voiceEnabled: rawObj.voiceV2 ? Boolean(rawObj.voiceEnabled) : true,
+    voiceV2: true,
+    voiceRate: Math.min(1.4, Math.max(0.6, Number(rawObj.voiceRate) || 0.95)),
+    voiceName: typeof rawObj.voiceName === "string" ? rawObj.voiceName.slice(0, 120) : "",
     completedModes: safeObj(rawObj.completedModes, {}),
     visitedSeasons: { ...def.visitedSeasons, ...safeObj(rawObj.visitedSeasons, {}) },
     cafeCustom: { ...def.cafeCustom, ...safeObj(rawObj.cafeCustom, {}) },
+    // Save cũ: bật tự đổi mùa/không gian quán một lần (sau đó người chơi tắt được trong menu Âm Thanh & Mùa)
+    autoCycleSeasons: rawObj.autoCycleV2 ? Boolean(rawObj.autoCycleSeasons) : true,
+    autoCycleCafe: rawObj.autoCycleV2 ? rawObj.autoCycleCafe !== false : true,
+    autoCycleV2: true,
     unlockedEndings: safeObj(rawObj.unlockedEndings, {}),
     unlockedCutscenes: { origin_thocon_1: true, ...safeObj(rawObj.unlockedCutscenes, {}) },
     unlockedKeepsakes: safeObj(rawObj.unlockedKeepsakes, {}),
@@ -97,6 +112,7 @@ function loadArchive() {
 let persistentArchive = loadArchive();
 
 function saveArchive() {
+  if (typeof renderGameProgress === "function") renderGameProgress();
   safeSetItem(STORAGE_KEY_ARCHIVE, JSON.stringify(persistentArchive));
 }
 

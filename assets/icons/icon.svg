@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Thỏ Con Talk — Tiệm Nước Nửa Đêm">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a1f4a"/>
+      <stop offset="1" stop-color="#0d0b18"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.62" r="0.55">
+      <stop offset="0" stop-color="#ffb347" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#ffb347" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="drink" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd27a"/>
+      <stop offset="1" stop-color="#f08a24"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="112" fill="url(#glow)"/>
+  <!-- trăng khuyết -->
+  <path transform="translate(70 0) scale(.85)" d="M392 96a58 58 0 1 0 38 98a46 46 0 0 1-38-98z" fill="#fff1c9"/>
+  <!-- sao nhỏ -->
+  <circle cx="96" cy="112" r="6" fill="#fff1c9" opacity=".9"/>
+  <circle cx="150" cy="70" r="4" fill="#fff1c9" opacity=".7"/>
+  <circle cx="64" cy="190" r="4" fill="#fff1c9" opacity=".6"/>
+  <!-- đôi tai thỏ thò sau ly -->
+  <g>
+    <ellipse cx="206" cy="210" rx="34" ry="92" transform="rotate(-10 206 210)" fill="#f4eef7"/>
+    <ellipse cx="206" cy="214" rx="17" ry="66" transform="rotate(-10 206 214)" fill="#f7a6c0"/>
+    <ellipse cx="306" cy="210" rx="34" ry="92" transform="rotate(10 306 210)" fill="#f4eef7"/>
+    <ellipse cx="306" cy="214" rx="17" ry="66" transform="rotate(10 306 214)" fill="#f7a6c0"/>
+  </g>
+  <!-- hơi nóng -->
+  <path d="M238 292c-14-18 14-30 0-50M274 292c-14-18 14-30 0-50" fill="none" stroke="#fff1c9" stroke-width="9" stroke-linecap="round" opacity=".0"/>
+  <!-- ly nước -->
+  <path d="M148 286h216l-24 148a32 32 0 0 1-32 27H204a32 32 0 0 1-32-27z" fill="#f4eef7" fill-opacity=".16" stroke="#fff1c9" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M160 330h192l-16 104a24 24 0 0 1-24 20H200a24 24 0 0 1-24-20z" fill="url(#drink)"/>
+  <!-- mặt thỏ trong ly -->
+  <circle cx="226" cy="380" r="9" fill="#2a1f4a"/>
+  <circle cx="286" cy="380" r="9" fill="#2a1f4a"/>
+  <path d="M244 402q12 12 24 0" fill="none" stroke="#2a1f4a" stroke-width="7" stroke-linecap="round"/>
+  <!-- miệng ly -->
+  <rect x="140" y="278" width="232" height="18" rx="9" fill="#fff1c9"/>
+</svg>

@@ -14,6 +14,8 @@ function switchScreen(screenId) {
     if (btnContinue) {
       btnContinue.classList.toggle("hidden", !(runState && runState.nightIndex < 28));
     }
+    const btnRestart = document.getElementById("btn-welcome-restart");
+    if (btnRestart) btnRestart.classList.toggle("hidden", !(runState && runState.nightIndex < 28));
   }
   if (screenId === "screen-rules") {
     renderRulesScreenControls();
@@ -30,6 +32,8 @@ function openModal(modalId) {
 }
 
 function closeModal(modalId) {
+  // Đóng hộp thoại kể chuyện thì dừng giọng đọc của nó
+  if (modalId === "modal-epilogue" || modalId === "modal-cutscene-player") CafeVoice.stop();
   const el = document.getElementById(modalId);
   if (el) el.classList.add("hidden");
 }
@@ -57,6 +61,7 @@ function setDialogue(speakerName, speakerRole, avatar, text, canAdvance = true) 
   }
   currentFullDialogueText = text;
   stageRenderer.talkAnimTimer = 900;
+  CafeVoice.speak(text, speakerName);
 
   document.getElementById("speaker-name").textContent = speakerName;
   document.getElementById("speaker-role").textContent = speakerRole;
@@ -96,8 +101,30 @@ function setDialogue(speakerName, speakerRole, avatar, text, canAdvance = true) 
   }
 }
 
+/* Chặng = tháng trực (3 chặng: Mưa → Hội Ngộ → Khuya Khoắt). Hiện trên HUD và trong Menu. */
+function renderChapterInfo() {
+  const chapterBadge = document.getElementById("hud-chapter-badge");
+  const drawerInfo = document.getElementById("drawer-chapter-info");
+  if (!runState) {
+    if (drawerInfo) drawerInfo.classList.add("hidden");
+    return;
+  }
+  const mode = SHIFT_MODES.find((m) => m.id === runState.shiftMode) || SHIFT_MODES[0];
+  const chapterNo = mode.order + 1;
+  const night = Math.min(28, runState.nightIndex + 1);
+  if (chapterBadge) {
+    chapterBadge.textContent = `${mode.icon} Chặng ${chapterNo}/${SHIFT_MODES.length}`;
+    chapterBadge.title = mode.name;
+  }
+  if (drawerInfo) {
+    drawerInfo.textContent = `${mode.icon} Chặng ${chapterNo}/${SHIFT_MODES.length} • ${mode.name} • Đêm ${night}/28`;
+    drawerInfo.classList.remove("hidden");
+  }
+}
+
 function syncGameHUD() {
   if (!runState) return;
+  renderChapterInfo();
   const weekNum = Math.min(4, Math.floor(runState.nightIndex / 7) + 1);
   const nightInWeek = (runState.nightIndex % 7) + 1;
   document.getElementById("hud-week-badge").textContent = `Tuần ${weekNum}/4`;
@@ -117,7 +144,7 @@ function syncGameHUD() {
     }
   } else {
     const isCh2 = Boolean(persistentArchive.unlockedKeepsakes[guests[0].id]);
-    modeBadge.textContent = isCh2 ? "📖 Chương 2: Quay Lại" : "👤 Đơn Khách";
+    modeBadge.textContent = isCh2 ? "📖 Khách Gặp Lại" : "👤 Đơn Khách";
     modeBadge.className = "px-2.5 py-1 rounded-xl bg-stone-900 border border-stone-700 text-stone-200 text-xs";
     document.getElementById("stage-guest-label").textContent = `${guests[0].avatar} ${guests[0].name}`;
   }
@@ -165,6 +192,7 @@ function playCutscene(cutsceneId, onDone = null, nightMeta = null) {
     activeCutscenePages = null;
     document.getElementById("cs-player-icon").textContent = cs.icon;
     document.getElementById("cs-player-caption").textContent = cs.caption;
+    CafeVoice.speak(cs.caption, "");
     document.getElementById("btn-cs-player-continue").textContent = "Tiếp Tục ▸";
   }
   activeCutsceneCallback = onDone;
@@ -180,6 +208,7 @@ function renderCutscenePage() {
   document.getElementById("cs-player-location").textContent = `${st.location} • ${st.idx + 1}/${st.pages.length}`;
   document.getElementById("cs-player-icon").textContent = page.icon;
   document.getElementById("cs-player-caption").textContent = page.text;
+  CafeVoice.speak(page.text, "");
   document.getElementById("btn-cs-player-continue").textContent = isLast ? "Tiếp Tục ▸" : "Tiếp ▸";
 }
 

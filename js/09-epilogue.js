@@ -447,6 +447,12 @@ function showEpilogueModal(isMonthComplete = false) {
   }
 
   openModal("modal-epilogue");
+  CafeVoice.speak(
+    ["epilogue-heading", "epilogue-stance-summary", "epilogue-results-list"]
+      .map((id) => (document.getElementById(id) || {}).textContent || "")
+      .join(". "),
+    ""
+  );
 }
 
 function proceedToNextWeekWithRecap() {
@@ -471,6 +477,7 @@ function proceedToNextWeekWithRecap() {
   document.getElementById("cs-player-icon").textContent = "🐰📖☕";
   document.getElementById("cs-player-title").textContent = `Ghi Chép Đầu Tuần ${nextWeekNum}`;
   document.getElementById("cs-player-caption").textContent = recapCaption;
+  CafeVoice.speak(recapCaption, "");
   activeCutscenePages = null;
   document.getElementById("btn-cs-player-continue").textContent = "Tiếp Tục ▸";
 

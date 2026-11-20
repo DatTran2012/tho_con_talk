@@ -1,0 +1,16 @@
+{
+  "name": "Thỏ Con Talk — Tiệm Nước Nửa Đêm",
+  "short_name": "Thỏ Con Talk",
+  "description": "Trò chơi kể chuyện nhẹ nhàng: pha nước, lắng nghe tâm sự những vị khách nửa đêm.",
+  "lang": "vi",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0b18",
+  "theme_color": "#1b1533",
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

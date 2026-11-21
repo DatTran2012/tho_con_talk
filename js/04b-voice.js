@@ -131,7 +131,7 @@ const CafeVoice = (() => {
       }
     }
     const token = speakToken;
-    const userRate = Math.min(1.4, Math.max(0.6, Number(persistentArchive.voiceRate) || 0.95));
+    const userRate = Math.min(2.5, Math.max(0.6, Number(persistentArchive.voiceRate) || 0.95));
     const jobs = [];
     items.forEach(({ text, speaker }) => {
       const clean = cleanText(text);
@@ -158,7 +158,7 @@ const CafeVoice = (() => {
         const u = new window.SpeechSynthesisUtterance(job.chunk);
         u.lang = "vi-VN";
         if (job.voice) u.voice = job.voice;
-        u.rate = Math.min(1.6, Math.max(0.5, job.rate));
+        u.rate = Math.min(3, Math.max(0.5, job.rate));
         u.pitch = Math.min(1.8, Math.max(0.4, job.pitch));
         u.onend = () => {
           const i = liveUtterances.indexOf(u);

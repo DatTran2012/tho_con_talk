@@ -8,8 +8,9 @@ function renderDrinkCardBeat(guests) {
   actionArea.innerHTML = "";
 
   if (!runState.drawnCardData) {
-    const uncollected = DRINK_CARDS.filter((c) => !persistentArchive.unlockedDrinkCards[c.id]);
-    const pool = uncollected.length > 0 ? uncollected : DRINK_CARDS;
+    const drawable = DRINK_CARDS.filter((c) => !c.hidden);
+    const uncollected = drawable.filter((c) => !persistentArchive.unlockedDrinkCards[c.id]);
+    const pool = uncollected.length > 0 ? uncollected : drawable;
     const card = pool[Math.floor(Math.random() * pool.length)];
     const canAskHost = runState.lastDrinkCardMode !== "host_answers";
     const mode = canAskHost && Math.random() < 0.22 ? "host_answers" : "guest_answers";
@@ -295,7 +296,10 @@ function completeCurrentNight() {
   updateAllProgressBadges();
 
   const goNext = () => {
-    if (runState.nightIndex >= 28) {
+    const doneWeek = runState.nightIndex / 7;
+    if (runState.nightIndex % 7 === 0 && !weekRecipeGoalMet(doneWeek)) {
+      showWeekRecipeFailed(doneWeek);
+    } else if (runState.nightIndex >= 28) {
       showEpilogueModal(true);
     } else if (runState.nightIndex % 7 === 0) {
       showEpilogueModal(false);
@@ -396,9 +400,54 @@ function showEpilogueModal(isMonthComplete = false) {
   );
 }
 
+/* Tuần chưa đạt mục tiêu công thức nước: phải chơi lại tuần đó trước khi mở chương tiếp theo */
+function showWeekRecipeFailed(week) {
+  const need = WEEK_RECIPE_TARGETS[week - 1];
+  const have = recipesDiscoveredCount();
+  const chap = STORY_CHAPTERS[week - 1];
+  runState.retryWeek = week;
+  saveRunState();
+  document.getElementById("epilogue-kicker").textContent = `🍹 CHƯƠNG ${week} • CHƯA ĐẠT MỤC TIÊU`;
+  document.getElementById("epilogue-heading").textContent = "Quán Còn Thiếu Một Ly Nước Đặc Biệt";
+  document.getElementById("epilogue-stance-summary").innerHTML = `
+    <div><strong>Mục tiêu:</strong> khám phá ít nhất <span class="text-amber-200">${need}</span> công thức nước độc quyền (đang có <span class="text-amber-200">${have}</span>).</div>
+    <div class="mt-1 text-amber-200/90">Mở "Album Ly" trong Menu để xem gợi ý cho các công thức chưa lộ diện, rồi chơi lại Chương ${week} (${chap.name}) và thử pha lại.</div>`;
+  const list = document.getElementById("epilogue-results-list");
+  list.innerHTML = "";
+  regularRecipes().filter((s) => !persistentArchive.unlockedSignatures[s.id])
+    .slice(0, 3)
+    .forEach((sig) => {
+      const base = DRINK_BASES.find((b) => b.id === sig.base);
+      const card = document.createElement("div");
+      card.className = "p-3 rounded-2xl bg-stone-900/90 border border-stone-800 text-[11px] text-stone-300";
+      card.innerHTML = `🔒 Công thức chưa lộ diện • nền gợi ý: ${base ? `${base.icon} ${base.name}` : "?"}`;
+      list.appendChild(card);
+    });
+  const nextBtn = document.getElementById("btn-epilogue-next-week");
+  nextBtn.classList.remove("hidden");
+  nextBtn.textContent = `🔁 Chơi Lại Chương ${week} ▸`;
+  document.getElementById("btn-epilogue-new-week").classList.add("hidden");
+  openModal("modal-epilogue");
+}
+
 function proceedToNextWeekWithRecap() {
   if (!runState) return;
   closeModal("modal-epilogue");
+
+  if (runState.retryWeek) {
+    const wk = runState.retryWeek;
+    runState.retryWeek = 0;
+    runState.nightIndex = (wk - 1) * 7;
+    runState.weekResults = [];
+    runState.allMonthResults = runState.allMonthResults.filter((r) => r.weekNum < wk);
+    runState.weeklyStanceCounts = { heart: 0, mind: 0, silent: 0, duo: 0, duo_heart: 0, duo_mind: 0 };
+    runState.awaitingNightStart = true;
+    runState.beatIndex = 0;
+    runState.subBeat = 0;
+    saveRunState();
+    startNight(runState.nightIndex);
+    return;
+  }
 
   const nextWeekNum = Math.min(4, Math.floor(runState.nightIndex / 7) + 1);
   const prevResults = [...runState.weekResults];

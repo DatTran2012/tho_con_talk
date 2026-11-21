@@ -24,6 +24,10 @@ function startNight(nightIdx) {
   if (!runState) return;
   cancelActiveBrewAnimation();
 
+  if (nightIdx > 0 && nightIdx % 7 === 0 && !weekRecipeGoalMet(Math.min(4, nightIdx / 7))) {
+    showWeekRecipeFailed(Math.min(4, nightIdx / 7));
+    return;
+  }
   if (nightIdx >= 28) {
     showEpilogueModal(true);
     return;
@@ -51,6 +55,10 @@ function startNight(nightIdx) {
   runState.lastDrinkReflectionText = "";
   runState.drawnCardData = null;
   runState.clock = story.t0;
+  if (story.n === 1) {
+    const need = WEEK_RECIPE_TARGETS[story.ch - 1];
+    setTimeout(() => showToast(`🍹 Mục tiêu Chương ${story.ch}: khám phá tổng cộng ${need}/7 công thức nước độc quyền (đang có ${recipesDiscoveredCount()})`), 1800);
+  }
 
   if ((persistentArchive.maxChapter || 1) < story.ch) {
     persistentArchive.maxChapter = story.ch;
@@ -73,15 +81,18 @@ function startNight(nightIdx) {
 
 /* Mỗi đêm tự đổi mùa và không gian quán (đèn, quầy, góc trang trí) nếu người chơi để chế độ tự động. */
 function applyNightAmbience(nightIdx) {
-  if (nightIdx <= 0) return;
   let changed = false;
+  // Mỗi tuần một mùa: Tuần 1 Xuân → Tuần 2 Hạ → Tuần 3 Thu → Tuần 4 Đông
   if (persistentArchive.autoCycleSeasons) {
-    const nextSeason = SEASON_THEMES[nightIdx % SEASON_THEMES.length];
+    const nextSeason = SEASON_THEMES[Math.min(3, Math.floor(nightIdx / 7)) % SEASON_THEMES.length];
+    if (persistentArchive.selectedSeasonTheme !== nextSeason.id && nightIdx % 7 === 0 && nightIdx > 0) {
+      setTimeout(() => showToast(`${nextSeason.icon} Sang mùa mới: ${nextSeason.name.replace(/^\S+\s/, "")}`), 1500);
+    }
     persistentArchive.selectedSeasonTheme = nextSeason.id;
     persistentArchive.visitedSeasons[nextSeason.id] = true;
     changed = true;
   }
-  if (persistentArchive.autoCycleCafe) {
+  if (persistentArchive.autoCycleCafe && nightIdx > 0) {
     if (!persistentArchive.cafeCustom) persistentArchive.cafeCustom = {};
     Object.entries(CAFE_CUSTOM_OPTIONS).forEach(([slot, group], slotIdx) => {
       const available = group.choices.filter((c) => !c.requires || isSecretUnlocked(c.requires));

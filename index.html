@@ -13,21 +13,6 @@
   <meta property="og:title" content="Thỏ Con Talk — Tiệm Nước Nửa Đêm" />
   <meta property="og:description" content="Pha một ly nước, nghe một câu chuyện. Ánh đèn quán vẫn sáng cho những ai cần được lắng nghe." />
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="Thỏ Con Talk" />
-  <meta property="og:locale" content="vi_VN" />
-  <!-- ⚠️ ĐỔI "https://TEN-MIEN-CUA-BAN" thành địa chỉ web thật của game (phải là link đầy đủ https://...) -->
-  <meta property="og:url" content="https://TEN-MIEN-CUA-BAN/" />
-  <meta property="og:image" content="https://TEN-MIEN-CUA-BAN/assets/og-image.png" />
-  <meta property="og:image:type" content="image/png" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="Thỏ Con Talk — chú thỏ ló tai trong ly nước dưới trăng khuyết" />
-
-  <!-- Twitter / X card -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Thỏ Con Talk — Tiệm Nước Nửa Đêm" />
-  <meta name="twitter:description" content="Pha một ly nước, nghe một câu chuyện. Ánh đèn quán vẫn sáng cho những ai cần được lắng nghe." />
-  <meta name="twitter:image" content="https://TEN-MIEN-CUA-BAN/assets/og-image.png" />
 
   <!-- Icon trang web -->
   <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg" />
@@ -177,7 +162,7 @@
           </div>
           <div class="p-2 rounded-xl bg-stone-950/80 flex items-center justify-between">
             <span class="text-stone-400">🃏 Bài DRINK</span>
-            <strong id="rules-cards-stat" class="text-amber-300">0/16</strong>
+            <strong id="rules-cards-stat" class="text-amber-300">0/17</strong>
           </div>
           <div class="p-2 rounded-xl bg-stone-950/80 flex items-center justify-between">
             <span class="text-stone-400">🍹 Độc quyền</span>
@@ -205,6 +190,7 @@
         <button type="button" id="btn-rules-open-archive" class="w-full sm:w-auto min-h-[44px] px-4 py-2.5 rounded-2xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-200 cursor-pointer">
           ☰ Mở Sổ Lưu Trữ Quán
         </button>
+        <button type="button" id="btn-rules-replay" class="hidden w-full sm:w-auto min-h-[48px] px-5 py-3 rounded-2xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/40 text-sky-100 font-bold text-xs sm:text-sm cursor-pointer">🔁 Chọn Lại Đêm</button>
         <button type="button" id="btn-rules-continue" class="hidden w-full sm:w-auto min-h-[48px] px-6 py-3 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-100 font-bold text-sm cursor-pointer"></button>
         <button type="button" id="btn-start-shuffle-week" class="w-full sm:w-auto min-h-[48px] px-7 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-stone-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition-all cursor-pointer">
           🌙 Mở Cửa Quán — Bắt Đầu Tuần 1 ▸
@@ -327,7 +313,7 @@
         <div id="voice-controls" class="space-y-2">
           <label class="flex items-center gap-2 text-[11px] text-stone-400">
             <span class="w-14">Tốc độ</span>
-            <input id="voice-rate-slider" type="range" min="60" max="140" step="5" value="95" class="flex-1 accent-amber-400" />
+            <input id="voice-rate-slider" type="range" min="60" max="250" step="5" value="95" class="flex-1 accent-amber-400" />
             <span id="voice-rate-label" class="w-10 text-right font-mono-code text-amber-300">0.95x</span>
           </label>
           <div id="voice-select-row" class="hidden space-y-1.5">
@@ -353,7 +339,7 @@
           <span>🍹 Album Ly</span><span id="mobile-album-badge" class="font-mono-code text-[11px] text-amber-300">0</span>
         </button>
         <button type="button" data-drawer-action="drink-deck" class="min-h-[44px] px-3 py-2 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-stone-700 text-xs text-stone-200 flex items-center justify-between cursor-pointer">
-          <span>🃏 Bài DRINK</span><span id="mobile-drink-deck-badge" class="font-mono-code text-[11px] text-amber-300">0/16</span>
+          <span>🃏 Bài DRINK</span><span id="mobile-drink-deck-badge" class="font-mono-code text-[11px] text-amber-300">0/17</span>
         </button>
         <button type="button" data-drawer-action="keepsakes" class="min-h-[44px] px-3 py-2 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-stone-700 text-xs text-stone-200 flex items-center justify-between cursor-pointer">
           <span>🏺 7 Kỷ Vật</span><span id="mobile-keepsakes-badge" class="font-mono-code text-[11px] text-teal-300">0/7</span>
@@ -485,6 +471,24 @@
   </div>
 
   <!-- Trang chúc mừng & cảm ơn (khi hoàn thành 100%) -->
+  <div id="modal-finale" data-modal-overlay="true" class="hidden fixed inset-0 z-[70] bg-black/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-6">
+    <div class="max-w-xl w-full cafe-panel rounded-3xl p-6 sm:p-8 text-center space-y-4 border border-amber-400/50 max-h-[92dvh] overflow-y-auto">
+      <div class="text-5xl">🏮🌧️🏮</div>
+      <h2 class="font-serif-story text-2xl sm:text-3xl font-bold text-amber-100">Cảm Ơn Bạn Đã Ghé Quán</h2>
+      <p class="text-[11px] font-mono-code text-amber-300/90">TIỆM NƯỚC NỬA ĐÊM • HẾT THÁNG MƯA</p>
+      <p class="font-serif-story text-sm sm:text-base text-stone-200 leading-relaxed">
+        Cảm ơn bạn đã cùng Thỏ Con đi hết 28 đêm, nghe từng câu chuyện và pha từng ly nước.
+        Hy vọng những vị khách nhỏ ấy đã để lại cho bạn một chút ấm áp.
+      </p>
+      <div id="finale-stats" class="grid grid-cols-2 gap-2 text-xs text-stone-300"></div>
+      <p class="font-serif-story text-sm text-stone-300">Quán vẫn còn nhiều góc để khám phá. Bạn có thể quay lại bất kỳ đêm nào để thử một lựa chọn khác. 🌙</p>
+      <div class="flex flex-col sm:flex-row gap-2 justify-center">
+        <button type="button" id="btn-finale-replay" class="min-h-[44px] px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-stone-950 font-bold text-sm cursor-pointer">🔁 Chọn Đêm Để Chơi Lại</button>
+        <button type="button" id="btn-finale-home" class="min-h-[44px] px-5 py-2.5 rounded-2xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-200 font-bold text-sm cursor-pointer">🏠 Về Trang Chủ</button>
+      </div>
+    </div>
+  </div>
+
   <div id="modal-thanks" data-modal-overlay="true" class="hidden fixed inset-0 z-[70] bg-black/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-6">
     <div class="max-w-xl w-full cafe-panel rounded-3xl p-6 sm:p-8 text-center space-y-4 border border-amber-400/50 max-h-[92dvh] overflow-y-auto">
       <div class="text-5xl">🏮🐰🏮</div>
@@ -552,7 +556,7 @@
     <div class="max-w-3xl w-full cafe-panel rounded-3xl p-4 sm:p-6 max-h-[90dvh] flex flex-col">
       <div class="flex items-center justify-between pb-3 border-b border-stone-800">
         <div>
-          <h3 class="font-serif-story text-lg font-bold text-amber-200">🃏 Bộ Bài DRINK Tâm Giao (16 Lá)</h3>
+          <h3 class="font-serif-story text-lg font-bold text-amber-200">🃏 Bộ Bài DRINK Tâm Giao (17 Lá, gồm 1 lá ẩn)</h3>
           <p class="text-[11px] text-stone-400">Những câu hỏi gợi mở tâm hồn nằm trên quầy gỗ Thỏ Con</p>
         </div>
         <button type="button" data-close-modal="modal-drink-deck" class="w-9 h-9 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 flex items-center justify-center cursor-pointer">✕</button>
@@ -738,7 +742,7 @@
           🌅 Sang Tuần Tiếp Theo ▸
         </button>
         <button type="button" id="btn-epilogue-new-week" class="min-h-[44px] px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-stone-950 font-bold text-xs sm:text-sm cursor-pointer">
-          ☕ Nhận Tháng Trực Mới
+          🌙 Tiếp Tục ▸
         </button>
       </div>
     </div>

@@ -76,7 +76,7 @@ function sanitizeArchive(rawObj) {
     voiceEnabled: rawObj.voiceV2 ? Boolean(rawObj.voiceEnabled) : true,
     voiceV2: true,
     autoAdvance: rawObj.autoAdvance === undefined ? true : Boolean(rawObj.autoAdvance),
-    voiceRate: Math.min(1.4, Math.max(0.6, Number(rawObj.voiceRate) || 0.95)),
+    voiceRate: Math.min(2.5, Math.max(0.6, Number(rawObj.voiceRate) || 0.95)),
     voiceFemale: typeof rawObj.voiceFemale === "string" ? rawObj.voiceFemale.slice(0, 120) : typeof rawObj.voiceName === "string" ? rawObj.voiceName.slice(0, 120) : "",
     voiceMale: typeof rawObj.voiceMale === "string" ? rawObj.voiceMale.slice(0, 120) : "",
     completedModes: safeObj(rawObj.completedModes, {}),
@@ -247,6 +247,23 @@ function getStageVisibleGuests() {
 
 /* ---- Helper đếm tiến độ sưu tầm (dùng chung cho HUD, bí mật, thành tựu) ---- */
 const TOTAL_ENDINGS = 33;
+
+/* Đếm số mục đã mở nhưng chỉ tính những mục còn nằm trong danh mục (tránh vượt tổng khi save cũ có id lạ) */
+function countUnlockedIn(list, map) {
+  return list.filter((x) => map && map[x.id]).length;
+}
+
+/* Mục tiêu công thức nước theo chương: hết tuần n phải khám phá tổng cộng ít nhất bấy nhiêu công thức (1 → 3 → 5 → 7) */
+const WEEK_RECIPE_TARGETS = [1, 3, 5, 7];
+function regularRecipes() {
+  return SIGNATURE_RECIPES.filter((s) => !s.hidden);
+}
+function recipesDiscoveredCount(archive = persistentArchive) {
+  return countUnlockedIn(regularRecipes(), archive.unlockedSignatures);
+}
+function weekRecipeGoalMet(week) {
+  return recipesDiscoveredCount() >= WEEK_RECIPE_TARGETS[Math.max(0, Math.min(3, week - 1))];
+}
 
 function countUnlockedEndings(archive = persistentArchive) {
   return Object.keys(archive.unlockedEndings).length;

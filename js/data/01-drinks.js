@@ -74,6 +74,7 @@ const SIGNATURE_RECIPES = [
   { id: "sig_clear_horizon", name: "Chân Trời Thanh Yên", base: "yuzu", accents: ["mint", "chamomile"], hint: "Rượu Thanh Yên + Lá Bạc Hà + Hoa Cúc Khô", desc: "Sáng trong và tĩnh tại, giúp tâm trí nhìn rõ con đường phía trước." },
   { id: "sig_starlight_brew", name: "Ủ Lạnh Ánh Sao", base: "coldbrew", accents: ["orange_peel", "mint"], hint: "Cà Phê Ủ Lạnh + Vỏ Cam Sấy + Lá Bạc Hà", desc: "Sự kết hợp tinh tế dành cho những tâm hồn sáng tạo thức cùng thành phố." },
   { id: "sig_lotus_lullaby", name: "Ru Hồ Sen Khuya", base: "lotus_milk", accents: ["lavender", "honey"], hint: "Sữa Hạt Sen Rang + Oải Hương Khô + Mật Ong Rừng", desc: "Ngọt dịu như lời ru, dành cho những đêm đầu óc không chịu ngủ." },
+  { id: "sig_second_door", hidden: true, name: "Ly Cánh Cửa Thứ Hai", base: "", accents: [], hint: "Chỉ pha được khi cánh cửa thứ hai mở ra", desc: "Ly nước dành cho người giữ đèn: ấm, hơi đắng, hậu ngọt. Uống thật chậm để nhớ rằng mình cũng được phép ở lại.", },
   { id: "sig_amber_grain", name: "Cốm Rang Mùa Cũ", base: "brown_rice", accents: ["osmanthus", "ginger"], hint: "Trà Gạo Lứt Rang + Hoa Quế Ngâm Đường + Gừng Tươi", desc: "Ấm bụng, thơm mùi bếp cũ — nhớ nhà trong từng ngụm." }
 ];
 
@@ -220,6 +221,17 @@ const DRINK_CARDS = [
     hostAnswers: [
       { label: "❤️ 'Buông bỏ suy nghĩ rằng mình phải làm hài lòng tất cả mọi người — chỉ cần chân thành là đủ.'", deltaTrust: 1, deltaClarity: 0 },
       { label: "✨ 'Buông bỏ sự vội vã để tận hưởng từng cuộc trò chuyện như một món quà.'", deltaTrust: 0, deltaClarity: 1 }
+    ]
+  },
+  {
+    id: "dc_17",
+    hidden: true,
+    suit: "🚪 Cánh Cửa Thứ Hai",
+    lockedHint: "🔒 Lá bài ẩn — chỉ hiện ra trong một đêm rất đặc biệt.",
+    question: "Người giữ đèn cũng cần có người giữ đèn cho mình. Bạn sẽ để ai bước qua cánh cửa thứ hai của bạn?",
+    hostAnswers: [
+      { label: "❤️ 'Thỏ Con sẽ mở cửa và nói: Mình mệt rồi, vào ngồi với mình một lát nhé.'", deltaTrust: 1, deltaClarity: 0 },
+      { label: "✨ 'Thỏ Con sẽ học cách nhờ giúp đỡ, vì nhận cũng là một cách yêu thương.'", deltaTrust: 0, deltaClarity: 1 }
     ]
   }
 ];

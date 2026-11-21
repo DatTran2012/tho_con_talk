@@ -704,6 +704,7 @@ function finalizeDrinkService(guests, base, accentIds, challengeBonus, challenge
 
   const matchedSignature = SIGNATURE_RECIPES.find(
     (sig) =>
+      !sig.hidden &&
       sig.base === base.id &&
       sig.accents.length === accentIds.length &&
       sig.accents.every((a) => accentIds.includes(a))

@@ -81,15 +81,15 @@ const SECRET_VAULT = [
   },
   {
     id: "secret_card_17", icon: "🃏✨", title: "Lá Bài Thứ 17: Người Gác Đêm",
-    hint: "Rút đủ cả 16 lá bài DRINK trên quầy gỗ.",
+    hint: "Một lá bài chỉ lộ diện trong đêm bí mật cuối cùng của quán.",
     reward: "🎴 Mở khóa góc trang trí «Chồng Bài DRINK Phát Sáng»",
-    story: "Dưới đáy hộp bài DRINK còn một lá trắng chưa từng ai rút. Mặt trước viết bằng bút mực vàng: “Nếu đêm nay là đêm cuối cùng quán mở cửa, bạn muốn nói gì với người đang ngồi đối diện?” Thỏ Con lật lá bài, mỉm cười đáp: “Cảm ơn bạn đã ghé — vì nhờ có bạn, ngọn đèn này mới có lý do để sáng.”"
+    story: "Khi mọi người đã về, Thỏ Con kéo ngăn kéo cuối cùng dưới quầy. Bên trong là một lá bài chưa từng được rút, mặt sau khắc hình một cánh cửa hé mở. Mặt trước viết bằng bút mực vàng: “Người giữ đèn cũng cần có người giữ đèn cho mình. Bạn sẽ để ai bước qua cánh cửa thứ hai của bạn?” Thỏ Con lật lá bài, mỉm cười thật khẽ: “Mình sẽ mở cửa và nói: mình mệt rồi, vào ngồi với mình một lát nhé.” Lá bài thứ mười bảy ấy được cất vào bộ sưu tập của quán."
   },
   {
-    id: "secret_signature", icon: "🍵🤍", title: "Ly Thứ Bảy Không Tên",
-    hint: "Mở khóa đủ 6 món độc quyền của quán.",
+    id: "secret_signature", icon: "🍵🤍", title: "Ly Cánh Cửa Thứ Hai",
+    hint: "Một công thức chỉ lộ diện trong đêm bí mật cuối cùng của quán.",
     reward: "🪵 Mở khóa «Quầy Gỗ Viền Vàng» trong Custom Không Gian Quán",
-    story: "Sau khi thuộc lòng sáu công thức, Thỏ Con tìm thấy trong ngăn kéo quầy một mảnh giấy ố vàng của người chủ quán già: “Ly thứ bảy: một chén trà hoa cúc mật ong, thêm một lát gừng mỏng, và một lần lắng nghe thật lòng.” Bên dưới ghi thêm: “Món này không có tên — tên của nó là tên của người đang uống.”"
+    story: "Sau lá bài ấy, Thỏ Con thấy trong ngăn kéo một mảnh giấy ố vàng của người chủ quán già: “Ly cuối cùng: một chén trà hoa cúc mật ong, thêm một lát gừng mỏng, và một lần lắng nghe thật lòng — pha cho chính người giữ đèn.” Bên dưới ghi thêm: “Ly này không dành cho khách. Nó dành cho người đã pha nước cho tất cả mọi người.” Thỏ Con pha nó thật chậm, ấm, hơi đắng, hậu ngọt, và lần đầu tiên tự uống một ly dành cho mình."
   },
   {
     id: "secret_keepsakes", icon: "🏺💡", title: "Kệ Kỷ Vật Sáng Đèn",

@@ -91,7 +91,7 @@ function renderDevTools() {
   fab.style.cssText = "position:fixed;left:8px;bottom:8px;z-index:99999;padding:6px 10px;border-radius:12px;background:#7c3aed;color:#fff;font:700 11px monospace;border:1px solid #c4b5fd;cursor:pointer;opacity:.85";
   panel = document.createElement("div");
   panel.id = "dev-panel";
-  panel.style.cssText = "position:fixed;left:8px;bottom:46px;z-index:99999;width:min(260px,86vw);padding:10px;border-radius:14px;background:#1c1917;color:#e7e5e4;border:1px solid #7c3aed;font:12px sans-serif;display:none";
+  panel.style.cssText = "max-height:72vh;overflow-y:auto;position:fixed;left:8px;bottom:46px;z-index:99999;width:min(260px,86vw);padding:10px;border-radius:14px;background:#1c1917;color:#e7e5e4;border:1px solid #7c3aed;font:12px sans-serif;display:none";
   const btn = (id, label) => `<button type="button" data-dev="${id}" style="display:block;width:100%;margin-top:6px;padding:8px;border-radius:10px;background:#292524;border:1px solid #57534e;color:#e7e5e4;font-size:12px;cursor:pointer;text-align:left">${label}</button>`;
   panel.innerHTML = `<div style="font-weight:700;color:#c4b5fd">🛠️ Chế độ DEV (nội bộ)</div>` +
     btn("unlock", "🔓 Mở khóa TẤT CẢ (33 kết, bí mật, cutscene…)") +
@@ -99,6 +99,12 @@ function renderDevTools() {
     btn("secret", "🌟 Đặt sẵn điều kiện cho kết bí mật (giữ twist chưa xem)") +
     btn("story", "📖 Đọc toàn bộ hội thoại 28 đêm") +
     btn("jump", "⏭️ Chơi thử từ một đêm bất kỳ…") +
+    btn("recipes", "🍹 Đặt số công thức nước đã biết (0–8)…") +
+    btn("weekend", "📅 Kết thúc ngay tuần n (kiểm tra cổng công thức)…") +
+    btn("finale", "🏁 Xem trang cảm ơn hết 28 đêm") +
+    btn("picker", "🔁 Mở bảng chọn đêm chơi lại") +
+    btn("lockch", "🔒 Khóa lại chương (chỉ còn Chương 1) + bỏ lá bài ẩn") +
+    btn("hidden17", "🎴 Mở/khóa lá bài 17 + Ly Cánh Cửa Thứ Hai") +
     btn("thanks", "🎖️ Xem trang chúc mừng (xem trước)") +
     btn("off", "⛔ Tắt chế độ dev");
   document.body.appendChild(fab);
@@ -120,6 +126,27 @@ function renderDevTools() {
     } else if (k === "thanks") showThanksPage();
     else if (k === "story") devOpenStoryViewer();
     else if (k === "jump") devJumpToNight();
+    else if (k === "recipes") devSetRecipeCount();
+    else if (k === "weekend") devForceWeekEnd();
+    else if (k === "hidden17") {
+      const on = !persistentArchive.unlockedDrinkCards.dc_17;
+      if (on) { persistentArchive.unlockedDrinkCards.dc_17 = true; persistentArchive.unlockedSignatures.sig_second_door = true; persistentArchive.unlockedSecrets.secret_card_17 = true; persistentArchive.unlockedSecrets.secret_signature = true; }
+      else { delete persistentArchive.unlockedDrinkCards.dc_17; delete persistentArchive.unlockedSignatures.sig_second_door; delete persistentArchive.unlockedSecrets.secret_card_17; delete persistentArchive.unlockedSecrets.secret_signature; }
+      saveArchive();
+      updateAllProgressBadges();
+      showToast(on ? "🛠️ DEV: đã mở lá bài 17 + ly Cánh Cửa Thứ Hai" : "🛠️ DEV: đã khóa lại lá bài 17 + ly ẩn");
+    }
+    else if (k === "finale") showFinalePage();
+    else if (k === "picker") openReplayPicker();
+    else if (k === "lockch") {
+      persistentArchive.maxChapter = 1;
+      persistentArchive.completedModes = {};
+      delete persistentArchive.unlockedDrinkCards.dc_17;
+      delete persistentArchive.unlockedSignatures.sig_second_door;
+      saveArchive();
+      updateAllProgressBadges();
+      showToast("🛠️ DEV: đã khóa lại Chương 2–4 và lá bài ẩn");
+    }
     else if (k === "restore") devRestoreBackup();
     else if (k === "off") {
       if (safeGetItem(DEV_BACKUP_KEY)) devRestoreBackup();
@@ -228,6 +255,40 @@ function devJumpToNight() {
   saveRunState();
   switchScreen("screen-game");
   startNight(n - 1);
+}
+
+/* ---- Công cụ test: công thức nước, kết thúc tuần, cổng chương ---- */
+function devSetRecipeCount() {
+  const reg = regularRecipes();
+  const v = window.prompt(`Số công thức nước đã khám phá (0–${reg.length}).\nMục tiêu: hết tuần 1/2/3/4 cần 1/3/5/7.`, "0");
+  if (v === null) return;
+  const n = Math.max(0, Math.min(reg.length, Math.floor(Number(v)) || 0));
+  reg.forEach((sig, i) => {
+    if (i < n) persistentArchive.unlockedSignatures[sig.id] = true;
+    else delete persistentArchive.unlockedSignatures[sig.id];
+  });
+  saveArchive();
+  updateAllProgressBadges();
+  showToast(`🛠️ DEV: đang có ${n}/${reg.length} công thức nước`);
+}
+
+function devForceWeekEnd() {
+  const v = window.prompt("Kết thúc ngay tuần số mấy? (1–4)\nNếu chưa đủ công thức nước sẽ hiện màn 'chưa đạt mục tiêu'.", "1");
+  const w = Math.floor(Number(v));
+  if (!w || w < 1 || w > 4) return;
+  ["modal-history", "modal-epilogue", "modal-finale", "mobile-drawer"].forEach(closeModal);
+  if (!runState) runState = createNewRunState();
+  const fake = (wk, n) => ({ weekNum: wk, nightInWeek: n, guestNames: "Khách thử nghiệm", drinkName: "—", endingTitle: "Kết đêm (dev)", pathTag: "🛠️ DEV", summary: "Đêm giả lập để thử màn tổng kết." });
+  runState.nightIndex = w * 7;
+  runState.awaitingNightStart = true;
+  runState.beatIndex = 0;
+  runState.retryWeek = 0;
+  runState.weekResults = Array.from({ length: 7 }, (_, i) => fake(w, i + 1));
+  runState.allMonthResults = Array.from({ length: w * 7 }, (_, i) => fake(Math.floor(i / 7) + 1, (i % 7) + 1));
+  runState.monthCounted = false;
+  saveRunState();
+  switchScreen("screen-game");
+  startNight(w * 7);
 }
 
 function initDevTools() {

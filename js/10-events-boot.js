@@ -53,11 +53,14 @@ function startSecretNight8Reunion() {
 }
 
 /* ---- CÁNH CỬA THỨ HAI: TWIST & KẾT CỤC BÍ MẬT ---- */
+/* Các bí mật chỉ mở SAU đêm bí mật cuối cùng (không tính vào điều kiện mở cánh cửa) */
+const POST_TWIST_SECRETS = ["secret_card_17", "secret_signature", "secret_master"];
+
 function isTwistUnlocked() {
   const a = persistentArchive;
   return (
     SHIFT_MODES.every((m) => a.completedModes[m.id]) &&
-    SECRET_VAULT.every((s) => a.unlockedSecrets && a.unlockedSecrets[s.id]) &&
+    SECRET_VAULT.filter((s) => !POST_TWIST_SECRETS.includes(s.id)).every((s) => a.unlockedSecrets && a.unlockedSecrets[s.id]) &&
     countUnlockedEndings(a) >= TOTAL_ENDINGS
   );
 }
@@ -155,7 +158,7 @@ function showThanksPage() {
     ["🗝️ Bí mật", `${Object.keys(a.unlockedSecrets || {}).length}/${SECRET_VAULT.length}`],
     ["🍹 Ly nước đã pha", `${a.totalDrinksServed || 0}`],
     ["🌟 Ly hoàn hảo", `${a.perfectBrewsCount || 0}`],
-    ["🎴 Lá bài DRINK", `${Object.keys(a.unlockedDrinkCards).length}/${DRINK_CARDS.length}`],
+    ["🎴 Lá bài DRINK", `${countUnlockedIn(DRINK_CARDS, a.unlockedDrinkCards)}/${DRINK_CARDS.length}`],
     ["🏅 Thành tựu", `${Object.keys(a.unlockedAchievements).length}`]
   ];
   document.getElementById("thanks-stats").innerHTML = stats
@@ -170,6 +173,10 @@ function showThanksPage() {
 function finishTwistEnding() {
   twistStageMode = null;
   persistentArchive.twistEndingSeen = true;
+  persistentArchive.unlockedDrinkCards.dc_17 = true;
+  persistentArchive.unlockedSignatures.sig_second_door = true;
+  showToast("🎴 Lá bài thứ 17 và công thức Ly Cánh Cửa Thứ Hai đã mở khóa!");
+  checkSecrets();
   if (!persistentArchive.unlockedAchievements.ach_twist) {
     persistentArchive.unlockedAchievements.ach_twist = true;
     showToast("🏆 Mở khóa danh hiệu: Chiến Binh Ánh Đèn!");
@@ -193,7 +200,7 @@ function startTwistEnding() {
   document.getElementById("dialogue-action-area").innerHTML = "";
   setDialogue("Thỏ Con", "Chủ Quán Nửa Đêm", "🐰", "Quầy gỗ vắng lặng. Ngọn đèn vàng vẫn sáng, như mọi đêm.", false);
   playCutsceneChain(["twist_01", "twist_02", "twist_03", "twist_04"], () =>
-    runTwistScene(() => playCutsceneChain(["twist_05", "twist_06", "twist_07"], finishTwistEnding))
+    runTwistScene(() => playCutsceneChain(["twist_05", "twist_06", "twist_07", "secret_card_17"], finishTwistEnding))
   );
 }
 
@@ -207,9 +214,9 @@ function getSecretProgress(id) {
     case "secret_message":
       return [getDiscoveredEggs(a).length, EASTER_EGGS.length];
     case "secret_card_17":
-      return [DRINK_CARDS.filter((c) => a.unlockedDrinkCards[c.id]).length, DRINK_CARDS.length];
+      return [a.unlockedDrinkCards.dc_17 ? 1 : 0, 1];
     case "secret_signature":
-      return [SIGNATURE_RECIPES.filter((s) => a.unlockedSignatures[s.id]).length, SIGNATURE_RECIPES.length];
+      return [a.unlockedSignatures.sig_second_door ? 1 : 0, 1];
     case "secret_keepsakes":
       return [STANDARD_GUEST_ORDER.filter((g) => a.unlockedKeepsakes[g]).length, STANDARD_GUEST_ORDER.length];
     case "secret_endings":
@@ -264,8 +271,8 @@ function checkAndUnlockAchievements() {
   const secretsCount = Object.keys(a.unlockedSecrets).length;
   const endingsCount = countUnlockedEndings(a);
   const keepsakesCount = Object.keys(a.unlockedKeepsakes).length;
-  const cardsCount = Object.keys(a.unlockedDrinkCards).length;
-  const sigCount = Object.keys(a.unlockedSignatures).length;
+  const cardsCount = countUnlockedIn(DRINK_CARDS, a.unlockedDrinkCards);
+  const sigCount = countUnlockedIn(SIGNATURE_RECIPES, a.unlockedSignatures);
   const eggsCount = Object.keys(a.discoveredEasterEggs).length;
   const uniqueDuoPairsUnlocked = ALL_DUO_KEYS.filter(
     (dk) => a.unlockedEndings[`duo_${dk}_heart`] || a.unlockedEndings[`duo_${dk}_mind`]
@@ -355,6 +362,62 @@ function wipeProgressKeepSettings() {
   updateAllProgressBadges();
 }
 
+/* ---- Trang cảm ơn khi hết 28 đêm + chọn lại đêm để chơi tiếp ---- */
+function showFinalePage() {
+  const a = persistentArchive;
+  const stats = [
+    ["🎭 Kết cục", `${countUnlockedEndings(a)}/${TOTAL_ENDINGS}`],
+    ["🍹 Công thức nước", `${recipesDiscoveredCount()}/${regularRecipes().length}`],
+    ["🎴 Lá bài DRINK", `${countUnlockedIn(DRINK_CARDS, a.unlockedDrinkCards)}/${DRINK_CARDS.length}`],
+    ["🍵 Ly nước đã pha", `${a.totalDrinksServed || 0}`]
+  ];
+  document.getElementById("finale-stats").innerHTML = stats
+    .map(([k, v]) => `<div class="p-2 rounded-xl bg-stone-950/80 border border-stone-800"><div class="text-[11px] text-stone-400">${k}</div><div class="font-mono-code text-amber-300 text-sm">${v}</div></div>`)
+    .join("");
+  openModal("modal-finale");
+  audioEngine.playChime(523, 0.5, 0.05);
+}
+
+function startRunFromNight(idx) {
+  ["modal-history", "modal-finale", "modal-epilogue", "mobile-drawer"].forEach(closeModal);
+  runState = createNewRunState();
+  runState.nightIndex = idx;
+  runState.awaitingNightStart = true;
+  saveRunState();
+  switchScreen("screen-game");
+  startNight(idx);
+}
+
+function openReplayPicker() {
+  const box = document.getElementById("history-body");
+  const title = document.getElementById("history-title");
+  if (!box || !title) return;
+  title.textContent = "🔁 Chọn đêm để chơi lại";
+  box.innerHTML = "";
+  const reached = persistentArchive.completedModes.standard ? 4 : Math.max(1, Number(persistentArchive.maxChapter) || 1);
+  STORY_CHAPTERS.forEach((c) => {
+    const head = document.createElement("div");
+    head.className = "pt-2 text-xs font-bold text-amber-200";
+    head.textContent = `${c.icon} Chương ${c.no}: ${c.no <= reached ? c.name : "???"}${c.no <= reached ? "" : "  🔒"}`;
+    box.appendChild(head);
+    if (c.no > reached) return;
+    STORY_NIGHTS.forEach((n, i) => {
+      if (n.ch !== c.no) return;
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "w-full text-left p-2.5 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-stone-700 cursor-pointer text-xs text-stone-200";
+      const gl = n.guests.length > 3 ? "cả quán" : n.guests.map((g) => CHARACTERS[g].name.split(" (")[0]).join(" & ");
+      b.innerHTML = `Đêm ${i + 1} • ${escapeHtml(n.title)} <span class="text-stone-500">• ${escapeHtml(gl)}</span>`;
+      b.addEventListener("click", () => {
+        if (runState && runState.nightIndex < 28 && !window.confirm("Chơi lại từ đêm này sẽ thay thế ca đang lưu. Tiếp tục?")) return;
+        startRunFromNight(i);
+      });
+      box.appendChild(b);
+    });
+  });
+  openModal("modal-history");
+}
+
 function restartRunFromSave() {
   if (!window.confirm(RESTART_CONFIRM_TEXT)) return;
   closeModal("mobile-drawer");
@@ -374,6 +437,8 @@ function renderSaveControls() {
   if (!btnContinue || !btnStart) return;
   const saved = hasSavedRun();
   btnContinue.classList.toggle("hidden", !saved);
+  const btnReplayVis = document.getElementById("btn-rules-replay");
+  if (btnReplayVis) btnReplayVis.classList.toggle("hidden", !persistentArchive.completedModes.standard);
   if (saved) {
     const mode = SHIFT_MODES.find((m) => m.id === runState.shiftMode);
     btnContinue.textContent = `▶ Tiếp Tục Save Cũ — Đêm ${runState.nightIndex + 1}/28${mode ? ` • ${mode.name}` : ""}`;
@@ -402,8 +467,8 @@ function renderRulesScreenControls() {
   document.getElementById("active-title-badge").textContent = getActiveHostTitle();
   document.getElementById("rules-endings-stat").textContent = `${countUnlockedEndings()}/${TOTAL_ENDINGS}`;
   document.getElementById("rules-keepsakes-stat").textContent = `${Object.keys(persistentArchive.unlockedKeepsakes).length}/7`;
-  document.getElementById("rules-cards-stat").textContent = `${Object.keys(persistentArchive.unlockedDrinkCards).length}/16`;
-  document.getElementById("rules-sig-stat").textContent = `${Object.keys(persistentArchive.unlockedSignatures).length}/${SIGNATURE_RECIPES.length}`;
+  document.getElementById("rules-cards-stat").textContent = `${countUnlockedIn(DRINK_CARDS, persistentArchive.unlockedDrinkCards)}/${DRINK_CARDS.length}`;
+  document.getElementById("rules-sig-stat").textContent = `${countUnlockedIn(SIGNATURE_RECIPES, persistentArchive.unlockedSignatures)}/${SIGNATURE_RECIPES.length}`;
 
   const sel = document.getElementById("title-selector");
   sel.innerHTML = `<option value="auto">Tự động chọn danh hiệu cao nhất</option>`;
@@ -458,13 +523,13 @@ function computeGameProgress(a = persistentArchive) {
     endings: [Math.min(TOTAL_ENDINGS, countUnlockedEndings(a)), TOTAL_ENDINGS],
     chapters: [SHIFT_MODES.filter((m) => a.completedModes[m.id]).length, SHIFT_MODES.length],
     secrets: [SECRET_VAULT.filter((s) => isSecretUnlocked(s.id)).length, SECRET_VAULT.length],
-    cards: [Object.keys(a.unlockedDrinkCards).length, DRINK_CARDS.length],
+    cards: [countUnlockedIn(DRINK_CARDS, a.unlockedDrinkCards), DRINK_CARDS.length],
     keepsakes: [STANDARD_GUEST_ORDER.filter((g) => a.unlockedKeepsakes[g]).length, STANDARD_GUEST_ORDER.length],
     achievements: [
       ACHIEVEMENTS.filter((x) => x.id !== "ach_twist" && a.unlockedAchievements[x.id]).length,
       ACHIEVEMENTS.filter((x) => x.id !== "ach_twist").length
     ],
-    signatures: [Object.keys(a.unlockedSignatures).length, SIGNATURE_RECIPES.length],
+    signatures: [countUnlockedIn(SIGNATURE_RECIPES, a.unlockedSignatures), SIGNATURE_RECIPES.length],
     eggs: [getDiscoveredEggs(a).length, EASTER_EGGS.length],
     twist: [a.twistEndingSeen ? 1 : 0, 1]
   };
@@ -621,9 +686,9 @@ function updateAllProgressBadges() {
   if (hb) hb.textContent = String(nightHistory.length);
   renderChapterInfo();
   const a = persistentArchive;
-  document.getElementById("mobile-cutscene-badge").textContent = `${Object.keys(a.unlockedCutscenes).length}/${CUTSCENE_CATALOG.length}`;
-  document.getElementById("mobile-album-badge").textContent = `${Object.keys(a.unlockedSignatures).length}/${SIGNATURE_RECIPES.length}`;
-  document.getElementById("mobile-drink-deck-badge").textContent = `${Object.keys(a.unlockedDrinkCards).length}/16`;
+  document.getElementById("mobile-cutscene-badge").textContent = `${countUnlockedIn(CUTSCENE_CATALOG, a.unlockedCutscenes)}/${CUTSCENE_CATALOG.length}`;
+  document.getElementById("mobile-album-badge").textContent = `${countUnlockedIn(SIGNATURE_RECIPES, a.unlockedSignatures)}/${SIGNATURE_RECIPES.length}`;
+  document.getElementById("mobile-drink-deck-badge").textContent = `${countUnlockedIn(DRINK_CARDS, a.unlockedDrinkCards)}/${DRINK_CARDS.length}`;
   document.getElementById("mobile-keepsakes-badge").textContent = `${Object.keys(a.unlockedKeepsakes).length}/7`;
   document.getElementById("mobile-endings-badge").textContent = `${countUnlockedEndings(a)}/${TOTAL_ENDINGS}`;
 
@@ -690,7 +755,7 @@ function openCutsceneGallery() {
 }
 
 function openDrinkAlbumModal() {
-  document.getElementById("signature-menu-count").textContent = `${Object.keys(persistentArchive.unlockedSignatures).length}`;
+  document.getElementById("signature-menu-count").textContent = `${countUnlockedIn(SIGNATURE_RECIPES, persistentArchive.unlockedSignatures)}`;
   const sigGrid = document.getElementById("signature-recipes-grid");
   sigGrid.innerHTML = "";
   const foundSigs = SIGNATURE_RECIPES.filter((sig) => persistentArchive.unlockedSignatures[sig.id]);
@@ -705,6 +770,13 @@ function openDrinkAlbumModal() {
     sigGrid.appendChild(card);
   });
   SIGNATURE_RECIPES.filter((sig) => !persistentArchive.unlockedSignatures[sig.id]).forEach((sig) => {
+    if (sig.hidden) {
+      const hc = document.createElement("div");
+      hc.className = "p-3 rounded-2xl border bg-stone-950/80 border-stone-800";
+      hc.innerHTML = `<div class="font-bold text-xs text-stone-400">🔒 Công thức ẩn</div><div class="text-[11px] text-stone-500 mt-1">Chỉ lộ diện trong một đêm rất đặc biệt.</div>`;
+      sigGrid.appendChild(hc);
+      return;
+    }
     const base = DRINK_BASES.find((b) => b.id === sig.base);
     const first = DRINK_ACCENTS.find((a) => a.id === sig.accents[0]);
     const second = DRINK_ACCENTS.find((a) => a.id === sig.accents[1]);
@@ -750,7 +822,7 @@ function openDrinkDeckModal() {
     }`;
     el.innerHTML = `
       <div class="font-mono-code text-[10px] text-amber-300">${c.suit}</div>
-      <p class="mt-1 leading-relaxed">${unlocked ? `"${c.question}"` : "🔒 Lá bài chưa được rút trong các đêm trực."}</p>
+      <p class="mt-1 leading-relaxed">${unlocked ? `"${c.question}"` : (c.lockedHint || "🔒 Lá bài chưa được rút trong các đêm trực.")}</p>
     `;
     grid.appendChild(el);
   });
@@ -1521,7 +1593,18 @@ function bindAllUIEvents() {
     safeRemoveItem(STORAGE_KEY_RUN);
     runState = null;
     switchScreen("screen-rules");
+    showFinalePage();
   });
+  document.getElementById("btn-finale-replay").addEventListener("click", () => {
+    closeModal("modal-finale");
+    openReplayPicker();
+  });
+  document.getElementById("btn-finale-home").addEventListener("click", () => {
+    closeModal("modal-finale");
+    switchScreen("screen-welcome");
+  });
+  const btnReplay = document.getElementById("btn-rules-replay");
+  if (btnReplay) btnReplay.addEventListener("click", openReplayPicker);
 
   // Responsive canvas observer & resize listener
   const canvasWrapper = document.getElementById("cafe-canvas-wrapper");

@@ -17,6 +17,7 @@ js/06-ui-cutscene.js  chuyển màn, gõ chữ, HUD, trình chiếu cutscene
 js/07-narrative.js    động cơ kể chuyện (solo, song khách, chặng 2)
 js/08-brewing.js      quầy pha chế 3 bước + minigame (chỉnh độ khó ở BREW_TUNING)
 js/09-epilogue.js     bài DRINK, tổng kết tuần/tháng
+js/09b-night-history.js  nhật ký các đêm (xem lại thoại + lựa chọn)
 js/10-events-boot.js  đêm 8, thành tựu, thư viện, gắn sự kiện, khởi động
 js/11-dev-tools.js      công cụ dev nội bộ (?dev=1 hoặc Ctrl+Shift+D) - người chơi không thấy
 ```

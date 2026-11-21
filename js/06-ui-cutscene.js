@@ -144,7 +144,7 @@ function setDialogue(speakerName, speakerRole, avatar, text, canAdvance = true) 
   const hintEl = document.getElementById("advance-hint");
   if (hintEl) {
     hintEl.classList.toggle("hidden", !canAdvance);
-    hintEl.textContent = persistentArchive.autoAdvance ? "Tự động tiếp tục ▸ (chạm để qua nhanh)" : "Chạm để tiếp tục ▸";
+    hintEl.textContent = persistentArchive.autoAdvance ? "Tự động ▸" : "Chạm để tiếp ▸";
   }
 
   // Giọng đọc: chỉ đọc lời thoại của nhân vật, mỗi người một giọng
@@ -183,6 +183,7 @@ function setDialogue(speakerName, speakerRole, avatar, text, canAdvance = true) 
     }, 16);
   }
 
+  recordNightLine({ type: "say", speaker: nameShown, avatar: avatarShown, text: `${view.directions ? `(${view.directions}) ` : ""}${shownText}` });
   if (runState) {
     const lastEntry = runState.dialogueLog[runState.dialogueLog.length - 1];
     if (!lastEntry || lastEntry.text !== text) {
@@ -226,7 +227,7 @@ function syncGameHUD() {
   const modeBadge = document.getElementById("hud-mode-badge");
   if (slot.type === "duo") {
     modeBadge.textContent = "👥 Song Khách Giao Thoa";
-    modeBadge.className = "px-2.5 py-1 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-200 font-semibold text-xs";
+    modeBadge.className = "hidden sm:inline-block px-2.5 py-1 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-200 font-semibold text-xs";
     const visibleGuests = getStageVisibleGuests();
     if (visibleGuests.length === 1) {
       document.getElementById("stage-guest-label").textContent = `${guests[0].avatar} ${guests[0].name} (Đang chờ...)`;
@@ -236,7 +237,7 @@ function syncGameHUD() {
   } else {
     const isCh2 = Boolean(persistentArchive.unlockedKeepsakes[guests[0].id]);
     modeBadge.textContent = isCh2 ? "📖 Khách Gặp Lại" : "👤 Đơn Khách";
-    modeBadge.className = "px-2.5 py-1 rounded-xl bg-stone-900 border border-stone-700 text-stone-200 text-xs";
+    modeBadge.className = "hidden sm:inline-block px-2.5 py-1 rounded-xl bg-stone-900 border border-stone-700 text-stone-200 text-xs";
     document.getElementById("stage-guest-label").textContent = `${guests[0].avatar} ${guests[0].name}`;
   }
 

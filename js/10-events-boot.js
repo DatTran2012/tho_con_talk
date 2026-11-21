@@ -148,6 +148,25 @@ function runTwistScene(onDone) {
   step();
 }
 
+function showThanksPage() {
+  const a = persistentArchive;
+  const stats = [
+    ["🎭 Kết cục", `${countUnlockedEndings(a)}/${TOTAL_ENDINGS}`],
+    ["🗝️ Bí mật", `${Object.keys(a.unlockedSecrets || {}).length}/${SECRET_VAULT.length}`],
+    ["🍹 Ly nước đã pha", `${a.totalDrinksServed || 0}`],
+    ["🌟 Ly hoàn hảo", `${a.perfectBrewsCount || 0}`],
+    ["🎴 Lá bài DRINK", `${Object.keys(a.unlockedDrinkCards).length}/${DRINK_CARDS.length}`],
+    ["🏅 Thành tựu", `${Object.keys(a.unlockedAchievements).length}`]
+  ];
+  document.getElementById("thanks-stats").innerHTML = stats
+    .map(([k, v]) => `<div class="p-2 rounded-xl bg-stone-950/80 border border-stone-800"><div class="text-[11px] text-stone-400">${k}</div><div class="font-mono-code text-amber-300 text-sm">${v}</div></div>`)
+    .join("");
+  a.thanksSeen = true;
+  saveArchive();
+  openModal("modal-thanks");
+  audioEngine.playChime(523, 0.5, 0.05);
+}
+
 function finishTwistEnding() {
   twistStageMode = null;
   persistentArchive.twistEndingSeen = true;
@@ -159,6 +178,7 @@ function finishTwistEnding() {
   updateAllProgressBadges();
   document.getElementById("dialogue-action-area").innerHTML = "";
   switchScreen("screen-welcome");
+  if ((computeGameProgress().percent >= 100 && !persistentArchive.thanksSeen) || (typeof isDevMode === "function" && isDevMode())) setTimeout(showThanksPage, 600);
 }
 
 function startTwistEnding() {
@@ -309,19 +329,39 @@ function manualSave() {
   showToast(`💾 Đã lưu (${where}) lúc ${hhmm}. Lần sau bấm «Tiếp Tục» để chơi tiếp.`);
   const btn = document.getElementById("btn-quick-save");
   if (btn) {
-    btn.textContent = "✅ Đã lưu";
-    setTimeout(() => (btn.textContent = "💾 Lưu"), 1500);
+    btn.innerHTML = '✅<span class="hidden sm:inline"> Đã lưu</span>';
+    setTimeout(() => (btn.innerHTML = '💾<span class="hidden sm:inline"> Lưu</span>'), 1500);
   }
 }
 
 /* Bỏ ca đang lưu và mở ca mới từ Đêm 1 (sổ lưu trữ vẫn giữ). */
-function restartRunFromSave() {
-  if (hasSavedRun() && !window.confirm("Chơi lại từ Đêm 1? Ca trực đang lưu sẽ bị bỏ (sổ lưu trữ vẫn được giữ).")) return;
+const RESTART_CONFIRM_TEXT =
+  "Bắt đầu lại từ Ca 1 như một game mới?\n\nToàn bộ kết cục, bí mật, thành tựu, cutscene, công thức và tiến độ sẽ bị XÓA. (Chỉ giữ cài đặt âm thanh & giọng đọc.) Không thể hoàn tác.";
+
+/* Xóa sạch tiến trình như game mới, chỉ giữ cài đặt người dùng (âm thanh, giọng đọc, tự đổi mùa) */
+function wipeProgressKeepSettings() {
   cancelActiveBrewAnimation();
-  closeModal("mobile-drawer");
+  const old = persistentArchive;
+  const fresh = createDefaultArchive();
+  ["voiceEnabled", "voiceV2", "autoAdvance", "voiceRate", "voiceFemale", "voiceMale", "rainVolume", "selectedLofiChannel", "autoCycleSeasons", "autoCycleCafe", "autoCycleV2"].forEach((k) => {
+    if (old[k] !== undefined) fresh[k] = old[k];
+  });
+  persistentArchive = fresh;
+  clearNightHistory();
   safeRemoveItem(STORAGE_KEY_RUN);
   runState = null;
+  saveArchive();
+  try { audioEngine.applySeasonSoundscape(); } catch (err) { /* bỏ qua */ }
+  updateAllProgressBadges();
+}
+
+function restartRunFromSave() {
+  if (!window.confirm(RESTART_CONFIRM_TEXT)) return;
+  closeModal("mobile-drawer");
+  wipeProgressKeepSettings();
   switchScreen("screen-rules");
+  renderRulesScreenControls();
+  showToast("🌙 Đã bắt đầu lại từ Ca 1 như game mới.");
 }
 
 function hasSavedRun() {
@@ -347,6 +387,7 @@ function resetAllProgress() {
   cancelActiveBrewAnimation();
   safeRemoveItem(STORAGE_KEY_RUN);
   safeRemoveItem(STORAGE_KEY_ARCHIVE);
+  clearNightHistory();
   runState = null;
   persistentArchive = createDefaultArchive();
   saveArchive();
@@ -362,7 +403,7 @@ function renderRulesScreenControls() {
   document.getElementById("rules-endings-stat").textContent = `${countUnlockedEndings()}/${TOTAL_ENDINGS}`;
   document.getElementById("rules-keepsakes-stat").textContent = `${Object.keys(persistentArchive.unlockedKeepsakes).length}/7`;
   document.getElementById("rules-cards-stat").textContent = `${Object.keys(persistentArchive.unlockedDrinkCards).length}/16`;
-  document.getElementById("rules-sig-stat").textContent = `${Object.keys(persistentArchive.unlockedSignatures).length}`;
+  document.getElementById("rules-sig-stat").textContent = `${Object.keys(persistentArchive.unlockedSignatures).length}/${SIGNATURE_RECIPES.length}`;
 
   const sel = document.getElementById("title-selector");
   sel.innerHTML = `<option value="auto">Tự động chọn danh hiệu cao nhất</option>`;
@@ -455,7 +496,7 @@ function renderGameProgress() {
   document.querySelectorAll("[data-progress-percent]").forEach((el) => (el.textContent = `${percent}%`));
   document.querySelectorAll("[data-progress-bar]").forEach((el) => (el.style.width = `${percent}%`));
   const menuBtn = document.getElementById("btn-open-drawer");
-  if (menuBtn) menuBtn.textContent = `☰ Menu • ${percent}%`;
+  if (menuBtn) menuBtn.innerHTML = `☰<span class="hidden sm:inline"> Menu •</span> ${percent}%`;
   const list = document.getElementById("progress-breakdown");
   if (list) {
     list.innerHTML = rows
@@ -468,6 +509,8 @@ function renderGameProgress() {
       )
       .join("");
   }
+  const thanksBtn = document.getElementById("btn-open-thanks");
+  if (thanksBtn) thanksBtn.classList.toggle("hidden", percent < 100);
   const note = document.getElementById("progress-note");
   if (note) {
     note.textContent =
@@ -480,10 +523,10 @@ function renderAutoControls() {
   const auto = Boolean(persistentArchive.autoAdvance);
   const q = document.getElementById("btn-quick-auto");
   if (q) {
-    q.textContent = auto ? "⏩ Tự động" : "⏩";
+    q.innerHTML = auto ? '⏩<span class="hidden sm:inline"> Tự động</span>' : "⏩";
     q.className = auto
-      ? "min-h-[36px] px-2.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/50 text-xs text-emerald-200 cursor-pointer"
-      : "min-h-[36px] px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer";
+      ? "min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/50 text-xs text-emerald-200 cursor-pointer"
+      : "min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer";
   }
   const m = document.getElementById("btn-toggle-auto");
   if (m) {
@@ -493,7 +536,7 @@ function renderAutoControls() {
       : "px-2.5 py-1 rounded-xl bg-stone-950 border border-stone-700 text-[11px] text-stone-300 cursor-pointer";
   }
   const hint = document.getElementById("advance-hint");
-  if (hint) hint.textContent = auto ? "Tự động tiếp tục ▸ (chạm để qua nhanh)" : "Chạm để tiếp tục ▸";
+  if (hint) hint.textContent = auto ? "Tự động ▸" : "Chạm để tiếp ▸";
 }
 
 function toggleAutoAdvance() {
@@ -513,10 +556,10 @@ function renderVoiceControls() {
   if (replay) replay.classList.toggle("hidden", !on);
   const quick = document.getElementById("btn-quick-voice");
   if (quick) {
-    quick.textContent = on ? "🗣️ Bật" : "🗣️";
+    quick.innerHTML = on ? '🗣️<span class="hidden sm:inline"> Bật</span>' : "🗣️";
     quick.className = on
-      ? "min-h-[36px] px-2.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/50 text-xs text-emerald-200 cursor-pointer"
-      : "min-h-[36px] px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer";
+      ? "min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/50 text-xs text-emerald-200 cursor-pointer"
+      : "min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer";
   }
   btn.textContent = on ? "Bật" : "Tắt";
   btn.className = on
@@ -587,10 +630,12 @@ function bindVoiceControls() {
 function updateAllProgressBadges() {
   renderGameProgress();
   renderVoiceControls();
+  const hb = document.getElementById("mobile-history-badge");
+  if (hb) hb.textContent = String(nightHistory.length);
   renderChapterInfo();
   const a = persistentArchive;
   document.getElementById("mobile-cutscene-badge").textContent = `${Object.keys(a.unlockedCutscenes).length}/${CUTSCENE_CATALOG.length}`;
-  document.getElementById("mobile-album-badge").textContent = `${Object.keys(a.unlockedSignatures).length}`;
+  document.getElementById("mobile-album-badge").textContent = `${Object.keys(a.unlockedSignatures).length}/${SIGNATURE_RECIPES.length}`;
   document.getElementById("mobile-drink-deck-badge").textContent = `${Object.keys(a.unlockedDrinkCards).length}/16`;
   document.getElementById("mobile-keepsakes-badge").textContent = `${Object.keys(a.unlockedKeepsakes).length}/7`;
   document.getElementById("mobile-endings-badge").textContent = `${countUnlockedEndings(a)}/${TOTAL_ENDINGS}`;
@@ -1330,6 +1375,7 @@ function bindAllUIEvents() {
 
   document.getElementById("btn-quick-save").addEventListener("click", manualSave);
   bindVoiceControls();
+  bindNightHistoryEvents();
   const replayBtn = document.getElementById("btn-voice-replay");
   if (replayBtn && CafeVoice.supported) {
     replayBtn.addEventListener("click", (e) => {
@@ -1355,9 +1401,16 @@ function bindAllUIEvents() {
   });
 
   document.getElementById("btn-reset-all").addEventListener("click", resetAllProgress);
+  document.getElementById("btn-open-thanks").addEventListener("click", () => {
+    closeModal("mobile-drawer");
+    showThanksPage();
+  });
 
   document.getElementById("btn-start-shuffle-week").addEventListener("click", () => {
-    if (hasSavedRun() && !window.confirm("Bắt đầu lại sẽ bỏ ca trực đang chơi dở (sổ lưu trữ vẫn được giữ). Tiếp tục?")) return;
+    if (hasSavedRun()) {
+      if (!window.confirm(RESTART_CONFIRM_TEXT)) return;
+      wipeProgressKeepSettings();
+    }
     audioEngine.ensureAutoStarted();
     runState = createNewRunState();
     saveRunState();

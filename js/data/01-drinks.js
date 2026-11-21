@@ -16,7 +16,9 @@ const DRINK_BASES = [
   { id: "malt", name: "Rượu Mạch Nha Ấm", icon: "🥃", emotion: "warm", challengeType: "ember", desc: "Hương khói gỗ sồi ấm nồng, xua tan cái lạnh nửa đêm." },
   { id: "plum", name: "Rượu Mơ Lên Men", icon: "🍷", emotion: "nostalgic", challengeType: "fizz", desc: "Chua ngọt dịu dàng gợi nhớ những chiều cuối thu." },
   { id: "peach_tea", name: "Trà Đào Lên Men Nhẹ", icon: "🍑", emotion: "gentle", challengeType: "foam", desc: "Hương đào chín thanh tao, nhẹ nhàng xoa dịu lo âu." },
-  { id: "yuzu", name: "Rượu Thanh Yên", icon: "🍋", emotion: "gentle", challengeType: "ember", desc: "Tinh dầu vỏ cam chanh thanh khiết đánh thức giác quan." }
+  { id: "yuzu", name: "Rượu Thanh Yên", icon: "🍋", emotion: "gentle", challengeType: "ember", desc: "Tinh dầu vỏ cam chanh thanh khiết đánh thức giác quan." },
+  { id: "lotus_milk", name: "Sữa Hạt Sen Rang", icon: "🪷", emotion: "gentle", challengeType: "memory", desc: "Béo dịu, thơm mùi sen rang — công thức dài, phải nhớ đúng thứ tự từng bước." },
+  { id: "brown_rice", name: "Trà Gạo Lứt Rang", icon: "🍚", emotion: "warm", challengeType: "triple", desc: "Hương cốm rang ấm bụng — phải rót ba lượt liên tiếp, mỗi lượt một nhịp." }
 ];
 
 const DRINK_ACCENTS = [
@@ -27,8 +29,42 @@ const DRINK_ACCENTS = [
   { id: "sea_salt", name: "Muối Biển Tinh", icon: "🧂", emotion: "awake" },
   { id: "nutmeg", name: "Hạt Nhục Đậu Khấu", icon: "🌰", emotion: "warm" },
   { id: "ginger", name: "Gừng Tươi Ấm", icon: "🫚", emotion: "warm" },
-  { id: "jasmine", name: "Hoa Nhài Đêm", icon: "🌼", emotion: "nostalgic" }
+  { id: "jasmine", name: "Hoa Nhài Đêm", icon: "🌼", emotion: "nostalgic" },
+  { id: "lemongrass", name: "Sả Tươi Đập Dập", icon: "🌾", emotion: "awake" },
+  { id: "lavender", name: "Oải Hương Khô", icon: "🪻", emotion: "gentle" },
+  { id: "osmanthus", name: "Hoa Quế Ngâm Đường", icon: "🏵️", emotion: "nostalgic" }
 ];
+
+/* Cặp hương vị "chọi nhau": chọn cả hai sẽ bị trừ điểm hợp vị */
+const CLASH_PAIRS = [
+  ["mint", "nutmeg"],
+  ["sea_salt", "honey"],
+  ["ginger", "chamomile"],
+  ["jasmine", "sea_salt"],
+  ["lemongrass", "lavender"],
+  ["osmanthus", "mint"],
+  ["orange_peel", "lavender"]
+];
+
+/* Khách không nói thẳng "tôi cần cảm xúc gì" — họ chỉ bóng gió. Người chơi phải tự đoán (hoặc hỏi thẳng, nhưng đánh đổi). */
+const ORDER_RIDDLES = {
+  awake: [
+    "Mắt mình díp lại rồi mà đầu thì chưa chịu nghỉ… cứ như còn cả núi việc chưa làm xong.",
+    "Mình cần thứ gì đó kéo mình ra khỏi cơn mơ màng, đêm còn dài lắm."
+  ],
+  warm: [
+    "Tay mình lạnh cả ngày rồi, không hẳn vì trời… mà vì lòng cứ lạnh sao đó.",
+    "Mình muốn được ai đó choàng cho một tấm chăn, kiểu vậy… nhưng ở dạng ly nước."
+  ],
+  gentle: [
+    "Đầu mình ồn ào quá. Mình muốn mọi thứ chậm lại, nhẹ lại một chút thôi.",
+    "Hôm nay mình căng như dây đàn. Cho mình thứ gì đó êm êm, đừng gắt."
+  ],
+  nostalgic: [
+    "Chiều nay mình bỗng nhớ một mùi hương cũ… mà không nhớ nổi là của ai.",
+    "Có những ngày mình chỉ muốn quay về lúc còn nhỏ, về căn bếp cũ của bà."
+  ]
+};
 
 const SIGNATURE_RECIPES = [
   { id: "sig_midnight_ember", name: "Than Hồng Nửa Đêm", base: "malt", accents: ["ginger", "honey"], hint: "Rượu Mạch Nha Ấm + Gừng Tươi + Mật Ong Rừng", desc: "Thức uống trứ danh sưởi ấm những đôi vai gồng gánh giữa mùa gió." },
@@ -36,7 +72,9 @@ const SIGNATURE_RECIPES = [
   { id: "sig_amber_memory", name: "Ký Ức Mơ Vàng", base: "plum", accents: ["orange_peel", "jasmine"], hint: "Rượu Mơ Lên Men + Vỏ Cam Sấy + Hoa Nhài Đêm", desc: "Hương hoa nhài và mơ ủ đánh thức những trang nhật ký cũ." },
   { id: "sig_dawn_breeze", name: "Gió Sớm Vườn Đào", base: "peach_tea", accents: ["chamomile", "honey"], hint: "Trà Đào Lên Men + Hoa Cúc Khô + Mật Ong Rừng", desc: "Nhẹ bẫng như sương mai, xoa dịu những trái tim nhiều trăn trở." },
   { id: "sig_clear_horizon", name: "Chân Trời Thanh Yên", base: "yuzu", accents: ["mint", "chamomile"], hint: "Rượu Thanh Yên + Lá Bạc Hà + Hoa Cúc Khô", desc: "Sáng trong và tĩnh tại, giúp tâm trí nhìn rõ con đường phía trước." },
-  { id: "sig_starlight_brew", name: "Ủ Lạnh Ánh Sao", base: "coldbrew", accents: ["orange_peel", "mint"], hint: "Cà Phê Ủ Lạnh + Vỏ Cam Sấy + Lá Bạc Hà", desc: "Sự kết hợp tinh tế dành cho những tâm hồn sáng tạo thức cùng thành phố." }
+  { id: "sig_starlight_brew", name: "Ủ Lạnh Ánh Sao", base: "coldbrew", accents: ["orange_peel", "mint"], hint: "Cà Phê Ủ Lạnh + Vỏ Cam Sấy + Lá Bạc Hà", desc: "Sự kết hợp tinh tế dành cho những tâm hồn sáng tạo thức cùng thành phố." },
+  { id: "sig_lotus_lullaby", name: "Ru Hồ Sen Khuya", base: "lotus_milk", accents: ["lavender", "honey"], hint: "Sữa Hạt Sen Rang + Oải Hương Khô + Mật Ong Rừng", desc: "Ngọt dịu như lời ru, dành cho những đêm đầu óc không chịu ngủ." },
+  { id: "sig_amber_grain", name: "Cốm Rang Mùa Cũ", base: "brown_rice", accents: ["osmanthus", "ginger"], hint: "Trà Gạo Lứt Rang + Hoa Quế Ngâm Đường + Gừng Tươi", desc: "Ấm bụng, thơm mùi bếp cũ — nhớ nhà trong từng ngụm." }
 ];
 
 const DRINK_CARDS = [

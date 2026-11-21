@@ -20,12 +20,14 @@ function startNight(nightIdx) {
   runState.awaitingNightStart = false;
   runState.encounterReplyText = "";
   runState.dialogueLog = [];
+  runState.nightLines = [];
   runState.beatIndex = 0;
   runState.subBeat = 0;
   runState.nightStances = [];
   runState.duoSecondGuestPresent = false;
   runState.beat2CutscenePlayed = false;
   runState.lastChoiceReplyText = "";
+  runState.duoDrinks = [];
   runState.lastDrinkName = "";
   runState.lastBrewQuality = "";
   runState.lastDrinkReflectionText = "";
@@ -387,14 +389,27 @@ function renderDuoNightBeat(slot, guests, beat) {
     });
   } else if (beat === 3) {
     if (!runState.lastDrinkName) {
-      setDialogue(`${g1.name.split(" (")[0]} & ${g2.name.split(" (")[0]}`, "Gợi Ý Hương Vị Chung", "🍹", sc.clue, false);
-      renderThreeStepBrewingStation(guests);
+      // Mỗi người một ly riêng: pha lần lượt cho khách thứ nhất rồi khách thứ hai
+      if (!Array.isArray(runState.duoDrinks)) runState.duoDrinks = [];
+      const served = runState.duoDrinks.length;
+      const who = guests[Math.min(served, 1)];
+      const whoShort = who.name.split(" (")[0];
+      if (served === 0) {
+        setDialogue("Thỏ Con", "Ly Riêng Cho Từng Người", "🍹", `Mỗi người một ly riêng nhé. Mình pha ly đầu tiên cho ${whoShort} trước.\n\n${sc.clue}`, false);
+      } else {
+        const prev = runState.duoDrinks[0];
+        const prevGuest = guests[0];
+        setDialogue(prevGuest.name, `${prevGuest.role} • Đã Có Ly Của Mình`, prevGuest.avatar, `[${prev.name} — ${prev.quality}]\n\n${prev.reflection || ""}`, false);
+      }
+      renderThreeStepBrewingStation([who], `Ly ${Math.min(served, 1) + 1}/2 — dành cho ${whoShort}`);
     } else if (sub === 0) {
+      const d = runState.duoDrinks || [];
+      const lines = d.map((x, i) => `[${guests[i].name.split(" (")[0]}: ${x.name} — ${x.quality}]`).join("\n");
       setDialogue(
         `${g1.name.split(" (")[0]} & ${g2.name.split(" (")[0]}`,
-        "Thưởng Thức Cùng Nhau",
+        "Hai Ly, Một Câu Chuyện",
         "🥂",
-        `[${runState.lastDrinkName} — ${runState.lastBrewQuality}]\n\n${sc.synergyReflection}`,
+        `${lines || `[${runState.lastDrinkName} — ${runState.lastBrewQuality}]`}\n\n${sc.synergyReflection}`,
         true
       );
     } else {

@@ -45,7 +45,8 @@ function createDefaultArchive() {
     unlockedSecrets: {},
     clockTapCount: 0,
     twistEndingSeen: false,
-    twistAnnounced: false
+    twistAnnounced: false,
+    thanksSeen: false
   };
 }
 
@@ -99,7 +100,8 @@ function sanitizeArchive(rawObj) {
     unlockedSecrets: safeObj(rawObj.unlockedSecrets, {}),
     clockTapCount: Math.max(0, Number(rawObj.clockTapCount) || 0),
     twistEndingSeen: Boolean(rawObj.twistEndingSeen),
-    twistAnnounced: Boolean(rawObj.twistAnnounced)
+    twistAnnounced: Boolean(rawObj.twistAnnounced),
+    thanksSeen: Boolean(rawObj.thanksSeen)
   };
 }
 
@@ -203,12 +205,14 @@ function createNewRunState() {
     duoSecondGuestPresent: false,
     beat2CutscenePlayed: false,
     lastChoiceReplyText: "",
+    duoDrinks: [],
     lastDrinkName: "",
     lastBrewQuality: "",
     lastDrinkReflectionText: "",
     lastDrinkCardMode: "",
     drawnCardData: null,
     dialogueLog: [],
+    nightLines: [],
     weekResults: [],
     allMonthResults: [],
     previousNightRadioNews: "",
@@ -250,7 +254,10 @@ function normalizeRunState(parsed) {
 let runState = loadRunState();
 let activeBrewAnimId = null;
 
+let activeBrewTimeouts = [];
 function cancelActiveBrewAnimation() {
+  activeBrewTimeouts.forEach((id) => clearTimeout(id));
+  activeBrewTimeouts = [];
   if (activeBrewAnimId !== null) {
     cancelAnimationFrame(activeBrewAnimId);
     activeBrewAnimId = null;

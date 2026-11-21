@@ -6,7 +6,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Thỏ Con Talk — Tiệm Nước Nửa Đêm</title>
   <meta name="description" content="Thỏ Con Talk — trò chơi kể chuyện nhẹ nhàng: pha nước, lắng nghe tâm sự những vị khách nửa đêm trong một tiệm nhỏ giữa mưa." />
   <meta name="theme-color" content="#1b1533" />
@@ -99,7 +99,7 @@
           ▶ Tiếp Tục Ca Đang Dở
         </button>
         <button type="button" id="btn-welcome-restart" class="hidden w-full sm:w-auto min-h-[48px] px-5 py-3 rounded-2xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/40 text-rose-200 font-semibold text-sm transition-all cursor-pointer">
-          🔄 Chơi Lại Từ Đầu
+          🔄 Chơi Lại Từ Ca 1 (xóa hết)
         </button>
         <button type="button" id="btn-welcome-menu" class="w-full sm:w-auto min-h-[48px] px-5 py-3 rounded-2xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-200 font-medium text-sm transition-all cursor-pointer">
           ☰ Kho Lưu Trữ &amp; Hồ Sơ
@@ -166,7 +166,7 @@
           </div>
           <div class="p-2 rounded-xl bg-stone-950/80 flex items-center justify-between">
             <span class="text-stone-400">🍹 Độc quyền</span>
-            <strong id="rules-sig-stat" class="text-rose-300">0/6</strong>
+            <strong id="rules-sig-stat" class="text-rose-300">0</strong>
           </div>
         </div>
       </div>
@@ -208,29 +208,29 @@
   ======================================================================== -->
   <section id="screen-game" class="hidden min-h-dvh flex flex-col max-w-4xl w-full mx-auto p-2.5 sm:p-4 gap-2.5 sm:gap-3">
     <!-- Top HUD -->
-    <header class="cafe-panel rounded-2xl p-2.5 sm:p-3 flex flex-wrap items-center justify-between gap-2">
-      <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
-        <span id="hud-chapter-badge" class="px-2.5 py-1 rounded-xl bg-rose-500/20 border border-rose-400/40 text-rose-200 font-bold text-xs font-mono-code" title="Chặng hiện tại">🌧️ Chặng 1/3</span>
-        <span id="hud-week-badge" class="px-2.5 py-1 rounded-xl bg-purple-500/20 border border-purple-400/40 text-purple-200 font-bold text-xs font-mono-code">Tuần 1/4</span>
-        <span id="hud-night-badge" class="px-2.5 py-1 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-200 font-bold text-xs font-mono-code">Đêm 1/7</span>
-        <span id="hud-mode-badge" class="px-2.5 py-1 rounded-xl bg-stone-900 border border-stone-700 text-stone-200 text-xs">👤 Đơn Khách</span>
-        <button type="button" id="hud-weather-badge" class="px-2.5 py-1 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-stone-700 hover:border-amber-400/50 text-stone-200 text-xs transition-all cursor-pointer" title="Chạm để đổi 4 mùa &amp; custom quán">🍂 Thu Mưa Hẻm Nhỏ</button>
+    <header class="cafe-panel rounded-2xl p-2 sm:p-3 flex flex-wrap items-center justify-between gap-1.5 sm:gap-2">
+      <div class="flex flex-wrap items-center gap-1 sm:gap-2">
+        <span id="hud-chapter-badge" class="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-xl bg-rose-500/20 border border-rose-400/40 text-rose-200 font-bold text-[11px] sm:text-xs font-mono-code" title="Chặng hiện tại">🌧️ Chặng 1/3</span>
+        <span id="hud-week-badge" class="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-xl bg-purple-500/20 border border-purple-400/40 text-purple-200 font-bold text-[11px] sm:text-xs font-mono-code">Tuần 1/4</span>
+        <span id="hud-night-badge" class="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-200 font-bold text-[11px] sm:text-xs font-mono-code">Đêm 1/7</span>
+        <span id="hud-mode-badge" class="hidden sm:inline-block px-2.5 py-1 rounded-xl bg-stone-900 border border-stone-700 text-stone-200 text-xs">👤 Đơn Khách</span>
+        <button type="button" id="hud-weather-badge" class="max-w-[120px] sm:max-w-none truncate px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-stone-700 hover:border-amber-400/50 text-stone-200 text-xs transition-all cursor-pointer" title="Chạm để đổi 4 mùa &amp; custom quán">🍂 Thu Mưa Hẻm Nhỏ</button>
       </div>
 
-      <div class="flex items-center gap-1.5 sm:gap-2">
-        <div class="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-stone-950/90 border border-stone-800 text-xs font-mono-code">
+      <div class="flex flex-wrap items-center gap-1 sm:gap-2 w-full sm:w-auto">
+        <div class="flex items-center gap-2 px-2 sm:px-2.5 py-1 rounded-xl bg-stone-950/90 border border-stone-800 text-[11px] sm:text-xs font-mono-code mr-auto sm:mr-0">
           <span title="Trái Tim">❤️ <strong id="hud-trust-val" class="text-rose-300">0</strong></span>
-          <span class="text-stone-700">|</span>
+          <span class="hidden sm:inline text-stone-700">|</span>
           <span title="Lý Trí">✨ <strong id="hud-clarity-val" class="text-sky-300">0</strong></span>
-          <span class="text-stone-700">|</span>
+          <span class="hidden sm:inline text-stone-700">|</span>
           <span title="Kết Nối Giao Thoa">🤝 <strong id="hud-bond-val" class="text-amber-300">0</strong></span>
         </div>
-        <button type="button" id="btn-quick-save" class="min-h-[36px] px-2.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/40 text-xs text-emerald-200 cursor-pointer" title="Lưu game">💾 Lưu</button>
-        <button type="button" id="btn-quick-auto" class="min-h-[36px] px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer" title="Tự động chuyển thoại">⏩</button>
-        <button type="button" id="btn-quick-voice" class="min-h-[36px] px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer" title="Bật/tắt giọng đọc">🗣️</button>
-        <button type="button" id="btn-quick-ambience" class="min-h-[36px] px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-amber-200 cursor-pointer" title="Âm thanh &amp; Mùa">🎛️</button>
-        <button type="button" id="btn-quick-log" class="min-h-[36px] px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-200 cursor-pointer" title="Nhật ký thoại">📜</button>
-        <button type="button" id="btn-open-drawer" class="min-h-[36px] px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-xs font-semibold text-amber-200 cursor-pointer">☰ Menu</button>
+        <button type="button" id="btn-quick-save" class="min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/40 text-xs text-emerald-200 cursor-pointer" title="Lưu game">💾<span class="hidden sm:inline"> Lưu</span></button>
+        <button type="button" id="btn-quick-auto" class="min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer" title="Tự động chuyển thoại">⏩</button>
+        <button type="button" id="btn-quick-voice" class="min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer" title="Bật/tắt giọng đọc">🗣️</button>
+        <button type="button" id="btn-quick-ambience" class="hidden sm:inline-block min-h-[36px] min-w-[36px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-amber-200 cursor-pointer" title="Âm thanh &amp; Mùa">🎛️</button>
+        <button type="button" id="btn-quick-log" class="min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-200 cursor-pointer" title="Nhật ký thoại">📜</button>
+        <button type="button" id="btn-open-drawer" class="min-h-[34px] px-2 sm:px-3 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-xs font-semibold text-amber-200 cursor-pointer">☰ Menu</button>
       </div>
     </header>
 
@@ -254,7 +254,7 @@
             </div>
           </div>
           <button type="button" id="btn-voice-replay" class="hidden shrink-0 min-h-[32px] px-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-[11px] text-amber-200 cursor-pointer" title="Đọc lại câu thoại">🔊 Nghe</button>
-          <span id="advance-hint" class="text-[11px] font-mono-code text-amber-300/80 animate-pulse">Chạm để tiếp tục ▸</span>
+          <span id="advance-hint" class="shrink-0 whitespace-nowrap text-[11px] font-mono-code text-amber-300/80 animate-pulse">Chạm để tiếp ▸</span>
         </div>
 
         <p id="dialogue-direction" class="hidden font-serif-story italic text-xs sm:text-sm text-stone-400 leading-relaxed mb-1 whitespace-pre-line"></p>
@@ -295,6 +295,7 @@
           <div id="progress-breakdown" class="space-y-2 pt-2"></div>
         </details>
         <p id="progress-note" class="text-[11px] text-stone-400"></p>
+        <button type="button" id="btn-open-thanks" class="hidden w-full min-h-[36px] mt-1 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-xs text-amber-200 cursor-pointer">🎖️ Xem Trang Chúc Mừng</button>
       </div>
 
       <div class="p-3 rounded-2xl bg-stone-900/70 border border-stone-800 space-y-2">
@@ -332,7 +333,7 @@
           <span>🎬 Cutscene</span><span id="mobile-cutscene-badge" class="font-mono-code text-[11px] text-amber-300">1/58</span>
         </button>
         <button type="button" data-drawer-action="album" class="min-h-[44px] px-3 py-2 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-stone-700 text-xs text-stone-200 flex items-center justify-between cursor-pointer">
-          <span>🍹 Album Ly</span><span id="mobile-album-badge" class="font-mono-code text-[11px] text-amber-300">0/6</span>
+          <span>🍹 Album Ly</span><span id="mobile-album-badge" class="font-mono-code text-[11px] text-amber-300">0</span>
         </button>
         <button type="button" data-drawer-action="drink-deck" class="min-h-[44px] px-3 py-2 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-stone-700 text-xs text-stone-200 flex items-center justify-between cursor-pointer">
           <span>🃏 Bài DRINK</span><span id="mobile-drink-deck-badge" class="font-mono-code text-[11px] text-amber-300">0/16</span>
@@ -345,6 +346,9 @@
         </button>
         <button type="button" data-drawer-action="dossiers" class="min-h-[44px] px-3 py-2 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 border border-purple-400/35 text-xs text-purple-200 flex items-center justify-between cursor-pointer">
           <span>📖 Hồ Sơ Khách</span><span id="mobile-dossiers-badge" class="font-mono-code text-[11px]">0/24</span>
+        </button>
+        <button type="button" id="btn-drawer-history" class="min-h-[44px] px-3 py-2 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/35 text-xs text-sky-200 flex items-center justify-between cursor-pointer">
+          <span>🗓️ Xem Lại Các Đêm</span><span id="mobile-history-badge" class="font-mono-code text-[11px]">0</span>
         </button>
         <button type="button" data-drawer-action="flowchart" class="min-h-[44px] px-3 py-2 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-stone-700 text-xs text-stone-200 flex items-center justify-between cursor-pointer">
           <span>🌿 Sơ Đồ Nhánh</span><span class="font-mono-code text-[11px] text-emerald-300">Mở</span>
@@ -391,9 +395,9 @@
       </div>
 
       <div class="pt-2 border-t border-stone-800 flex items-center justify-between gap-2">
-        <span class="text-[11px] text-stone-400">Muốn đổi nhịp điệu hoặc nhận tháng trực mới?</span>
+        <span class="text-[11px] text-stone-400">Muốn bắt đầu lại như một game mới?</span>
         <button type="button" id="btn-restart-run" class="px-3.5 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/35 text-xs text-rose-200 font-semibold cursor-pointer">
-          🔄 Nhận Tháng Trực Mới
+          🔄 Bắt Đầu Lại Từ Ca 1 (xóa hết)
         </button>
       </div>
     </div>
@@ -469,6 +473,26 @@
         <button type="button" data-close-modal="modal-cutscenes" class="w-9 h-9 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 flex items-center justify-center cursor-pointer">✕</button>
       </div>
       <div id="cutscene-gallery-grid" class="overflow-y-auto py-3.5 grid grid-cols-1 sm:grid-cols-2 gap-2.5 pr-1"></div>
+    </div>
+  </div>
+
+  <!-- Trang chúc mừng & cảm ơn (khi hoàn thành 100%) -->
+  <div id="modal-thanks" data-modal-overlay="true" class="hidden fixed inset-0 z-[70] bg-black/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-6">
+    <div class="max-w-xl w-full cafe-panel rounded-3xl p-6 sm:p-8 text-center space-y-4 border border-amber-400/50 max-h-[92dvh] overflow-y-auto">
+      <div class="text-5xl">🏮🐰🏮</div>
+      <h2 class="font-serif-story text-2xl sm:text-3xl font-bold text-amber-100">Chúc Mừng Bạn Đã Hoàn Thành</h2>
+      <p class="text-[11px] font-mono-code text-amber-300/90">TIỆM NƯỚC NỬA ĐÊM • 100%</p>
+      <p class="font-serif-story text-sm sm:text-base text-stone-200 leading-relaxed">
+        Cảm ơn bạn đã ở lại đến tận cùng — qua từng đêm mưa, từng ly nước, từng câu chuyện được lắng nghe.
+        Bạn đã mở trọn 33 cái kết, giữ gìn mọi bí mật của quán, và cùng Thỏ Con thắp ngọn đèn ấy sáng suốt đêm dài.
+      </p>
+      <div id="thanks-stats" class="grid grid-cols-2 gap-2 text-xs text-stone-300"></div>
+      <p class="font-serif-story italic text-sm text-amber-200/95 leading-relaxed">
+        Trò chơi này là lời tri ân gửi đến những người đang chiến đấu với ung thư, cùng gia đình và những người ở bên họ.
+        Nếu quanh bạn có ai đang mệt mỏi, hãy ngồi xuống bên cạnh và lắng nghe họ — đôi khi chỉ một ly nước ấm và một người chịu ở lại đã là rất nhiều.
+      </p>
+      <p class="font-serif-story text-sm text-stone-300">Ngọn đèn vẫn sáng. Hẹn gặp lại bạn vào một đêm nào đó. 🌙</p>
+      <button type="button" data-close-modal="modal-thanks" class="min-h-[44px] px-6 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-stone-950 font-bold text-sm cursor-pointer">Cảm ơn Thỏ Con 🐰</button>
     </div>
   </div>
 
@@ -681,6 +705,17 @@
     </div>
   </div>
 
+  <!-- Xem lại các đêm đã chơi -->
+  <div id="modal-history" data-modal-overlay="true" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4">
+    <div class="max-w-2xl w-full cafe-panel rounded-3xl p-4 sm:p-6 max-h-[88dvh] flex flex-col">
+      <div class="flex items-center justify-between gap-2 pb-3 border-b border-stone-800">
+        <h3 id="history-title" class="font-serif-story text-base sm:text-lg font-bold text-amber-200">🗓️ Xem Lại Các Đêm</h3>
+        <button type="button" data-close-modal="modal-history" class="shrink-0 w-9 h-9 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 flex items-center justify-center cursor-pointer">✕</button>
+      </div>
+      <div id="history-body" class="overflow-y-auto py-3 space-y-2 pr-1"></div>
+    </div>
+  </div>
+
   <!-- Weekly & 1-Month Dawn Epilogue Modal -->
   <div id="modal-epilogue" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4">
     <div class="max-w-2xl w-full cafe-panel rounded-3xl p-5 sm:p-7 max-h-[90dvh] flex flex-col gap-4">
@@ -722,6 +757,7 @@
   <script src="js/07-narrative.js"></script>
   <script src="js/08-brewing.js"></script>
   <script src="js/09-epilogue.js"></script>
+  <script src="js/09b-night-history.js"></script>
   <script src="js/10-events-boot.js"></script>
   <script src="js/11-dev-tools.js"></script>
 </body>

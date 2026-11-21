@@ -8,6 +8,10 @@ const BREW_TUNING = {
   shaker: { taps: 6, minGapMs: 120, breakGapMs: 900, steadyMinMs: 180, steadyMaxMs: 550 },
   drip: { speed: 125, perfect: [43, 57], ok: [30, 70] },
   ember: { rate: 70, start: 12, minHold: 25, perfect: [60, 85], okLow: 45, okHigh: 95 },
+  memory: { length: 5, flashMs: 650, gapMs: 250, maxMistakes: 2 },
+  triple: { speed: 120, speedStep: 22, widths: [15, 11, 8] },
+  hintCost: 1,
+  clashPenalty: 2,
   quality: { perfectAffinity: 4, goodAffinity: 2.5, lenientAffinity: 1.5, carryAffinity: 5 }
 };
 const inRange = (v, [lo, hi]) => v >= lo && v <= hi;
@@ -32,8 +36,25 @@ function getScaledBrewTuning() {
       rate: Math.round(base.ember.rate * (1 + 0.08 * week)),
       perfect: [base.ember.perfect[0] + week * 2, base.ember.perfect[1] - week * 2]
     },
+    memory: { ...base.memory, length: base.memory.length + (week >= 2 ? 1 : 0) },
+    triple: { ...base.triple, speed: Math.round(base.triple.speed * (1 + 0.08 * week)), widths: base.triple.widths.map((w) => Math.max(5, w - week)) },
     quality: base.quality
   };
+}
+
+/* Trạng thái minigame mới (để bot kiểm thử đọc được mà không lộ ra giao diện) */
+let currentMemorySeq = [];
+let currentTripleState = null;
+
+function getClashes(accentIds) {
+  return CLASH_PAIRS.filter(([a, b]) => accentIds.includes(a) && accentIds.includes(b));
+}
+
+function pickRiddle(guest) {
+  const list = ORDER_RIDDLES[guest.needEmotion] || [];
+  if (!list.length) return "";
+  const n = (runState ? runState.nightIndex : 0) + guest.id.length;
+  return list[n % list.length];
 }
 
 function lockChallengeButton(btn) {
@@ -41,7 +62,8 @@ function lockChallengeButton(btn) {
   btn.classList.add("opacity-70", "cursor-default");
 }
 
-function renderThreeStepBrewingStation(guests) {
+function renderThreeStepBrewingStation(guests, stationLabel = "") {
+  let askedHint = false;
   const actionArea = document.getElementById("dialogue-action-area");
   actionArea.innerHTML = "";
 
@@ -62,13 +84,35 @@ function renderThreeStepBrewingStation(guests) {
     const needsLabel = [...new Set(guests.map((g) => g.needEmotion))]
       .map((k) => `${EMOTION_TAGS[k].icon} ${EMOTION_TAGS[k].label}`)
       .join(" • ");
+    const riddle = guests.map((g) => pickRiddle(g)).filter(Boolean).join(" ");
     header.innerHTML = `
       <span class="font-bold text-amber-200">🍹 Quầy Pha Chế 3 Công Đoạn — Bước ${step}/3</span>
+      ${stationLabel ? `<span class="w-full text-[11px] font-semibold text-purple-300">🥤 ${stationLabel}</span>` : ""}
       <span class="text-[11px] font-mono-code text-stone-400">
         ${step === 1 ? "Chọn Cốt Nước" : step === 2 ? "Phối 1–2 Thảo Mộc" : "Thao Tác Pha Chế"}
       </span>
-      <span class="w-full text-[11px] text-amber-300/90">💡 Khách đang cần cảm xúc: ${needsLabel} — chọn cốt và hương vị cùng sắc thái, hợp khẩu vị khách để đạt Hoàn Hảo.</span>
+      <span class="w-full text-[11px] text-amber-300/90">${
+        askedHint
+          ? `💡 Khách thú nhận đang cần: ${needsLabel} (ly này tối đa Chuẩn Vị)`
+          : `💬 Khách bóng gió: <em class="text-stone-200">“${riddle}”</em> — tự đoán sắc thái cảm xúc họ cần.`
+      }</span>
     `;
+    if (!askedHint) {
+      const askBtn = document.createElement("button");
+      askBtn.type = "button";
+      askBtn.id = "btn-ask-hint";
+      askBtn.className = "w-full min-h-[34px] mt-1 rounded-lg bg-stone-950/80 hover:bg-stone-800 border border-stone-700 text-[11px] text-stone-300 cursor-pointer";
+      askBtn.textContent = `🔎 Hỏi thẳng khách (mất ${BREW_TUNING.hintCost} Tin Cậy, ly tối đa Chuẩn Vị)`;
+      askBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        askedHint = true;
+        runState.trust = Math.max(0, runState.trust - BREW_TUNING.hintCost);
+        saveRunState();
+        syncGameHUD();
+        renderWizard();
+      });
+      header.appendChild(askBtn);
+    }
     wrap.appendChild(header);
 
     if (step === 1) {
@@ -149,6 +193,17 @@ function renderThreeStepBrewingStation(guests) {
         grid.appendChild(btn);
       });
       wrap.appendChild(grid);
+
+      const clashes = getClashes(selectedAccents);
+      if (clashes.length) {
+        const warn = document.createElement("div");
+        warn.id = "clash-warning";
+        warn.className = "text-[11px] text-rose-300 p-2 rounded-xl bg-rose-500/10 border border-rose-400/30";
+        warn.textContent = `⚡ ${clashes
+          .map(([a, b]) => `${DRINK_ACCENTS.find((x) => x.id === a).name} × ${DRINK_ACCENTS.find((x) => x.id === b).name}`)
+          .join(", ")} — hai vị này chọi nhau, ly sẽ bị trừ điểm hợp vị!`;
+        wrap.appendChild(warn);
+      }
 
       const navRow = document.createElement("div");
       navRow.className = "flex gap-2";
@@ -435,6 +490,141 @@ function renderThreeStepBrewingStation(guests) {
       btnEmber.addEventListener("mouseleave", endHold);
       btnEmber.addEventListener("touchend", endHold);
       btnEmber.addEventListener("touchcancel", endHold);
+    } else if (challengeType === "memory") {
+      const M = T.memory;
+      const jars = [
+        { icon: "🍯", name: "Mật" },
+        { icon: "🌿", name: "Thảo mộc" },
+        { icon: "🍋", name: "Chanh" },
+        { icon: "🧂", name: "Muối" }
+      ];
+      currentMemorySeq = Array.from({ length: M.length }, () => Math.floor(Math.random() * jars.length));
+      let inputPos = 0;
+      let mistakes = 0;
+      let accepting = false;
+      body.innerHTML = `
+        <p class="text-xs text-stone-300">Công thức này dài! <strong>Nhìn thứ tự các lọ sáng lên</strong>, rồi bấm lại <strong>đúng thứ tự đó</strong>. Sai ${M.maxMistakes} lần là hỏng ly.</p>
+        <div id="memory-status" class="text-[11px] text-sky-200 min-h-[16px]">👀 Ghi nhớ thứ tự…</div>
+        <div id="memory-jars" class="grid grid-cols-4 gap-2"></div>
+      `;
+      const jarBox = document.getElementById("memory-jars");
+      const status = document.getElementById("memory-status");
+      const jarBtns = jars.map((j, i) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.dataset.jar = String(i);
+        b.className = "min-h-[56px] rounded-xl bg-stone-900 border border-stone-700 text-2xl transition-all cursor-pointer";
+        b.textContent = j.icon;
+        b.disabled = true;
+        jarBox.appendChild(b);
+        return b;
+      });
+      const flash = (i, on) => {
+        jarBtns[i].classList.toggle("bg-amber-400/40", on);
+        jarBtns[i].classList.toggle("border-amber-300", on);
+        jarBtns[i].classList.toggle("scale-110", on);
+      };
+      const later = (fn, ms) => {
+        const id = setTimeout(fn, ms);
+        activeBrewTimeouts.push(id);
+      };
+      let delay = 500;
+      currentMemorySeq.forEach((i) => {
+        later(() => { flash(i, true); audioEngine.playChime(330 + i * 90, 0.18, 0.04); }, delay);
+        later(() => flash(i, false), delay + M.flashMs);
+        delay += M.flashMs + M.gapMs;
+      });
+      later(() => {
+        accepting = true;
+        jarBtns.forEach((b) => (b.disabled = false));
+        status.textContent = `🫳 Đến lượt bạn: 0/${M.length}`;
+      }, delay);
+      jarBtns.forEach((b, i) => {
+        b.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (!accepting || challengeFinished) return;
+          if (i === currentMemorySeq[inputPos]) {
+            inputPos++;
+            audioEngine.playChime(330 + i * 90, 0.12, 0.04);
+            status.textContent = `🫳 Đúng rồi: ${inputPos}/${M.length}${mistakes ? ` • sai ${mistakes}/${M.maxMistakes}` : ""}`;
+            if (inputPos >= M.length) {
+              accepting = false;
+              jarBtns.forEach((x) => (x.disabled = true));
+              if (mistakes === 0) markChallengeResult(2, "🌟 Nhớ trọn công thức, từng bước không sai!");
+              else markChallengeResult(1, "✨ Có lúc nhầm lọ, nhưng vẫn kịp sửa.");
+            }
+          } else {
+            mistakes++;
+            audioEngine.playChime(200, 0.2, 0.05);
+            status.textContent = `❌ Nhầm lọ rồi! sai ${mistakes}/${M.maxMistakes}`;
+            if (mistakes >= M.maxMistakes) {
+              accepting = false;
+              jarBtns.forEach((x) => (x.disabled = true));
+              markChallengeResult(0, "🫙 Quên mất công thức, ly bị pha sai hết.");
+            }
+          }
+        });
+      });
+    } else if (challengeType === "triple") {
+      const TR = T.triple;
+      const st = { round: 0, hits: 0, pos: 8, dir: 1, zone: [0, 0] };
+      currentTripleState = st;
+      const newZone = () => {
+        const w = TR.widths[st.round];
+        const lo = 22 + Math.random() * (78 - 22 - w);
+        st.zone = [lo, lo + w];
+        const z = document.getElementById("triple-zone");
+        if (z) {
+          z.style.left = `${st.zone[0]}%`;
+          z.style.right = `${100 - st.zone[1]}%`;
+        }
+      };
+      body.innerHTML = `
+        <p class="text-xs text-stone-300">Rót <strong>ba lượt liên tiếp</strong>. Mỗi lượt vùng vàng nằm một chỗ khác, hẹp dần, kim chạy nhanh dần. Trúng 3/3 mới Hoàn Hảo, trúng dưới 2 là hỏng.</p>
+        <div id="triple-status" class="text-[11px] text-amber-200">Lượt 1/3 • trúng 0</div>
+        <div class="relative h-6 rounded-full bg-stone-950 border border-stone-700 overflow-hidden">
+          <div id="triple-zone" class="absolute inset-y-0 bg-amber-500/45 border-x border-amber-400"></div>
+          <div id="triple-needle" class="absolute top-0 bottom-0 w-2 bg-amber-300 rounded-full shadow" style="left: 8%"></div>
+        </div>
+        <button type="button" id="btn-challenge-triple" class="min-h-[44px] px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 text-amber-200 font-semibold text-xs cursor-pointer">🫗 Rót!</button>
+      `;
+      newZone();
+      let lastTime = performance.now();
+      const stepNeedle = (now) => {
+        if (challengeFinished) return;
+        const needle = document.getElementById("triple-needle");
+        if (!needle) {
+          cancelActiveBrewAnimation();
+          return;
+        }
+        const dt = Math.min(0.05, (now - lastTime) / 1000);
+        lastTime = now;
+        st.pos += st.dir * (TR.speed + st.round * TR.speedStep) * dt;
+        if (st.pos >= 92) { st.pos = 92; st.dir = -1; }
+        else if (st.pos <= 8) { st.pos = 8; st.dir = 1; }
+        needle.style.left = `${st.pos}%`;
+        activeBrewAnimId = requestAnimationFrame(stepNeedle);
+      };
+      activeBrewAnimId = requestAnimationFrame(stepNeedle);
+      const btnPour = document.getElementById("btn-challenge-triple");
+      btnPour.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (challengeFinished) return;
+        const hit = inRange(st.pos, st.zone);
+        if (hit) st.hits++;
+        audioEngine.playChime(hit ? 600 : 220, 0.15, 0.04);
+        st.round++;
+        const sEl = document.getElementById("triple-status");
+        if (st.round >= 3) {
+          lockChallengeButton(btnPour);
+          if (st.hits === 3) markChallengeResult(2, "🌟 Ba lượt rót đều trúng, ly đầy đặn Hoàn Hảo!");
+          else if (st.hits === 2) markChallengeResult(1, "✨ Rót trúng hai lượt, ly tạm ổn.");
+          else markChallengeResult(0, "🫗 Rót lệch quá nhiều, ly bị tràn và nhạt vị.");
+          return;
+        }
+        if (sEl) sEl.textContent = `Lượt ${st.round + 1}/3 • trúng ${st.hits}${hit ? " ✅" : " ❌"}`;
+        newZone();
+      });
     } else {
       const pickedAccs = selectedAccents.map((id) => DRINK_ACCENTS.find((a) => a.id === id)).filter(Boolean);
       const decoys = DRINK_ACCENTS.filter((a) => !selectedAccents.includes(a.id));
@@ -492,15 +682,16 @@ function renderThreeStepBrewingStation(guests) {
         return;
       }
       cancelActiveBrewAnimation();
-      finalizeDrinkService(guests, selectedBase, selectedAccents, challengeBonus, challengeResultText);
+      finalizeDrinkService(guests, selectedBase, selectedAccents, challengeBonus, challengeResultText, askedHint);
     });
   };
 
   renderWizard();
 }
 
-function finalizeDrinkService(guests, base, accentIds, challengeBonus, challengeResultText) {
+function finalizeDrinkService(guests, base, accentIds, challengeBonus, challengeResultText, hintUsed = false) {
   let matchScore = challengeBonus;
+  const clashCount = getClashes(accentIds).length;
   guests.forEach((g) => {
     if (g.preferredBases.includes(base.id)) matchScore += 2;
     if (base.emotion === g.needEmotion) matchScore += 1;
@@ -531,7 +722,7 @@ function finalizeDrinkService(guests, base, accentIds, challengeBonus, challenge
     drinkName = accNames.length > 0 ? `${base.name} (${accNames.join(" & ")})` : base.name;
   }
 
-  const affinityAvg = (matchScore - challengeBonus) / guests.length;
+  const affinityAvg = (matchScore - challengeBonus - clashCount * BREW_TUNING.clashPenalty) / guests.length;
   let quality = "☕ Mộc Mạc";
   const Q = BREW_TUNING.quality;
   if (challengeBonus === 2 && affinityAvg >= Q.perfectAffinity) {
@@ -544,15 +735,37 @@ function finalizeDrinkService(guests, base, accentIds, challengeBonus, challenge
     runState.trust += 1;
   }
 
+  if (hintUsed && quality === "🌟 Hoàn Hảo") {
+    // Hỏi thẳng khách là đi đường tắt: không thể đạt Hoàn Hảo
+    quality = "✨ Chuẩn Vị";
+    runState.clarity = Math.max(0, runState.clarity - 1);
+    persistentArchive.perfectBrewsCount = Math.max(0, (persistentArchive.perfectBrewsCount || 1) - 1);
+  }
   const guest = guests[0];
   const baseReflection = (guest && SOLO_NIGHT_SCRIPTS[guest.id]?.reflection) || "";
-  const bonusNote = challengeResultText ? ` (${challengeResultText})` : "";
+  const clashNote = clashCount ? " Hai hương vị chọi nhau làm ly bị lệch vị." : "";
+  const bonusNote = challengeResultText ? ` (${challengeResultText}${clashNote})` : clashNote;
 
-  runState.lastDrinkName = drinkName;
-  runState.lastBrewQuality = quality;
-  runState.lastDrinkReflectionText = `${baseReflection}${bonusNote}`;
+  const reflectionText = `${baseReflection}${bonusNote}`;
+  const nightSlot = getCurrentNightSlot();
+  if (nightSlot && nightSlot.type === "duo") {
+    // Đêm song khách: mỗi người một ly. Chỉ khi đủ 2 ly mới chuyển sang phần thưởng thức chung
+    if (!Array.isArray(runState.duoDrinks)) runState.duoDrinks = [];
+    runState.duoDrinks.push({ name: drinkName, quality, guestId: guest.id, reflection: reflectionText });
+    if (runState.duoDrinks.length >= 2) {
+      const rank = ["☕ Mộc Mạc", "✨ Chuẩn Vị", "🌟 Hoàn Hảo"];
+      runState.lastDrinkName = runState.duoDrinks.map((d) => d.name).join(" + ");
+      runState.lastBrewQuality = runState.duoDrinks.reduce((best, d) => (rank.indexOf(d.quality) > rank.indexOf(best) ? d.quality : best), rank[0]);
+      runState.lastDrinkReflectionText = runState.duoDrinks.map((d) => d.reflection).join("\n\n");
+    }
+  } else {
+    runState.lastDrinkName = drinkName;
+    runState.lastBrewQuality = quality;
+    runState.lastDrinkReflectionText = reflectionText;
+  }
   runState.subBeat = 0;
 
+  recordNightLine({ type: "drink", text: `🍹 Ly cho ${guests.map((g) => g.name.split(" (")[0]).join(" & ")}: ${drinkName} — ${quality}` });
   persistentArchive.totalDrinksServed = (persistentArchive.totalDrinksServed || 0) + 1;
   persistentArchive.drinkAlbum.unshift({
     name: drinkName,

@@ -96,6 +96,7 @@ function renderDevTools() {
     btn("unlock", "🔓 Mở khóa TẤT CẢ (33 kết, bí mật, cutscene…)") +
     btn("restore", "♻️ Khôi phục save thật") +
     btn("secret", "🌟 Đặt sẵn điều kiện cho kết bí mật (giữ twist chưa xem)") +
+    btn("thanks", "🎖️ Xem trang chúc mừng (xem trước)") +
     btn("off", "⛔ Tắt chế độ dev");
   document.body.appendChild(fab);
   document.body.appendChild(panel);
@@ -113,7 +114,8 @@ function renderDevTools() {
       delete persistentArchive.unlockedAchievements.ach_twist;
       saveArchive();
       updateAllProgressBadges();
-    } else if (k === "restore") devRestoreBackup();
+    } else if (k === "thanks") showThanksPage();
+    else if (k === "restore") devRestoreBackup();
     else if (k === "off") {
       if (safeGetItem(DEV_BACKUP_KEY)) devRestoreBackup();
       devSetMode(false);

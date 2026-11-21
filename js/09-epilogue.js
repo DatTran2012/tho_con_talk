@@ -347,6 +347,7 @@ function completeCurrentNight() {
     pathTag,
     summary: endingSummary
   };
+  commitNightHistory({ nightNum: runState.nightIndex + 1, weekNum, nightInWeek, guests: guestNamesLabel, endingTitle, pathTag });
   runState.weekResults.push(nightResultObj);
   runState.allMonthResults.push(nightResultObj);
 

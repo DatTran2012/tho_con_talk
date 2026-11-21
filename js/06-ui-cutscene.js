@@ -54,40 +54,131 @@ function finishTypewriterImmediately() {
   }
 }
 
+/* ---- Tự động chuyển thoại: sau khi đọc xong (hoặc đủ thời gian đọc nếu tắt giọng) ---- */
+let dialogueToken = 0;
+let autoAdvanceTimer = null;
+let currentVoiceItems = [];
+
+function clearAutoAdvance() {
+  if (autoAdvanceTimer) {
+    clearTimeout(autoAdvanceTimer);
+    autoAdvanceTimer = null;
+  }
+}
+
+function estimateReadMs(text) {
+  return 1400 + String(text || "").length * 55;
+}
+
+function isAnyModalOpen() {
+  return Array.from(document.querySelectorAll(".fixed.inset-0")).some((m) => !m.classList.contains("hidden"));
+}
+
+/* onReady(fire): gọi fire() khi tới lúc chuyển. Có đồng hồ dự phòng phòng khi trình duyệt không báo "đọc xong". */
+function scheduleAutoAdvance(token, text, spoke, action) {
+  clearAutoAdvance();
+  if (!persistentArchive.autoAdvance) return;
+  const fire = () => {
+    clearAutoAdvance();
+    if (token !== dialogueToken || !persistentArchive.autoAdvance) return;
+    action();
+  };
+  const readMs = estimateReadMs(text);
+  if (spoke) {
+    // chờ giọng đọc xong rồi nghỉ một nhịp; đồng hồ dự phòng nếu không có sự kiện kết thúc
+    autoAdvanceTimer = setTimeout(fire, readMs * 2.5 + 4000);
+    return (done) => done && setTimeout(fire, 900);
+  }
+  autoAdvanceTimer = setTimeout(fire, readMs + 600);
+  return null;
+}
+
+function tryAutoAdvanceDialogue() {
+  if (!runState || isAnyModalOpen()) return;
+  const screen = document.getElementById("screen-game");
+  if (!screen || screen.classList.contains("hidden")) return;
+  if (isTypingDialogue) {
+    finishTypewriterImmediately();
+  }
+  advanceDialogueStep(); // tự bỏ qua nếu đang có lựa chọn/nút bấm
+}
+
 function setDialogue(speakerName, speakerRole, avatar, text, canAdvance = true) {
   if (activeTypewriterTimer) {
     clearInterval(activeTypewriterTimer);
     activeTypewriterTimer = null;
   }
-  currentFullDialogueText = text;
+  const token = ++dialogueToken;
+  // Tách lời nhân vật (đọc thành tiếng) khỏi phần dẫn chuyện ngôi thứ ba (chỉ hiện chữ nghiêng)
+  const view = parseDialogue(text, speakerName);
+  const shownText = view.mainText;
+  currentFullDialogueText = shownText;
   stageRenderer.talkAnimTimer = 900;
-  CafeVoice.speak(text, speakerName);
 
-  document.getElementById("speaker-name").textContent = speakerName;
-  document.getElementById("speaker-role").textContent = speakerRole;
-  document.getElementById("speaker-avatar").textContent = avatar;
+  let nameShown = speakerName;
+  let avatarShown = avatar;
+  let roleShown = speakerRole;
+  if (view.firstSpeaker && view.firstSpeaker !== speakerName) {
+    const ch = Object.values(CHARACTERS).find((c) => c.name === view.firstSpeaker);
+    nameShown = view.firstSpeaker;
+    if (ch) {
+      avatarShown = ch.avatar;
+      roleShown = ch.role;
+    } else if (view.firstSpeaker === "Thỏ Con") {
+      avatarShown = "🐰";
+      roleShown = "Chủ Quán Nửa Đêm";
+    }
+  }
+  document.getElementById("speaker-name").textContent = nameShown;
+  document.getElementById("speaker-role").textContent = roleShown;
+  document.getElementById("speaker-avatar").textContent = avatarShown;
 
+  const dirEl = document.getElementById("dialogue-direction");
+  if (dirEl) {
+    dirEl.textContent = view.directions || "";
+    dirEl.classList.toggle("hidden", !view.directions);
+  }
   const textEl = document.getElementById("dialogue-text");
+  textEl.classList.toggle("italic", Boolean(view.narrationOnly));
+  textEl.classList.toggle("text-stone-300", Boolean(view.narrationOnly));
   const hintEl = document.getElementById("advance-hint");
-  if (hintEl) hintEl.classList.toggle("hidden", !canAdvance);
+  if (hintEl) {
+    hintEl.classList.toggle("hidden", !canAdvance);
+    hintEl.textContent = persistentArchive.autoAdvance ? "Tự động tiếp tục ▸ (chạm để qua nhanh)" : "Chạm để tiếp tục ▸";
+  }
 
-  if (!text || text.length <= 12) {
-    textEl.textContent = text;
+  // Giọng đọc: chỉ đọc lời thoại của nhân vật, mỗi người một giọng
+  currentVoiceItems = view.speech.map((s) => ({ text: s.text, speaker: s.speaker }));
+  const spokenText = view.speech.map((s) => s.text).join(" ");
+  let onVoiceDone = null;
+  const spoke = currentVoiceItems.length > 0 && CafeVoice.isOn();
+  if (canAdvance) {
+    const hook = scheduleAutoAdvance(token, shownText, spoke, tryAutoAdvanceDialogue);
+    onVoiceDone = hook ? () => hook(true) : null;
+  } else {
+    clearAutoAdvance();
+  }
+  if (currentVoiceItems.length) CafeVoice.speakMany(currentVoiceItems, false, onVoiceDone);
+  else CafeVoice.stop();
+
+  const text_ = shownText;
+  if (!text_ || text_.length <= 12) {
+    textEl.textContent = text_;
     isTypingDialogue = false;
   } else {
     isTypingDialogue = true;
     textEl.textContent = "";
     let idx = 0;
-    const stepSize = text.length > 180 ? 3 : 2;
+    const stepSize = text_.length > 180 ? 3 : 2;
     activeTypewriterTimer = setInterval(() => {
       idx += stepSize;
-      if (idx >= text.length) {
-        textEl.textContent = text;
+      if (idx >= text_.length) {
+        textEl.textContent = text_;
         clearInterval(activeTypewriterTimer);
         activeTypewriterTimer = null;
         isTypingDialogue = false;
       } else {
-        textEl.textContent = text.slice(0, idx);
+        textEl.textContent = text_.slice(0, idx);
       }
     }, 16);
   }
@@ -208,7 +299,17 @@ function renderCutscenePage() {
   document.getElementById("cs-player-location").textContent = `${st.location} • ${st.idx + 1}/${st.pages.length}`;
   document.getElementById("cs-player-icon").textContent = page.icon;
   document.getElementById("cs-player-caption").textContent = page.text;
-  CafeVoice.speak(page.text, "");
+  const csToken = ++dialogueToken;
+  const csFire = () => {
+    clearAutoAdvance();
+    if (csToken !== dialogueToken || !persistentArchive.autoAdvance || !activeCutscenePages) return;
+    const m = document.getElementById("modal-cutscene-player");
+    if (m && !m.classList.contains("hidden")) document.getElementById("btn-cs-player-continue").click();
+  };
+  clearAutoAdvance();
+  const csSpoke = CafeVoice.isOn();
+  if (persistentArchive.autoAdvance) autoAdvanceTimer = setTimeout(csFire, estimateReadMs(page.text) * (csSpoke ? 2.5 : 1) + 2500);
+  CafeVoice.speak(page.text, "", false, csSpoke && persistentArchive.autoAdvance ? () => setTimeout(csFire, 1200) : null);
   document.getElementById("btn-cs-player-continue").textContent = isLast ? "Tiếp Tục ▸" : "Tiếp ▸";
 }
 

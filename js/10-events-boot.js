@@ -476,7 +476,36 @@ function renderGameProgress() {
 }
 
 /* ---- Giọng đọc: giao diện trong Menu ---- */
+function renderAutoControls() {
+  const auto = Boolean(persistentArchive.autoAdvance);
+  const q = document.getElementById("btn-quick-auto");
+  if (q) {
+    q.textContent = auto ? "⏩ Tự động" : "⏩";
+    q.className = auto
+      ? "min-h-[36px] px-2.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/50 text-xs text-emerald-200 cursor-pointer"
+      : "min-h-[36px] px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer";
+  }
+  const m = document.getElementById("btn-toggle-auto");
+  if (m) {
+    m.textContent = auto ? "Bật" : "Tắt";
+    m.className = auto
+      ? "px-2.5 py-1 rounded-xl bg-emerald-500/20 border border-emerald-400/50 text-[11px] text-emerald-200 cursor-pointer"
+      : "px-2.5 py-1 rounded-xl bg-stone-950 border border-stone-700 text-[11px] text-stone-300 cursor-pointer";
+  }
+  const hint = document.getElementById("advance-hint");
+  if (hint) hint.textContent = auto ? "Tự động tiếp tục ▸ (chạm để qua nhanh)" : "Chạm để tiếp tục ▸";
+}
+
+function toggleAutoAdvance() {
+  persistentArchive.autoAdvance = !persistentArchive.autoAdvance;
+  saveArchive();
+  if (!persistentArchive.autoAdvance) clearAutoAdvance();
+  renderAutoControls();
+  showToast(persistentArchive.autoAdvance ? "⏩ Tự động chuyển thoại: BẬT" : "⏸️ Tự động chuyển thoại: TẮT");
+}
+
 function renderVoiceControls() {
+  renderAutoControls();
   const btn = document.getElementById("btn-toggle-voice");
   if (!btn) return;
   const on = Boolean(persistentArchive.voiceEnabled) && CafeVoice.supported;
@@ -499,11 +528,13 @@ function renderVoiceControls() {
   document.getElementById("voice-controls").classList.toggle("opacity-50", !CafeVoice.supported);
   const viVoices = CafeVoice.supported ? CafeVoice.vietnameseVoices() : [];
   const row = document.getElementById("voice-select-row");
-  const sel = document.getElementById("voice-select");
   row.classList.toggle("hidden", viVoices.length < 2);
-  sel.innerHTML = viVoices
-    .map((v) => `<option value="${v.name}" ${v.name === persistentArchive.voiceName ? "selected" : ""}>${v.name}</option>`)
-    .join("");
+  [["voice-select-female", "f", persistentArchive.voiceFemale], ["voice-select-male", "m", persistentArchive.voiceMale]].forEach(([id, gender, chosen]) => {
+    const current = (viVoices.find((v) => v.name === chosen) || CafeVoice.pickVoice(gender) || {}).name;
+    document.getElementById(id).innerHTML = viVoices
+      .map((v) => `<option value="${v.name}" ${v.name === current ? "selected" : ""}>${v.name}</option>`)
+      .join("");
+  });
   const note = document.getElementById("voice-note");
   if (!CafeVoice.supported) note.textContent = "Trình duyệt này chưa hỗ trợ giọng đọc.";
   else if (!viVoices.length) note.textContent = "Chưa tìm thấy giọng tiếng Việt trên thiết bị; sẽ dùng giọng mặc định.";
@@ -520,7 +551,7 @@ function bindVoiceControls() {
     persistentArchive.voiceEnabled = !persistentArchive.voiceEnabled;
     saveArchive();
     if (persistentArchive.voiceEnabled) {
-      CafeVoice.speak("Giọng đọc đã được bật.", "", true);
+      CafeVoice.speak("Giọng đọc đã được bật.", "Thỏ Con", true);
     } else {
       CafeVoice.stop();
     }
@@ -529,19 +560,28 @@ function bindVoiceControls() {
   };
   document.getElementById("btn-toggle-voice").addEventListener("click", toggleVoice);
   document.getElementById("btn-quick-voice").addEventListener("click", toggleVoice);
+  document.getElementById("btn-quick-auto").addEventListener("click", toggleAutoAdvance);
+  document.getElementById("btn-toggle-auto").addEventListener("click", toggleAutoAdvance);
   document.getElementById("voice-rate-slider").addEventListener("input", (e) => {
     persistentArchive.voiceRate = Number(e.target.value) / 100;
     document.getElementById("voice-rate-label").textContent = `${persistentArchive.voiceRate.toFixed(2)}x`;
   });
   document.getElementById("voice-rate-slider").addEventListener("change", saveArchive);
-  document.getElementById("voice-select").addEventListener("change", (e) => {
-    persistentArchive.voiceName = e.target.value;
-    saveArchive();
-    CafeVoice.speak("Xin chào, mình là Thỏ Con. Mời bạn một ly nước nóng.", "", true);
+  const voiceDemo = [
+    { speaker: "Vy", text: "Chào chị, em là Vy, sinh viên báo chí mới ra trường." },
+    { speaker: "Anh Tuấn", text: "Cho anh ly nước nóng nhé, đêm nay đường mưa lắm." },
+    { speaker: "Cô Hoa", text: "Cô đan xong chiếc khăn này rồi, tặng con đây." },
+    { speaker: "Bác An", text: "Ngày xưa bác dạy văn, giờ bác chỉ thích ngồi nghe mưa rơi." },
+    { speaker: "Thỏ Con", text: "Mời bạn một ly nước nóng, rồi kể mình nghe chuyện đêm nay nhé." }
+  ];
+  [["voice-select-female", "voiceFemale", "f"], ["voice-select-male", "voiceMale", "m"]].forEach(([id, key, gender]) => {
+    document.getElementById(id).addEventListener("change", (e) => {
+      persistentArchive[key] = e.target.value;
+      saveArchive();
+      CafeVoice.speak(gender === "m" ? "Xin chào, tôi là giọng nam. Mời bạn một ly nước." : "Xin chào, mình là giọng nữ. Mời bạn một ly nước.", gender === "m" ? "Anh Tuấn" : "Vy", true);
+    });
   });
-  document.getElementById("btn-voice-test").addEventListener("click", () => {
-    CafeVoice.speak("Xin chào, mình là Thỏ Con. Mời bạn một ly nước nóng, rồi kể mình nghe chuyện đêm nay nhé.", "", true);
-  });
+  document.getElementById("btn-voice-test").addEventListener("click", () => CafeVoice.speakMany(voiceDemo, true));
 }
 
 function updateAllProgressBadges() {
@@ -1294,7 +1334,7 @@ function bindAllUIEvents() {
   if (replayBtn && CafeVoice.supported) {
     replayBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      CafeVoice.speak(currentFullDialogueText, document.getElementById("speaker-name").textContent, true);
+      if (currentVoiceItems.length) CafeVoice.speakMany(currentVoiceItems, true);
     });
   }
   // Tự lưu khi đóng tab / chuyển app (quan trọng trên điện thoại)

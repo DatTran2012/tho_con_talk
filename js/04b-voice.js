@@ -29,11 +29,30 @@ const CafeVoice = (() => {
     return voices.filter((v) => /^vi([-_]|$)/i.test(v.lang || ""));
   }
 
-  function pickVoice() {
+  /* Đoán giới tính của một giọng từ tên (Web Speech không cung cấp trường giới tính) */
+  function guessGender(voice) {
+    const n = (voice.name || "").toLowerCase();
+    if (/nam ?minh|\bnam\b|male(?!.*fe)|\bman\b|đức|duc|hùng|hung|\bminh\b/.test(n) && !/female/.test(n)) return "m";
+    if (/hoài ?my|hoai ?my|linh|\bmai\b|\blan\b|hương|huong|female|woman|\bnữ\b|google/.test(n)) return "f";
+    return "?";
+  }
+
+  /* Chọn giọng theo giới tính nhân vật: ưu tiên lựa chọn của người chơi, rồi đoán theo tên,
+     cuối cùng chia đôi danh sách (giọng đầu = nữ, giọng sau = nam). */
+  function pickVoice(gender = "f") {
     const list = vietnameseVoices();
     if (!list.length) return null;
-    const wanted = persistentArchive.voiceName;
-    return list.find((v) => v.name === wanted) || list[0];
+    const chosen = gender === "m" ? persistentArchive.voiceMale : persistentArchive.voiceFemale;
+    const byChoice = list.find((v) => v.name === chosen);
+    if (byChoice) return byChoice;
+    const sameGender = list.find((v) => guessGender(v) === gender);
+    if (sameGender) return sameGender;
+    if (list.length >= 2) {
+      const other = list.find((v) => guessGender(v) === (gender === "m" ? "f" : "m"));
+      const remaining = list.filter((v) => v !== other);
+      if (remaining.length) return gender === "m" ? remaining[remaining.length - 1] : remaining[0];
+    }
+    return list[0];
   }
 
   /* Bỏ emoji, ký hiệu và định dạng để giọng đọc không đọc thành chữ lạ */
@@ -65,13 +84,23 @@ const CafeVoice = (() => {
     return chunks;
   }
 
-  /* Mỗi nhân vật một cao độ riêng để dễ phân biệt người nói */
-  function pitchFor(speaker) {
+  /* Hồ sơ giọng theo giới tính + độ tuổi: pitch càng cao càng trẻ/nhỏ, rate càng thấp càng già. */
+  const VOICE_PROFILES = [
+    { match: /\bVy\b/, gender: "f", pitch: 1.3, rate: 1.04 }, //  22 tuổi, nữ, trẻ
+    { match: /\bMinh\b/, gender: "m", pitch: 1.0, rate: 1.06 }, // 27 tuổi, nam, trẻ
+    { match: /\bLinh\b/, gender: "f", pitch: 1.12, rate: 0.98 }, // 31 tuổi, nữ
+    { match: /Tuấn/, gender: "m", pitch: 0.82, rate: 0.98 }, // 35 tuổi, nam
+    { match: /\bKhang\b/, gender: "m", pitch: 0.7, rate: 0.92 }, // 38 tuổi, nam, trầm
+    { match: /\bHoa\b/, gender: "f", pitch: 0.92, rate: 0.9 }, // 44 tuổi, nữ trung niên
+    { match: /\bAn\b/, gender: "m", pitch: 0.52, rate: 0.8 }, // 68 tuổi, nam, già
+    { match: /Thỏ Con/, gender: "f", pitch: 1.4, rate: 1.0 }, // chủ quán nhỏ nhắn, dịu dàng
+    { match: /./, gender: "f", pitch: 0.95, rate: 0.9, narrator: true } // người dẫn chuyện / sự kiện
+  ];
+
+  function profileFor(speaker) {
     const name = String(speaker || "");
-    if (!name) return 1;
-    let h = 0;
-    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 997;
-    return 0.85 + (h % 36) / 100; // 0.85 – 1.20
+    if (!name) return VOICE_PROFILES[VOICE_PROFILES.length - 1];
+    return VOICE_PROFILES.find((p) => p.match.test(name)) || VOICE_PROFILES[VOICE_PROFILES.length - 1];
   }
 
   let pending = null; // câu bị trình duyệt chặn vì chưa có thao tác người dùng
@@ -85,45 +114,65 @@ const CafeVoice = (() => {
     if (supported) window.speechSynthesis.cancel();
   }
 
-  function speak(text, speaker, force = false) {
+  function speak(text, speaker, force = false, onDone = null) {
+    return speakMany([{ text, speaker }], force, onDone);
+  }
+
+  /* Đọc lần lượt nhiều đoạn, mỗi đoạn một nhân vật (dùng cho "Nghe thử các giọng"). */
+  function speakMany(items, force = false, onDone = null) {
     if (!supported) return false;
     if (!force && !persistentArchive.voiceEnabled) return false;
     stop();
-    const clean = cleanText(text);
-    if (!clean) return false;
     if (!voices.length) loadVoices();
-    const voice = pickVoice();
-    if (!voice && !warnedNoVietnamese) {
+    if (!vietnameseVoices().length && !warnedNoVietnamese) {
       warnedNoVietnamese = true;
       if (typeof showToast === "function") {
         showToast("🗣️ Thiết bị chưa có giọng tiếng Việt; sẽ dùng giọng mặc định (có thể đọc chưa chuẩn).");
       }
     }
     const token = speakToken;
-    const pitch = pitchFor(speaker);
-    const rate = Math.min(1.4, Math.max(0.6, Number(persistentArchive.voiceRate) || 0.95));
-    const chunks = splitChunks(clean);
+    const userRate = Math.min(1.4, Math.max(0.6, Number(persistentArchive.voiceRate) || 0.95));
+    const jobs = [];
+    items.forEach(({ text, speaker }) => {
+      const clean = cleanText(text);
+      if (!clean) return;
+      const profile = profileFor(speaker);
+      const voice = pickVoice(profile.gender);
+      // Chỉ có một giọng thì giả lập nam/nữ bằng cao độ: nam trầm hơn, nữ cao hơn
+      const singleVoice = vietnameseVoices().length < 2;
+      const pitch = singleVoice ? profile.pitch : profile.gender === "m" ? Math.max(0.5, profile.pitch) : profile.pitch;
+      splitChunks(clean).forEach((chunk) => jobs.push({ chunk, voice, pitch, rate: userRate * profile.rate, text, speaker }));
+    });
+    if (!jobs.length) return false;
+    let remaining = jobs.length;
+    const finishOne = () => {
+      remaining--;
+      if (remaining <= 0 && token === speakToken && typeof onDone === "function") onDone();
+    };
     // Chrome hay nuốt câu nếu speak() ngay sau cancel(): chờ một nhịp ngắn rồi mới đọc.
     setTimeout(() => {
       if (token !== speakToken) return;
       const synth = window.speechSynthesis;
       if (synth.paused) synth.resume();
-      chunks.forEach((chunk) => {
-        const u = new window.SpeechSynthesisUtterance(chunk);
+      jobs.forEach((job) => {
+        const u = new window.SpeechSynthesisUtterance(job.chunk);
         u.lang = "vi-VN";
-        if (voice) u.voice = voice;
-        u.rate = rate;
-        u.pitch = pitch;
+        if (job.voice) u.voice = job.voice;
+        u.rate = Math.min(1.6, Math.max(0.5, job.rate));
+        u.pitch = Math.min(1.8, Math.max(0.4, job.pitch));
         u.onend = () => {
           const i = liveUtterances.indexOf(u);
           if (i >= 0) liveUtterances.splice(i, 1);
+          finishOne();
         };
         u.onerror = (ev) => {
           const err = ev && ev.error;
           if (err === "not-allowed") {
-            pending = { text, speaker };
+            pending = { items, onDone };
             return;
           }
+          if (err === "canceled" || err === "interrupted") return;
+          finishOne();
           if (err && err !== "canceled" && err !== "interrupted" && !errorToastShown) {
             errorToastShown = true;
             if (typeof showToast === "function") showToast(`🗣️ Giọng đọc không phát được (${err}). Thử đổi giọng trong Menu.`);
@@ -143,13 +192,13 @@ const CafeVoice = (() => {
       if (pending && persistentArchive.voiceEnabled) {
         const p = pending;
         pending = null;
-        speak(p.text, p.speaker);
+        speakMany(p.items, false, p.onDone);
       }
     },
     true
   );
 
-  return { supported, speak, stop, vietnameseVoices, loadVoices, cleanText, splitChunks };
+  return { supported, isOn: () => supported && Boolean(persistentArchive.voiceEnabled), speak, speakMany, profileFor, guessGender, pickVoice, stop, vietnameseVoices, loadVoices, cleanText, splitChunks };
 })();
 
 window.addEventListener("pagehide", () => CafeVoice.stop());

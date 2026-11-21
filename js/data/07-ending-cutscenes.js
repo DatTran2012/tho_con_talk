@@ -147,7 +147,7 @@ const CUTSCENE_CATALOG = [
     caption: "Cơn mưa đêm tạnh hẳn. Những tia nắng sớm đầu tiên chiếu rọi qua khung cửa sổ tiệm nước Thỏ Con — nơi mọi câu chuyện đều tìm thấy bình yên."
   },
 
-  ...SECRET_VAULT.filter((s) => s.id !== "secret_signature").map((s) => ({
+  ...SECRET_VAULT.map((s) => ({
     id: s.id,
     icon: s.icon,
     location: "🗝️ KHO BÍ MẬT • BÍ MẬT ĐÃ MỞ",

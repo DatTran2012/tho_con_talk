@@ -200,7 +200,7 @@ function startTwistEnding() {
   document.getElementById("dialogue-action-area").innerHTML = "";
   setDialogue("Thỏ Con", "Chủ Quán Nửa Đêm", "🐰", "Quầy gỗ vắng lặng. Ngọn đèn vàng vẫn sáng, như mọi đêm.", false);
   playCutsceneChain(["twist_01", "twist_02", "twist_03", "twist_04"], () =>
-    runTwistScene(() => playCutsceneChain(["twist_05", "twist_06", "twist_07", "secret_card_17"], finishTwistEnding))
+    runTwistScene(() => playCutsceneChain(["twist_05", "twist_06", "twist_07", "secret_card_17", "secret_signature"], finishTwistEnding))
   );
 }
 

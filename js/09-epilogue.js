@@ -169,107 +169,24 @@ function advanceDialogueStep() {
   const actionArea = document.getElementById("dialogue-action-area");
   if (actionArea && actionArea.children.length > 0) return;
 
-  if (runState.encounterReplyText) {
-    runState.encounterReplyText = "";
-    saveRunState();
-    renderCurrentBeat();
-    return;
-  }
-
-  const slot = getCurrentNightSlot();
-  const guests = getCurrentNightGuests();
-  const beat = runState.beatIndex;
-  const sub = runState.subBeat || 0;
-
-  if (slot.type === "solo") {
-    if (beat === 0 && sub < 1) {
-      runState.subBeat = sub + 1;
-      saveRunState();
-      renderCurrentBeat();
-      return;
-    }
-    if (beat === 1 && sub < 2) {
-      runState.subBeat = sub + 1;
-      saveRunState();
-      renderCurrentBeat();
-      return;
-    }
-    if (beat === 3 && runState.lastDrinkName && sub < 1) {
-      runState.subBeat = sub + 1;
-      saveRunState();
-      renderCurrentBeat();
-      return;
-    }
-    if (beat === 5 && runState.lastChoiceReplyText && sub < 2) {
-      runState.subBeat = sub + 1;
-      saveRunState();
-      renderCurrentBeat();
-      return;
-    }
-    if (beat === 6 && sub < 1) {
-      runState.subBeat = sub + 1;
-      saveRunState();
-      renderCurrentBeat();
-      return;
-    }
-  } else {
-    if (beat === 0 && sub < 2) {
-      runState.subBeat = sub + 1;
-      saveRunState();
-      renderCurrentBeat();
-      return;
-    }
-    if (beat === 1 && sub < 2) {
-      runState.subBeat = sub + 1;
-      saveRunState();
-      renderCurrentBeat();
-      return;
-    }
-    if (beat === 3 && runState.lastDrinkName && sub < 1) {
-      runState.subBeat = sub + 1;
-      saveRunState();
-      renderCurrentBeat();
-      return;
-    }
-    if (beat === 5 && runState.lastChoiceReplyText && sub < 2) {
-      runState.subBeat = sub + 1;
-      saveRunState();
-      renderCurrentBeat();
-      return;
-    }
-    if (beat === 6 && sub < 1) {
-      runState.subBeat = sub + 1;
-      saveRunState();
-      renderCurrentBeat();
-      return;
+  const story = getStoryNight();
+  const step = story.steps[runState.beatIndex];
+  if (step) {
+    if (step[0] === "?") {
+      if (!runState.pendingReply) return;
+      runState.pendingReply = null;
+    } else if (step[0] === "brew") {
+      if (runState.brewDoneAt !== runState.beatIndex) return;
     }
   }
-
   runState.subBeat = 0;
-  runState.lastChoiceReplyText = "";
   runState.beatIndex += 1;
-
-  if (slot.type === "duo" && runState.beatIndex === 1 && !runState.beat2CutscenePlayed) {
-    runState.beat2CutscenePlayed = true;
-    runState.duoSecondGuestPresent = true;
-    saveRunState();
-    syncGameHUD();
-    const g2 = guests[1];
-    const g2Cutscene = persistentArchive.unlockedKeepsakes[g2.id] ? `return_${g2.id}` : `ambient_${g2.id}`;
-    playCutscene(g2Cutscene, () => renderCurrentBeat());
-    return;
-  }
-
-  if (runState.beatIndex > 6) {
-    completeCurrentNight();
-  } else {
-    saveRunState();
-    renderCurrentBeat();
-  }
+  saveRunState();
+  renderCurrentBeat();
 }
 
 function completeCurrentNight() {
-  const slot = getCurrentNightSlot();
+  const story = getStoryNight();
   const guests = getCurrentNightGuests();
   const heartVotes = runState.nightStances.filter((s) => s === "heart" || s === "duo_heart").length;
   const mindVotes = runState.nightStances.filter((s) => s === "mind" || s === "duo_mind").length;
@@ -280,10 +197,19 @@ function completeCurrentNight() {
   let endingSummary = "";
   let radioNews = "";
   let pathTag = "";
+  let branchUsed = "heart";
 
-  if (slot.type === "duo") {
-    const duo = DUO_PAIRINGS[slot.duoId];
+  // Ba nhánh: tim / trí / lặng — dựa trên các lựa chọn trong đêm
+  let soloBranch = "heart";
+  if (silentVotes >= 2 && silentVotes >= heartVotes && silentVotes >= mindVotes) soloBranch = "silent";
+  else if (silentVotes >= 1 && heartVotes === 0 && mindVotes === 0) soloBranch = "silent";
+  else if (mindVotes > heartVotes) soloBranch = "mind";
+
+  const endSpec = story.end || "";
+  if (endSpec.startsWith("duo:")) {
+    const duo = DUO_PAIRINGS[endSpec.slice(4)];
     const branch = mindVotes > heartVotes ? "mind" : "heart";
+    branchUsed = branch;
     endingId = `duo_${duo.id}_${branch}`;
     endingTitle = duo.endings[branch].title;
     endingSummary = duo.endings[branch].summary;
@@ -291,29 +217,36 @@ function completeCurrentNight() {
     pathTag = branch === "mind"
       ? `${ENDING_PATH_LABELS.duo_mind.icon} ${ENDING_PATH_LABELS.duo_mind.name}`
       : `${ENDING_PATH_LABELS.duo.icon} ${ENDING_PATH_LABELS.duo.name}`;
-  } else {
-    const g = guests[0];
-    let branch = "heart";
-    if (silentVotes >= 2 && silentVotes >= heartVotes && silentVotes >= mindVotes) branch = "silent";
-    else if (silentVotes >= 1 && heartVotes === 0 && mindVotes === 0) branch = "silent";
-    else if (mindVotes > heartVotes) branch = "mind";
-    else branch = "heart";
-
-    endingId = `${g.id}_${branch}`;
-    const ed = SOLO_ENDINGS_DATA[g.id][branch];
+  } else if (endSpec.startsWith("solo:")) {
+    const g = CHARACTERS[endSpec.slice(5)];
+    branchUsed = soloBranch;
+    endingId = `${g.id}_${soloBranch}`;
+    const ed = SOLO_ENDINGS_DATA[g.id][soloBranch];
     endingTitle = ed.title;
     endingSummary = ed.summary;
     radioNews = ed.radioNews;
-    pathTag = `${ENDING_PATH_LABELS[branch].icon} ${ENDING_PATH_LABELS[branch].name}`;
+    pathTag = `${ENDING_PATH_LABELS[soloBranch].icon} ${ENDING_PATH_LABELS[soloBranch].name}`;
+  } else {
+    endingTitle = story.title;
+    endingSummary = story.close || "Một đêm nữa khép lại bằng tiếng mưa và ánh đèn vàng.";
+    radioNews = "Đài FM Nửa Đêm: những người lạ trong con hẻm nhỏ vừa trở thành người thân của nhau.";
+    pathTag = "🌙 Đêm Đoàn Tụ";
+    branchUsed = soloBranch;
   }
+  // Ghi nhớ cách bạn đã đối xử với từng vị khách để các chương sau nhắc lại
+  if (!runState.guestPath) runState.guestPath = {};
+  guests.forEach((g) => {
+    runState.guestPath[g.id] = branchUsed;
+  });
+  const endingWasNew = endingId ? !persistentArchive.unlockedEndings[endingId] : false;
 
-  persistentArchive.unlockedEndings[endingId] = true;
+  if (endingId) persistentArchive.unlockedEndings[endingId] = true;
   runState.previousNightRadioNews = radioNews;
 
   const earnedKeepsake =
     runState.lastBrewQuality !== "☕ Mộc Mạc" ||
     heartVotes + mindVotes >= 1 ||
-    slot.type === "duo";
+    guests.length > 1;
 
   if (earnedKeepsake) {
     guests.forEach((g) => {
@@ -330,11 +263,12 @@ function completeCurrentNight() {
   const nightInWeek = (runState.nightIndex % 7) + 1;
   const weekNum = Math.min(4, Math.floor(runState.nightIndex / 7) + 1);
   const guestNamesLabel = guests.map((g) => g.name.split(" (")[0]).join(" & ");
+  const nightDrinkNames = (runState.nightDrinks || []).map((d) => d.name).join(" + ") || runState.lastDrinkName;
 
   persistentArchive.stickyNotes.unshift({
     nightLabel: `T${weekNum}-Đ${nightInWeek}`,
     guestName: guestNamesLabel,
-    text: `Cảm ơn Thỏ Con vì ly ${runState.lastDrinkName || "nước ấm"} và cuộc trò chuyện đêm nay!`
+    text: `Cảm ơn Thỏ Con vì ly ${nightDrinkNames || "nước ấm"} và cuộc trò chuyện đêm nay!`
   });
   if (persistentArchive.stickyNotes.length > 35) persistentArchive.stickyNotes.pop();
 
@@ -342,7 +276,7 @@ function completeCurrentNight() {
     weekNum,
     nightInWeek,
     guestNames: guestNamesLabel,
-    drinkName: runState.lastDrinkName,
+    drinkName: nightDrinkNames,
     endingTitle,
     pathTag,
     summary: endingSummary
@@ -360,7 +294,7 @@ function completeCurrentNight() {
   checkAndUnlockAchievements();
   updateAllProgressBadges();
 
-  playCutscene(endingId, () => {
+  const goNext = () => {
     if (runState.nightIndex >= 28) {
       showEpilogueModal(true);
     } else if (runState.nightIndex % 7 === 0) {
@@ -368,7 +302,14 @@ function completeCurrentNight() {
     } else {
       startNight(runState.nightIndex);
     }
-  });
+  };
+  // Cảnh kết cục dài chỉ chiếu ở lần mở khóa đầu tiên; các đêm sau chỉ hiện dòng kết đêm (xem lại trong Thư viện)
+  if (endingId && endingWasNew) {
+    playCutscene(endingId, goNext);
+  } else {
+    showToast(`🌙 Kết đêm: ${endingTitle}`);
+    goNext();
+  }
 }
 
 function showEpilogueModal(isMonthComplete = false) {
@@ -393,9 +334,8 @@ function showEpilogueModal(isMonthComplete = false) {
 
     const ms = runState.monthlyStanceCounts;
     document.getElementById("epilogue-stance-summary").innerHTML = `
-      <div><strong>Nhịp Điệu Tháng:</strong> ${SHIFT_MODES.find((m) => m.id === runState.shiftMode)?.name || "Tháng Mưa Giao Thoa"}</div>
+      <div><strong>Nhịp Điệu Tháng:</strong> ${SHIFT_MODES.find((m) => m.id === runState.shiftMode)?.name || "Tháng Mưa Bốn Chương"}</div>
       <div class="mt-1"><strong>Dấu Ấn 28 Đêm:</strong> ❤️ ${ms.heart} Trái Tim • ✨ ${ms.mind} Lý Trí • 🤫 ${ms.silent} Khoảng Lặng • 🤝 ${ms.duo} Kết Nối Song Khách</div>
-      <div class="mt-1 text-emerald-300">🔓 Chặng tiếp theo trong Sổ Tay Nhận Ca đã được mở khóa!</div>
     `;
 
     const list = document.getElementById("epilogue-results-list");

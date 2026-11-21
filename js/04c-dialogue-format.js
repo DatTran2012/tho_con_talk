@@ -161,3 +161,35 @@ function parseDialogue(rawText, speakerName) {
     firstSpeaker: first
   };
 }
+
+
+/* -----------------------------------------------------------------------
+   Emoji tâm trạng: đoán cảm xúc của câu thoại từ từ khóa (chú thích hành động + lời nói)
+------------------------------------------------------------------------ */
+const MOOD_RULES = [
+  [/bật cười|phá lên cười|cười ròn|cười tươi/i, "😄"],
+  [/rưng rưng|nước mắt|khóc|nghẹn|sụt sùi|đỏ hoe/i, "🥹"],
+  [/thở dài|thở phào|buông tiếng thở|nhẹ nhõm/i, "😮‍💨"],
+  [/giật mình|sững|ngạc nhiên|bất ngờ|tròn mắt|há hốc/i, "😲"],
+  [/giận|tức|gắt|bực|cáu/i, "😠"],
+  [/sợ|run rẩy|hoảng|rùng mình/i, "😨"],
+  [/lo lắng|bồn chồn|băn khoăn|day dứt|áp lực|căng thẳng/i, "😟"],
+  [/mệt|kiệt sức|ngáp|díp|buồn ngủ|thiếu ngủ|mất ngủ/i, "😴"],
+  [/trầm ngâm|ngẫm|suy nghĩ|nghĩ ngợi|ngập ngừng|do dự/i, "🤔"],
+  [/nhớ|hoài niệm|ký ức|ngày xưa|năm xưa|hồi nhỏ/i, "🕰️"],
+  [/tự hào|vững tin|kiên định|quyết tâm|hy vọng|hi vọng|tin tưởng/i, "💪"],
+  [/mỉm cười|cười|nụ cười|tươi|vui/i, "😊"],
+  [/ấm áp|dịu dàng|gật đầu|vỗ về|trìu mến|cảm ơn|biết ơn/i, "🥰"],
+  [/rót|mời|nước ấm|ly nước|pha/i, "☕"],
+  [/chúc|ngủ ngon|bình an|hẹn gặp/i, "🌙"],
+  [/mưa|gió|đèn|nến/i, "🌧️"]
+];
+
+function detectMood(text) {
+  const s = String(text || "");
+  for (const [re, emoji] of MOOD_RULES) if (re.test(s)) return emoji;
+  if (/\?\s*$/.test(s.trim())) return "🤔";
+  if (/!\s*$/.test(s.trim())) return "✨";
+  if (/(\.\.\.|…)\s*$/.test(s.trim())) return "💭";
+  return "";
+}

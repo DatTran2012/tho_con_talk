@@ -96,29 +96,8 @@ const CUTSCENE_CATALOG = [
   { id: "origin_thocon_2", icon: "🏮🍵", location: "KHỞI NGUỒN • ÁNH ĐÈN HIÊN NHỎ", title: "Tách Trà Ấm Không Hỏi Tên", caption: "Một người chủ quán già nơi cuối hẻm đã mở cửa lúc 2 giờ sáng, rót mời Thỏ Con một chén trà hoa cúc mật ong ấm nóng và chỉ lặng lẽ lắng nghe mà không hề phán xét." },
   { id: "origin_thocon_3", icon: "🐰☕✨", location: "KHỞI NGUỒN • TIỆM NƯỚC NỬA ĐÊM", title: "Ngọn Đèn Sáng Từ 00:00 Đến 05:00", caption: "Từ đêm đó, Thỏ Con tự tay đóng chiếc quầy gỗ thông này, thắp lên ngọn đèn vàng mỗi nửa đêm — để bất kỳ ai đang thức khuya giữa thành phố cũng có một bến đỗ bình yên." },
 
-  { id: "night_intro_1", icon: "🪧✨", location: "00:00 • MỞ CỬA QUÁN — ĐÊM 1", title: "Đêm 1: Tấm Biển Gỗ Lật Mặt 'MỞ CỬA'", caption: "Kim đồng hồ vừa chạm 00:00. Thỏ Con treo chiếc đèn lồng vàng trước hiên, lật tấm biển gỗ sang mặt 'MỞ CỬA' — sẵn sàng đón vị khách đầu tiên của tuần trực mới." },
-  { id: "night_intro_2", icon: "🌧️🫖", location: "00:00 • MỞ CỬA QUÁN — ĐÊM 2", title: "Đêm 2: Tiếng Ấm Nước Reo Giữa Hẻm Mưa", caption: "Bước sang đêm trực thứ hai, hơi nước ấm bốc lên từ chiếc ấm đồng trên bếp than hồng, xua tan màn sương lạnh ngoài khung cửa kính." },
-  { id: "night_intro_3", icon: "🏮📻", location: "00:00 • MỞ CỬA QUÁN — ĐÊM 3", title: "Đêm 3: Giai Điệu Radio Nửa Đêm", caption: "Đêm thứ ba của tuần trực. Chiếc radio cổ khẽ ngân lên một khúc nhạc trầm ấm khi những chuyến xe cuối cùng vừa rời đại lộ." },
-  { id: "night_intro_4", icon: "🕰️🌙", location: "00:00 • MỞ CỬA QUÁN — ĐÊM 4", title: "Đêm 4: Khuya Khoắt Lắng Đọng", caption: "Nửa chặng đường của tuần trực đêm. Mặt quầy gỗ thông thoang thoảng mùi vỏ cam sấy và thảo mộc, tĩnh lặng chờ những tâm sự sâu kín nhất." },
-  { id: "night_intro_5", icon: "🐾☕", location: "00:00 • MỞ CỬA QUÁN — ĐÊM 5", title: "Đêm 5: Bước Chân Khẽ Trên Quầy Gỗ", caption: "Đêm thứ năm gõ cửa. Chú mèo tam thể vươn vai trên chiếc đệm êm, ngước nhìn cánh cửa gỗ như biết sắp có người cần được sưởi ấm." },
-  { id: "night_intro_6", icon: "🕯️📜", location: "00:00 • MỞ CỬA QUÁN — ĐÊM 6", title: "Đêm 6: Ánh Nến Sáp Ong Ấm Áp", caption: "Đêm áp chót của tuần. Những tờ giấy note kỷ niệm trên tường khẽ rung rinh theo gió đêm, nhắc nhớ bao mảnh đời đã tìm thấy bình yên nơi đây." },
-  { id: "night_intro_7", icon: "🌅✨", location: "00:00 • MỞ CỬA QUÁN — ĐÊM 7", title: "Đêm 7: Chuyến Tàu Cuối Trước Bình Minh Tuần", caption: "Đêm thứ bảy khép lại một tuần trực đầy cảm xúc. Ngọn đèn vàng cuối hẻm vẫn tỏa sáng dịu dàng cho đến khi tia nắng sớm đầu tiên xuất hiện." },
 
-  { id: "ambient_vy", icon: "🎓🌧️", location: "00:25 • HIÊN MƯA ĐẦU HẺM", title: "Bước Chân Người Phóng Viên Trẻ", caption: "Vy đứng dưới mái hiên rũ những giọt mưa trên chiếc ba lô và chiếc máy ghi âm cũ trước khi đẩy cửa bước vào." },
-  { id: "ambient_minh", icon: "💻🌃", location: "01:10 • ÁNH ĐÈN XANH MÀN HÌNH", title: "Kỹ Sư Rời Văn Phòng Khuya", caption: "Minh tắt màn hình laptop sau ca triển khai hệ thống, tìm một góc yên tĩnh để lắng nghe tiếng mưa thật." },
-  { id: "ambient_linh", icon: "🖋️📕", location: "01:50 • GÓC PHỐ SƯƠNG MÙ", title: "Người Ôm Cuốn Sổ Bìa Đỏ", caption: "Chị Linh khẽ quàng chặt chiếc khăn len màu rượu vang, mang theo trang bản thảo viết tay còn thơm mùi mực." },
-  { id: "ambient_tuan", icon: "🚚💡", location: "02:30 • ĐÈN XE ĐÊM", title: "Chặng Dừng Giữa Ca Giao Hàng", caption: "Chiếc xe máy dừng lại đầu hẻm, anh Tuấn phủi nước mưa trên áo khoác gió và bước vào tìm chút hơi ấm." },
-  { id: "ambient_khang", icon: "🧵🕯️", location: "03:05 • MÙI SÁP ONG ẤM", title: "Người Thợ Rời Xưởng Thủ Công", caption: "Anh Khang bước vào với chiếc tạp dề da sờn cũ và đôi bàn tay chai sần đầy tâm huyết." },
-  { id: "ambient_hoa", icon: "🧶🍵", location: "03:40 • KHU PHỐ YÊN TĨNH", title: "Bước Chân Người Mẹ Thức Khuya", caption: "Cô Hoa khẽ đẩy cánh cửa gỗ, mang theo nỗi lo âu dịu dàng dành cho cậu con trai đang lớn." },
-  { id: "ambient_an", icon: "👓📚", location: "04:15 • HIỆU SÁCH CUỐI PHỐ", title: "Người Thầy Già Với Túi Sách Cũ", caption: "Bác An thong thả bước qua con hẻm khuya, nâng niu những trang sách giấy trước giờ hiệu sách cũ đóng cửa." },
 
-  { id: "return_vy", icon: "🎓✨", location: "CHƯƠNG 2 • VY QUAY LẠI", title: "Cuốn Sổ Phỏng Vấn Đầy Ắp Chữ", caption: "Vy bước vào quán với nụ cười rạng rỡ, trên tay là bản nháp phóng sự thực địa đầu tiên vừa hoàn thành." },
-  { id: "return_minh", icon: "💻🌱", location: "CHƯƠNG 2 • MINH QUAY LẠI", title: "Ánh Mắt Nhẹ Nhõm Sau Ca Làm", caption: "Minh khẽ gõ cửa bước vào, chiếc laptop nằm yên trong ba lô thay vì mở sáng trên bàn như đêm trước." },
-  { id: "return_linh", icon: "🖋️🌸", location: "CHƯƠNG 2 • CHỊ LINH QUAY LẠI", title: "Mùi Mực Mới Trên Trang Sổ Đỏ", caption: "Chị Linh ôm cuốn sổ bìa đỏ đã dày thêm nhiều trang viết tay, ánh mắt tràn đầy sự tĩnh tại." },
-  { id: "return_tuan", icon: "🚚🔧", location: "CHƯƠNG 2 • ANH TUẤN QUAY LẠI", title: "Tin Vui Từ Xưởng Xe Điện", caption: "Anh Tuấn bước vào quán với nụ cười sảng khoái sau buổi nộp hồ sơ kỹ thuật đầy thuận lợi." },
-  { id: "return_khang", icon: "🧵🔖", location: "CHƯƠNG 2 • ANH KHANG QUAY LẠI", title: "Món Quà Da Sáp Ong Thủ Công", caption: "Anh Khang mang theo miếng da khâu tay thơm dịu hương sáp ong như một lời cảm ơn gửi tới quầy gỗ." },
-  { id: "return_hoa", icon: "🧶🌷", location: "CHƯƠNG 2 • CÔ HOA QUAY LẠI", title: "Nụ Cười Ấm Của Người Mẹ", caption: "Cô Hoa thong thả bước vào quán sớm hơn mọi khi, đôi vai đã trút bỏ hết những âu lo đêm trước." },
-  { id: "return_an", icon: "👓📖", location: "CHƯƠNG 2 • BÁC AN QUAY LẠI", title: "Những Cuốn Sách Cho Góc Quán", caption: "Bác An ôm ba cuốn sách văn học quý giá tới góp vào kệ sách cộng đồng đầu tiên của Tiệm Nước Nửa Đêm." },
 
   ...Object.entries(SOLO_ENDINGS_DATA).flatMap(([gid, branches]) => {
     const ch = CHARACTERS[gid];

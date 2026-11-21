@@ -419,44 +419,31 @@ function renderRulesScreenControls() {
 
   const modeBox = document.getElementById("shift-mode-selector");
   modeBox.innerHTML = "";
-  SHIFT_MODES.forEach((m) => {
-    const unlocked = isShiftModeUnlocked(m.id);
-    const isSel = persistentArchive.selectedShiftMode === m.id && unlocked;
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = `p-3 rounded-2xl text-left border transition-all ${
-      !unlocked
-        ? "bg-stone-950/60 border-stone-800/80 text-stone-500 cursor-not-allowed opacity-75"
-        : isSel
-        ? "bg-amber-500/20 border-amber-400 text-amber-100 cursor-pointer"
-        : "bg-stone-950/90 border-stone-800 text-stone-300 hover:border-stone-600 cursor-pointer"
-    }`;
-    btn.innerHTML = `
+  const reached = persistentArchive.completedModes && persistentArchive.completedModes.standard ? 4 : Math.max(1, Number(persistentArchive.maxChapter) || 1);
+  STORY_CHAPTERS.forEach((c) => {
+    const unlocked = c.no <= reached;
+    const card = document.createElement("div");
+    card.className = `p-3 rounded-2xl text-left border ${unlocked ? "bg-amber-500/10 border-amber-400/50 text-amber-100" : "bg-stone-950/60 border-stone-800/80 text-stone-500 opacity-80"}`;
+    const nights = STORY_NIGHTS.filter((n) => n.ch === c.no);
+    const detail = unlocked
+      ? `<p class="text-[11px] text-stone-300 mt-1 leading-relaxed">${escapeHtml(c.desc)}</p>
+         <ul class="mt-1.5 space-y-0.5 text-[10.5px] text-stone-400">${nights
+           .map((n) => `<li>${n.n}. ${escapeHtml(n.title)} <span class="text-stone-500">• ${n.guests.length > 3 ? "cả quán" : n.guests.map((g) => CHARACTERS[g].name.split(" (")[0]).join(" & ")}</span></li>`)
+           .join("")}</ul>`
+      : `<p class="text-[11px] text-stone-500 mt-1 leading-relaxed">Hoàn thành Chương ${c.no - 1} để mở khóa.</p>`;
+    card.innerHTML = `
       <div class="flex items-center justify-between font-bold text-xs">
-        <span>${m.icon} ${m.name}</span>
-        <span class="text-[10px] font-mono-code ${unlocked ? "text-emerald-300" : "text-stone-500"}">${unlocked ? (isSel ? "Đang chọn" : "Đã mở") : "🔒 Khóa"}</span>
-      </div>
-      <p class="text-[11px] ${unlocked ? "text-stone-400" : "text-stone-500"} mt-1 leading-relaxed">
-        ${unlocked ? m.desc : `Hoàn thành trọn vẹn ${m.order === 1 ? "Chặng 1 (Tháng Mưa Giao Thoa)" : "Chặng 2 (Tháng Hội Ngộ Đa Chiều)"} để mở khóa.`}
-      </p>
-    `;
-    btn.addEventListener("click", () => {
-      if (!unlocked) {
-        showToast(`🔒 Hãy hoàn thành 4 tuần của Chặng ${m.order} trước để mở khóa chặng này!`);
-        return;
-      }
-      persistentArchive.selectedShiftMode = m.id;
-      saveArchive();
-      renderRulesScreenControls();
-    });
-    modeBox.appendChild(btn);
+        <span>${c.icon} Chương ${c.no}: ${unlocked ? escapeHtml(c.name) : "???"}</span>
+        <span class="text-[10px] font-mono-code ${unlocked ? "text-emerald-300" : "text-stone-500"}">${unlocked ? (c.no === reached && !persistentArchive.completedModes.standard ? "Đang chơi" : "Đã mở") : "🔒 Khóa"}</span>
+      </div>${detail}`;
+    modeBox.appendChild(card);
   });
 }
 
 /* ---- Tiến độ hoàn thành game (0–100%) ---- */
 const PROGRESS_WEIGHTS = [
   { id: "endings", label: "🎭 Kết cục", weight: 30 },
-  { id: "chapters", label: "🌙 Chặng hoàn thành", weight: 15 },
+  { id: "chapters", label: "🌙 Tháng Mưa hoàn thành", weight: 15 },
   { id: "secrets", label: "🗝️ Kho bí mật", weight: 15 },
   { id: "cards", label: "🎴 Lá bài DRINK", weight: 8 },
   { id: "keepsakes", label: "🏺 Kỷ vật", weight: 8 },
@@ -1063,8 +1050,8 @@ function openSecretsModal() {
   door.innerHTML = isTwistUnlocked()
     ? `<div class="font-bold text-rose-200">🕊️ Cánh cửa cuối cùng đã mở</div><p class="text-stone-300">Hãy mở Menu và chọn «🕊️ Cánh Cửa Thứ Hai».</p>`
     : `<div class="font-bold text-rose-200">🕊️ Còn một cánh cửa cuối cùng…</div>
-       <p class="text-stone-300">Nó chỉ mở khi bạn đã đi trọn cả ba chặng tháng trực (Tháng Mưa → Hội Ngộ → Khuya Khoắt), mở đủ 33 kết cục và mở hết mọi bí mật ở trên.</p>
-       <div class="text-[11px] font-mono-code text-amber-300">Chặng đã hoàn thành: ${doneModes}/3 • Kết cục: ${Math.min(TOTAL_ENDINGS, countUnlockedEndings())}/${TOTAL_ENDINGS} • Bí mật: ${unlockedCount}/${SECRET_VAULT.length}</div>`;
+       <p class="text-stone-300">Nó chỉ mở khi bạn đã đi trọn bốn chương của Tháng Mưa (Gặp Gỡ → Trở Lại → Hiện Tại → Tương Lai), mở đủ 33 kết cục và mở hết mọi bí mật ở trên.</p>
+       <div class="text-[11px] font-mono-code text-amber-300">Tháng Mưa đã hoàn thành: ${doneModes}/1 • Kết cục: ${Math.min(TOTAL_ENDINGS, countUnlockedEndings())}/${TOTAL_ENDINGS} • Bí mật: ${unlockedCount}/${SECRET_VAULT.length}</div>`;
   grid.appendChild(door);
   openModal("modal-secrets");
 }
@@ -1462,56 +1449,16 @@ function bindAllUIEvents() {
     });
   });
 
-  // Backup Export / Import (iframe-safe copy)
-  document.getElementById("btn-export-save").addEventListener("click", () => {
-    const payload = JSON.stringify({
-      version: APP_VERSION,
-      archive: persistentArchive,
-      run: runState
-    });
-    const input = document.getElementById("save-code-input");
-    input.value = payload;
-    input.focus();
-    input.select();
-    try {
-      document.execCommand("copy");
-      showToast("📤 Đã xuất và sao chép mã lưu vào khay nhớ tạm!");
-    } catch (err) {
-      showToast("📤 Đã xuất mã lưu vào ô bên dưới!");
-    }
-  });
-
-  document.getElementById("btn-import-save").addEventListener("click", () => {
-    const raw = document.getElementById("save-code-input").value.trim();
-    if (!raw) {
-      showToast("⚠️ Hãy dán mã lưu JSON vào ô trước khi bấm Nạp Mã.");
-      return;
-    }
-    try {
-      const parsed = JSON.parse(raw);
-      if (!parsed || !parsed.archive || typeof parsed.archive !== "object") {
-        showToast("⚠️ Mã lưu không hợp lệ.");
-        return;
-      }
-      persistentArchive = sanitizeArchive(parsed.archive);
-      saveArchive();
-      const normalizedRun = parsed.run ? normalizeRunState(parsed.run) : null;
-      if (normalizedRun) {
-        runState = normalizedRun;
-        saveRunState();
-      }
-      checkAndUnlockAchievements();
-      updateAllProgressBadges();
-      const btnContinue = document.getElementById("btn-welcome-continue");
-      if (btnContinue) btnContinue.classList.toggle("hidden", !(runState && runState.nightIndex < 28));
-      const btnRestart = document.getElementById("btn-welcome-restart");
-      if (btnRestart) btnRestart.classList.toggle("hidden", !(runState && runState.nightIndex < 28));
-      renderRulesScreenControls();
-      syncGameHUD();
-      showToast("✅ Khôi phục dữ liệu thành công!");
-    } catch (err) {
-      showToast("⚠️ Không thể đọc mã lưu. Vui lòng kiểm tra lại định dạng.");
-    }
+  const goHome = () => {
+    closeModal("mobile-drawer");
+    document.querySelectorAll("[data-modal-overlay]").forEach((m) => { if (m.id !== "mobile-drawer") closeModal(m.id); });
+    try { CafeVoice.stop(); clearAutoAdvance(); } catch (err) { /* bỏ qua */ }
+    saveRunState();
+    switchScreen("screen-welcome");
+  };
+  ["btn-drawer-home", "btn-hud-home"].forEach((id) => {
+    const b = document.getElementById(id);
+    if (b) b.addEventListener("click", goHome);
   });
 
   document.getElementById("btn-night8-secret").addEventListener("click", startSecretNight8Reunion);

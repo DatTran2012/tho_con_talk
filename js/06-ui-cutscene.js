@@ -103,14 +103,28 @@ function tryAutoAdvanceDialogue() {
   advanceDialogueStep(); // tự bỏ qua nếu đang có lựa chọn/nút bấm
 }
 
-function setDialogue(speakerName, speakerRole, avatar, text, canAdvance = true) {
+function setDialogue(speakerName, speakerRole, avatar, text, canAdvance = true, opts = {}) {
   if (activeTypewriterTimer) {
     clearInterval(activeTypewriterTimer);
     activeTypewriterTimer = null;
   }
   const token = ++dialogueToken;
   // Tách lời nhân vật (đọc thành tiếng) khỏi phần dẫn chuyện ngôi thứ ba (chỉ hiện chữ nghiêng)
-  const view = parseDialogue(text, speakerName);
+  let view;
+  if (opts.plain) {
+    // Phần trong ngoặc đơn (hành động, chú thích) tách riêng: chữ nhạt, không đọc thành tiếng
+    const raw = String(text);
+    const notes = [];
+    const spoken = raw.replace(/\(([^)]*)\)/g, (m, inner) => { notes.push(inner.trim()); return " "; }).replace(/\s{2,}/g, " ").trim();
+    const dir = [opts.dir || "", ...notes].filter(Boolean).join(" • ");
+    if (opts.sys || opts.narr || !spoken) {
+      view = { directions: opts.sys || opts.narr ? "" : dir, speech: [], mainText: opts.sys || opts.narr ? raw : dir, narrationOnly: true };
+    } else {
+      view = { directions: dir, speech: [{ speaker: speakerName, text: spoken }], mainText: spoken, firstSpeaker: null };
+    }
+  } else {
+    view = parseDialogue(text, speakerName);
+  }
   const shownText = view.mainText;
   currentFullDialogueText = shownText;
   stageRenderer.talkAnimTimer = 900;
@@ -130,9 +144,18 @@ function setDialogue(speakerName, speakerRole, avatar, text, canAdvance = true) 
     }
   }
   document.getElementById("speaker-name").textContent = nameShown;
-  document.getElementById("speaker-role").textContent = roleShown;
+  document.getElementById("speaker-role").textContent = opts.time ? `${roleShown} • 🕐 ${opts.time}` : roleShown;
   document.getElementById("speaker-avatar").textContent = avatarShown;
 
+  const moodEl = document.getElementById("speaker-mood");
+  if (moodEl) {
+    const mood = detectMood(`${view.directions || ""} ${shownText}`);
+    moodEl.textContent = mood;
+    moodEl.classList.toggle("hidden", !mood);
+    moodEl.classList.remove("mood-pop");
+    void moodEl.offsetWidth;
+    moodEl.classList.add("mood-pop");
+  }
   const dirEl = document.getElementById("dialogue-direction");
   if (dirEl) {
     dirEl.textContent = view.directions || "";
@@ -140,7 +163,8 @@ function setDialogue(speakerName, speakerRole, avatar, text, canAdvance = true) 
   }
   const textEl = document.getElementById("dialogue-text");
   textEl.classList.toggle("italic", Boolean(view.narrationOnly));
-  textEl.classList.toggle("text-stone-300", Boolean(view.narrationOnly));
+  textEl.classList.toggle("text-stone-400", Boolean(view.narrationOnly));
+  textEl.classList.toggle("text-stone-100", !view.narrationOnly);
   const hintEl = document.getElementById("advance-hint");
   if (hintEl) {
     hintEl.classList.toggle("hidden", !canAdvance);
@@ -193,7 +217,7 @@ function setDialogue(speakerName, speakerRole, avatar, text, canAdvance = true) 
   }
 }
 
-/* Chặng = tháng trực (3 chặng: Mưa → Hội Ngộ → Khuya Khoắt). Hiện trên HUD và trong Menu. */
+/* Chương 1–4 = tuần 1–4 (Gặp Gỡ → Trở Lại → Hiện Tại → Tương Lai). Hiện trên HUD và trong Menu. */
 function renderChapterInfo() {
   const chapterBadge = document.getElementById("hud-chapter-badge");
   const drawerInfo = document.getElementById("drawer-chapter-info");
@@ -201,45 +225,43 @@ function renderChapterInfo() {
     if (drawerInfo) drawerInfo.classList.add("hidden");
     return;
   }
-  const mode = SHIFT_MODES.find((m) => m.id === runState.shiftMode) || SHIFT_MODES[0];
-  const chapterNo = mode.order + 1;
+  const story = getStoryNight();
+  const chap = STORY_CHAPTERS[story.ch - 1];
   const night = Math.min(28, runState.nightIndex + 1);
   if (chapterBadge) {
-    chapterBadge.textContent = `${mode.icon} Chặng ${chapterNo}/${SHIFT_MODES.length}`;
-    chapterBadge.title = mode.name;
+    chapterBadge.textContent = `${chap.icon} Chương ${story.ch}: ${chap.name}`;
+    chapterBadge.title = chap.desc;
   }
   if (drawerInfo) {
-    drawerInfo.textContent = `${mode.icon} Chặng ${chapterNo}/${SHIFT_MODES.length} • ${mode.name} • Đêm ${night}/28`;
+    drawerInfo.textContent = `${chap.icon} Chương ${story.ch}/4 • ${chap.name} • Đêm ${night}/28`;
     drawerInfo.classList.remove("hidden");
   }
+}
+
+/* Đồng hồ quán chạy theo giờ của từng cảnh thoại ("HH:MM") */
+function setStoryClock(timeStr) {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(String(timeStr || ""));
+  if (!m) return;
+  stageRenderer.storyTime = { h: Number(m[1]) % 24, m: Number(m[2]) };
+  const badge = document.getElementById("hud-week-badge");
+  if (badge) badge.textContent = `🕐 ${String(m[1]).padStart(2, "0")}:${m[2]}`;
 }
 
 function syncGameHUD() {
   if (!runState) return;
   renderChapterInfo();
-  const weekNum = Math.min(4, Math.floor(runState.nightIndex / 7) + 1);
   const nightInWeek = (runState.nightIndex % 7) + 1;
-  document.getElementById("hud-week-badge").textContent = `Tuần ${weekNum}/4`;
+  setStoryClock(runState.clock || (getStoryNight() || {}).t0);
   document.getElementById("hud-night-badge").textContent = `Đêm ${nightInWeek}/7`;
 
-  const slot = getCurrentNightSlot();
   const guests = getCurrentNightGuests();
   const modeBadge = document.getElementById("hud-mode-badge");
-  if (slot.type === "duo") {
-    modeBadge.textContent = "👥 Song Khách Giao Thoa";
-    modeBadge.className = "hidden sm:inline-block px-2.5 py-1 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-200 font-semibold text-xs";
-    const visibleGuests = getStageVisibleGuests();
-    if (visibleGuests.length === 1) {
-      document.getElementById("stage-guest-label").textContent = `${guests[0].avatar} ${guests[0].name} (Đang chờ...)`;
-    } else {
-      document.getElementById("stage-guest-label").textContent = `${guests[0].avatar} ${guests[0].name.split(" (")[0]} & ${guests[1].avatar} ${guests[1].name.split(" (")[0]}`;
-    }
-  } else {
-    const isCh2 = Boolean(persistentArchive.unlockedKeepsakes[guests[0].id]);
-    modeBadge.textContent = isCh2 ? "📖 Khách Gặp Lại" : "👤 Đơn Khách";
-    modeBadge.className = "hidden sm:inline-block px-2.5 py-1 rounded-xl bg-stone-900 border border-stone-700 text-stone-200 text-xs";
-    document.getElementById("stage-guest-label").textContent = `${guests[0].avatar} ${guests[0].name}`;
-  }
+  modeBadge.textContent = guests.length > 1 ? `👥 ${guests.length} Vị Khách` : "👤 Đơn Khách";
+  modeBadge.className = "hidden sm:inline-block px-2.5 py-1 rounded-xl bg-stone-900 border border-stone-700 text-stone-200 text-xs";
+  const present = getStageVisibleGuests();
+  document.getElementById("stage-guest-label").textContent = present.length
+    ? present.map((g) => `${g.avatar} ${g.name.split(" (")[0]}`).join(" & ")
+    : "🌙 Quầy vắng khách...";
 
   const activeSeason = stageRenderer.getActiveSeason();
   const weatherEl = document.getElementById("hud-weather-badge");

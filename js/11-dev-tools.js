@@ -34,6 +34,7 @@ function devUnlockEverything() {
   // Thành tựu: mở hết, trừ "twist" để vẫn test được cảnh bí mật cuối game
   ACHIEVEMENTS.filter((x) => x.id !== "ach_twist").forEach((x) => (a.unlockedAchievements[x.id] = true));
   all(SHIFT_MODES, a.completedModes);
+  a.maxChapter = 4;
   STANDARD_GUEST_ORDER.forEach((g) => {
     a.unlockedKeepsakes[g] = true;
     a.postcards[g] = true;
@@ -96,6 +97,8 @@ function renderDevTools() {
     btn("unlock", "🔓 Mở khóa TẤT CẢ (33 kết, bí mật, cutscene…)") +
     btn("restore", "♻️ Khôi phục save thật") +
     btn("secret", "🌟 Đặt sẵn điều kiện cho kết bí mật (giữ twist chưa xem)") +
+    btn("story", "📖 Đọc toàn bộ hội thoại 28 đêm") +
+    btn("jump", "⏭️ Chơi thử từ một đêm bất kỳ…") +
     btn("thanks", "🎖️ Xem trang chúc mừng (xem trước)") +
     btn("off", "⛔ Tắt chế độ dev");
   document.body.appendChild(fab);
@@ -115,12 +118,116 @@ function renderDevTools() {
       saveArchive();
       updateAllProgressBadges();
     } else if (k === "thanks") showThanksPage();
+    else if (k === "story") devOpenStoryViewer();
+    else if (k === "jump") devJumpToNight();
     else if (k === "restore") devRestoreBackup();
     else if (k === "off") {
       if (safeGetItem(DEV_BACKUP_KEY)) devRestoreBackup();
       devSetMode(false);
     }
   });
+}
+
+/* ---- Mở chế độ dev trên điện thoại: chạm đèn lồng 10 lần rồi nhập mật khẩu ---- */
+const DEV_PASSWORD = "201220";
+let devLanternTaps = 0;
+let devLanternLast = 0;
+function devLanternTap() {
+  const now = Date.now();
+  devLanternTaps = now - devLanternLast > 2500 ? 1 : devLanternTaps + 1;
+  devLanternLast = now;
+  if (devLanternTaps < 10) return;
+  devLanternTaps = 0;
+  if (isDevMode()) {
+    showToast("🛠️ Chế độ DEV đang bật");
+    return;
+  }
+  const pw = window.prompt("Mật khẩu:");
+  if (pw === DEV_PASSWORD) {
+    devSetMode(true);
+    devUnlockEverything();
+    persistentArchive.twistEndingSeen = false;
+    persistentArchive.twistAnnounced = false;
+    delete persistentArchive.unlockedAchievements.ach_twist;
+    saveArchive();
+    updateAllProgressBadges();
+  } else if (pw !== null) {
+    showToast("Sai mật khẩu");
+  }
+}
+
+/* ---- Đọc toàn bộ hội thoại 28 đêm (kể cả mọi nhánh lựa chọn và biến thể lời thoại) ---- */
+function devStoryText(t) {
+  if (typeof t === "string") return escapeHtml(t);
+  return ["h", "m", "s", "d"].filter((k) => t[k]).map((k) => `<div class="pl-2 border-l border-stone-700"><span class="text-[10px] text-sky-300">[${{ h: "đã đối xử bằng ❤️", m: "đã đối xử bằng ✨", s: "đã đối xử bằng 🤫", d: "mặc định" }[k]}]</span> ${escapeHtml(t[k])}</div>`).join("");
+}
+
+function devStoryNightHtml(n) {
+  const name = (id) => (id === "host" ? "🐰 Thỏ Con" : id === "sys" ? "🌙 Cảnh" : CHARACTERS[id] ? `${CHARACTERS[id].avatar} ${CHARACTERS[id].name}` : id);
+  return n.steps
+    .map((st) => {
+      const k = st[0];
+      if (k === "@") return `<div class="text-[11px] font-mono-code text-amber-300 pt-1">🕐 ${st[1]}</div>`;
+      if (k === "+") return `<div class="text-[11px] text-emerald-300">➕ ${name(st[1])} bước vào</div>`;
+      if (k === "-") return `<div class="text-[11px] text-stone-400">➖ ${name(st[1])} rời quầy</div>`;
+      if (k === "card") return `<div class="text-[11px] text-teal-300">🃏 Rút lá bài DRINK</div>`;
+      if (k === "?") {
+        const opts = [["❤️", st[2]], ["✨", st[3]], ["🤫", st[4]]]
+          .map(([ic, o]) => `<div class="mt-1 p-2 rounded-lg bg-amber-500/10 border border-amber-400/30"><div class="text-amber-100">${ic} ${escapeHtml(o[0])}</div><div class="text-stone-300 mt-0.5">↳ ${name(o[1])}: ${devStoryText(o[2])}</div></div>`)
+          .join("");
+        return `<div class="p-2 rounded-xl bg-stone-900 border border-stone-700"><div class="italic text-stone-400">${escapeHtml(st[1])}</div>${opts}</div>`;
+      }
+      if (k === "brew")
+        return `<div class="p-2 rounded-xl bg-teal-500/10 border border-teal-400/30"><div class="font-bold text-teal-200">☕ Pha cho ${name(st[1])}</div><div class="text-stone-200">${devStoryText(st[2])}</div><div class="italic text-stone-400 mt-1">${devStoryText(st[3])}</div></div>`;
+      const cls = k === "sys" ? "italic text-stone-400" : "text-stone-200";
+      return `<div class="${cls}"><span class="font-bold text-amber-200">${name(k)}:</span> ${devStoryText(st[1])}</div>`;
+    })
+    .join("");
+}
+
+function devOpenStoryViewer() {
+  const box = document.getElementById("history-body");
+  const title = document.getElementById("history-title");
+  if (!box || !title) return;
+  title.textContent = "📖 DEV • Toàn bộ 28 đêm";
+  box.innerHTML = "";
+  STORY_NIGHTS.forEach((n, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "w-full text-left p-3 rounded-2xl bg-stone-900/90 hover:bg-stone-800 border border-stone-700 cursor-pointer";
+    const gl = n.guests.map((g) => CHARACTERS[g].name.split(" (")[0]).join(" & ");
+    b.innerHTML = `<div class="text-xs font-semibold text-amber-200">Chương ${n.ch} • Đêm ${i + 1} • ${escapeHtml(n.title)}</div><div class="text-[11px] text-stone-400">${escapeHtml(gl)} • ${n.steps.length} bước • bắt đầu ${n.t0}</div>`;
+    b.addEventListener("click", () => {
+      title.textContent = `Đêm ${i + 1} • ${n.title}`;
+      box.innerHTML = "";
+      const back = document.createElement("button");
+      back.type = "button";
+      back.className = "min-h-[36px] px-3 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-200 cursor-pointer";
+      back.textContent = "← Danh sách 28 đêm";
+      back.addEventListener("click", devOpenStoryViewer);
+      box.appendChild(back);
+      const body = document.createElement("div");
+      body.className = "space-y-1.5 text-xs";
+      body.innerHTML = `<div class="italic text-stone-400 whitespace-pre-line">${escapeHtml(n.intro.join("\n\n"))}</div>` + devStoryNightHtml(n);
+      box.appendChild(body);
+    });
+    box.appendChild(b);
+  });
+  openModal("modal-history");
+}
+
+/* ---- Nhảy thẳng tới một đêm để chơi thử ---- */
+function devJumpToNight() {
+  const v = window.prompt("Chơi thử từ đêm số mấy? (1–28)", "1");
+  const n = Math.floor(Number(v));
+  if (!n || n < 1 || n > 28) return;
+  closeModal("modal-history");
+  runState = createNewRunState();
+  runState.nightIndex = n - 1;
+  runState.awaitingNightStart = true;
+  saveRunState();
+  switchScreen("screen-game");
+  startNight(n - 1);
 }
 
 function initDevTools() {

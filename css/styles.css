@@ -78,3 +78,6 @@ body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-ins
 @media (max-height: 520px) and (orientation: landscape) {
   #cafe-canvas-wrapper { aspect-ratio: 21 / 7; }
 }
+
+@keyframes moodPop { 0% { transform: scale(0.4); opacity: 0; } 70% { transform: scale(1.18); opacity: 1; } 100% { transform: scale(1); } }
+.mood-pop { animation: moodPop 0.35s ease-out; }

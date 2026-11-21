@@ -7,6 +7,7 @@ function createDefaultArchive() {
   return {
     playthroughCount: 0,
     completedModes: {},
+    maxChapter: 1,
     totalDrinksServed: 0,
     perfectBrewsCount: 0,
     petCatCount: 0,
@@ -79,6 +80,7 @@ function sanitizeArchive(rawObj) {
     voiceFemale: typeof rawObj.voiceFemale === "string" ? rawObj.voiceFemale.slice(0, 120) : typeof rawObj.voiceName === "string" ? rawObj.voiceName.slice(0, 120) : "",
     voiceMale: typeof rawObj.voiceMale === "string" ? rawObj.voiceMale.slice(0, 120) : "",
     completedModes: safeObj(rawObj.completedModes, {}),
+    maxChapter: Math.min(4, Math.max(1, Math.floor(Number(rawObj.maxChapter)) || 1)),
     visitedSeasons: { ...def.visitedSeasons, ...safeObj(rawObj.visitedSeasons, {}) },
     cafeCustom: { ...def.cafeCustom, ...safeObj(rawObj.cafeCustom, {}) },
     // Save cũ: bật tự đổi mùa/không gian quán một lần (sau đó người chơi tắt được trong menu Âm Thanh & Mùa)
@@ -123,65 +125,16 @@ function saveArchive() {
 }
 
 function isShiftModeUnlocked(modeId) {
-  if (modeId === "standard") return true;
-  if (modeId === "duo_fest") {
-    return Boolean(persistentArchive.completedModes.standard) || (persistentArchive.playthroughCount || 0) >= 1;
-  }
-  if (modeId === "midnight_mysteries") {
-    return Boolean(persistentArchive.completedModes.duo_fest) || (persistentArchive.playthroughCount || 0) >= 2;
-  }
-  return false;
+  return modeId === "standard";
 }
 
-function generateOneMonthSchedule(shiftMode = "standard") {
-  const duoOrder = shuffleArray(ALL_DUO_KEYS);
-  const soloCycle1 = shuffleArray(STANDARD_GUEST_ORDER);
-  const soloCycle2 = shuffleArray(STANDARD_GUEST_ORDER);
-  const extraSoloPool = shuffleArray(STANDARD_GUEST_ORDER);
-  const extraDuoPool = shuffleArray(ALL_DUO_KEYS);
-
-  const weeks = [];
-  let duoPtr = 0;
-  let solo1Ptr = 0;
-  let solo2Ptr = 0;
-  let extraSoloPtr = 0;
-  let extraDuoPtr = 0;
-
-  for (let w = 0; w < 4; w++) {
-    const weekSlots = new Array(7).fill(null);
-    const duoCountThisWeek = shiftMode === "duo_fest" ? (w < 2 ? 3 : 2) : w < 2 ? 2 : 1;
-    const duoPositions = duoCountThisWeek === 3 ? [1, 3, 5] : duoCountThisWeek === 2 ? [2, 4] : [3];
-
-    duoPositions.forEach((pos) => {
-      const dk = duoPtr < duoOrder.length ? duoOrder[duoPtr++] : extraDuoPool[extraDuoPtr++ % extraDuoPool.length];
-      weekSlots[pos] = {
-        type: "duo",
-        duoId: dk,
-        guests: [...DUO_PAIRINGS[dk].guests]
-      };
-    });
-
-    for (let d = 0; d < 7; d++) {
-      if (!weekSlots[d]) {
-        let gid = null;
-        if (solo1Ptr < soloCycle1.length) {
-          gid = soloCycle1[solo1Ptr++];
-        } else if (solo2Ptr < soloCycle2.length) {
-          gid = soloCycle2[solo2Ptr++];
-        } else {
-          gid = extraSoloPool[extraSoloPtr++ % extraSoloPool.length];
-        }
-        weekSlots[d] = {
-          type: "solo",
-          duoId: null,
-          guests: [gid]
-        };
-      }
-    }
-    weeks.push(...weekSlots);
-  }
-
-  return weeks;
+/* Lịch 28 đêm lấy trực tiếp từ kịch bản 4 chương (STORY_NIGHTS): mỗi đêm có khách và nội dung riêng. */
+function buildStorySchedule() {
+  return STORY_NIGHTS.map((s) => ({
+    type: s.guests.length === 1 ? "solo" : s.guests.length === 2 ? "duo" : "trio",
+    duoId: s.end && s.end.startsWith("duo:") ? s.end.slice(4) : null,
+    guests: [...s.guests]
+  }));
 }
 
 function createNewRunState() {
@@ -190,7 +143,7 @@ function createNewRunState() {
     : "standard";
   return {
     shiftMode: mode,
-    schedule: generateOneMonthSchedule(mode),
+    schedule: buildStorySchedule(),
     nightIndex: 0,
     beatIndex: 0,
     subBeat: 0,
@@ -200,12 +153,13 @@ function createNewRunState() {
     nightStances: [],
     weeklyStanceCounts: { heart: 0, mind: 0, silent: 0, duo: 0, duo_heart: 0, duo_mind: 0 },
     monthlyStanceCounts: { heart: 0, mind: 0, silent: 0, duo: 0, duo_heart: 0, duo_mind: 0 },
-    usedEncounterIds: [],
-    activeEncounter: null,
-    duoSecondGuestPresent: false,
-    beat2CutscenePlayed: false,
-    lastChoiceReplyText: "",
-    duoDrinks: [],
+    guestPath: {},
+    presentGuests: [],
+    pendingReply: null,
+    brewDoneAt: -1,
+    nightDrinks: [],
+    currentBrewReflection: "",
+    clock: "",
     lastDrinkName: "",
     lastBrewQuality: "",
     lastDrinkReflectionText: "",
@@ -217,7 +171,6 @@ function createNewRunState() {
     allMonthResults: [],
     previousNightRadioNews: "",
     awaitingNightStart: true,
-    encounterReplyText: "",
     monthCounted: false
   };
 }
@@ -243,9 +196,10 @@ function normalizeRunState(parsed) {
       Array.isArray(s.guests) &&
       s.guests.length > 0 &&
       s.guests.every((id) => CHARACTERS[id]) &&
-      (s.type === "solo" || (s.type === "duo" && DUO_PAIRINGS[s.duoId]))
+      (s.type === "solo" || s.type === "duo" || s.type === "trio")
   );
   if (!valid) return null;
+  if (parsed.schedule.some((s, i) => !STORY_NIGHTS[i] || s.guests.join() !== STORY_NIGHTS[i].guests.join())) return null;
   const base = createNewRunState();
   base.awaitingNightStart = false;
   return { ...base, ...parsed, nightIndex: Math.max(0, Math.min(28, Math.floor(parsed.nightIndex))) };
@@ -285,8 +239,8 @@ function getStageVisibleGuests() {
   if (twistStageMode === "all") return STANDARD_GUEST_ORDER.map((id) => CHARACTERS[id]);
   const slot = getCurrentNightSlot();
   const guests = getCurrentNightGuests();
-  if (slot.type === "duo" && runState && !runState.duoSecondGuestPresent) {
-    return [guests[0]];
+  if (runState && Array.isArray(runState.presentGuests)) {
+    return runState.presentGuests.map((id) => CHARACTERS[id]).filter(Boolean);
   }
   return guests;
 }

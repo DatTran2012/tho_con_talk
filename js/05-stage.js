@@ -424,10 +424,10 @@ class CafeStageRenderer {
     ctx.strokeStyle = "#fef3c7";
     ctx.lineWidth = 1.4;
     ctx.beginPath();
-    if (clockSecret) {
-      const nowDate = new Date();
-      const minA = (nowDate.getMinutes() / 60) * Math.PI * 2 - Math.PI / 2;
-      const hourA = ((nowDate.getHours() % 12) / 12 + nowDate.getMinutes() / 720) * Math.PI * 2 - Math.PI / 2;
+    if (this.storyTime || clockSecret) {
+      const st = this.storyTime || { h: new Date().getHours(), m: new Date().getMinutes() };
+      const minA = (st.m / 60) * Math.PI * 2 - Math.PI / 2;
+      const hourA = ((st.h % 12) / 12 + st.m / 720) * Math.PI * 2 - Math.PI / 2;
       ctx.moveTo(clockX, clockY);
       ctx.lineTo(clockX + Math.cos(minA) * 9, clockY + Math.sin(minA) * 9);
       ctx.moveTo(clockX, clockY);
@@ -531,6 +531,7 @@ class CafeStageRenderer {
     }
 
     this.hitboxes.push({ id: "window", x: winX, y: winY, w: winW, h: winH });
+    this.hitboxes.push({ id: "lantern", x: w * 0.48 - 26, y: h * 0.14 - 26, w: 52, h: 52 });
 
     // 4. Custom Lantern Lighting & Volumetric Warm Cone
     const lanternX = w * 0.48;
@@ -881,6 +882,10 @@ class CafeStageRenderer {
     for (let i = this.hitboxes.length - 1; i >= 0; i--) {
       const box = this.hitboxes[i];
       if (x >= box.x && x <= box.x + box.w && y >= box.y && y <= box.y + box.h) {
+        if (box.id === "lantern") {
+          if (typeof devLanternTap === "function") devLanternTap();
+          return;
+        }
         if (box.id === "clock") {
           persistentArchive.clockTapCount = (persistentArchive.clockTapCount || 0) + 1;
           saveArchive();

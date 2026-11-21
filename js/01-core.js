@@ -19,7 +19,7 @@ if (window.CanvasRenderingContext2D && !CanvasRenderingContext2D.prototype.round
 
 const APP_VERSION = "v3.1.0";
 const STORAGE_KEY_ARCHIVE = "tho_con_talk_archive_v8";
-const STORAGE_KEY_RUN = "tho_con_talk_run_v8";
+const STORAGE_KEY_RUN = "tho_con_talk_run_v9";
 const memoryStorageFallback = {};
 
 function safeGetItem(key) {

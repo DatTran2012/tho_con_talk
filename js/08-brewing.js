@@ -742,27 +742,18 @@ function finalizeDrinkService(guests, base, accentIds, challengeBonus, challenge
     persistentArchive.perfectBrewsCount = Math.max(0, (persistentArchive.perfectBrewsCount || 1) - 1);
   }
   const guest = guests[0];
-  const baseReflection = (guest && SOLO_NIGHT_SCRIPTS[guest.id]?.reflection) || "";
+  const baseReflection = runState.currentBrewReflection || "";
   const clashNote = clashCount ? " Hai hương vị chọi nhau làm ly bị lệch vị." : "";
   const bonusNote = challengeResultText ? ` (${challengeResultText}${clashNote})` : clashNote;
 
   const reflectionText = `${baseReflection}${bonusNote}`;
-  const nightSlot = getCurrentNightSlot();
-  if (nightSlot && nightSlot.type === "duo") {
-    // Đêm song khách: mỗi người một ly. Chỉ khi đủ 2 ly mới chuyển sang phần thưởng thức chung
-    if (!Array.isArray(runState.duoDrinks)) runState.duoDrinks = [];
-    runState.duoDrinks.push({ name: drinkName, quality, guestId: guest.id, reflection: reflectionText });
-    if (runState.duoDrinks.length >= 2) {
-      const rank = ["☕ Mộc Mạc", "✨ Chuẩn Vị", "🌟 Hoàn Hảo"];
-      runState.lastDrinkName = runState.duoDrinks.map((d) => d.name).join(" + ");
-      runState.lastBrewQuality = runState.duoDrinks.reduce((best, d) => (rank.indexOf(d.quality) > rank.indexOf(best) ? d.quality : best), rank[0]);
-      runState.lastDrinkReflectionText = runState.duoDrinks.map((d) => d.reflection).join("\n\n");
-    }
-  } else {
-    runState.lastDrinkName = drinkName;
-    runState.lastBrewQuality = quality;
-    runState.lastDrinkReflectionText = reflectionText;
-  }
+  if (!Array.isArray(runState.nightDrinks)) runState.nightDrinks = [];
+  runState.nightDrinks.push({ name: drinkName, quality, guestId: guest.id });
+  const rank = ["☕ Mộc Mạc", "✨ Chuẩn Vị", "🌟 Hoàn Hảo"];
+  runState.lastDrinkName = drinkName;
+  runState.lastBrewQuality = runState.nightDrinks.reduce((best, d) => (rank.indexOf(d.quality) > rank.indexOf(best) ? d.quality : best), rank[0]);
+  runState.lastDrinkReflectionText = reflectionText;
+  runState.brewDoneAt = runState.beatIndex;
   runState.subBeat = 0;
 
   recordNightLine({ type: "drink", text: `🍹 Ly cho ${guests.map((g) => g.name.split(" (")[0]).join(" & ")}: ${drinkName} — ${quality}` });

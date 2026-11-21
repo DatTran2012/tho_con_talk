@@ -47,64 +47,12 @@ const ENDING_PATH_LABELS = {
 };
 
 const SHIFT_MODES = [
-  { id: "standard", order: 0, icon: "🌧️", name: "Tháng Mưa Giao Thoa", desc: "Chặng 1: Cân bằng giữa đêm đơn khách, đêm song khách giao thoa và khách quay lại Chương 2." },
-  { id: "duo_fest", order: 1, icon: "👥", name: "Tháng Hội Ngộ Đa Chiều", desc: "Chặng 2: Tăng cường các đêm song khách giao thoa để khám phá mọi sợi dây kết nối." },
-  { id: "midnight_mysteries", order: 2, icon: "🕯️", name: "Tháng Khuya Khoắt Bí Ẩn", desc: "Chặng 3: Mỗi đêm đều xảy ra Sự Kiện Nửa Đêm bất ngờ giữa tiếng mưa khuya." }
+  { id: "standard", order: 0, icon: "🌧️", name: "Tháng Mưa Bốn Chương", desc: "Bốn tuần, bảy đêm mỗi tuần: Gặp Gỡ → Trở Lại → Hiện Tại → Tương Lai. Mỗi đêm là một câu chuyện riêng, có từ một đến ba vị khách." }
 ];
 
-const MIDNIGHT_ENCOUNTERS = [
-  {
-    id: "me_blackout",
-    title: "🕯️ Cúp Điện Hẻm Khuya & Ánh Nến Sáp Ong",
-    prompt: "01:45 sáng. Cả con hẻm bất ngờ mất điện, ánh đèn neon tắt phụt. Bạn thắp lên ngọn nến sáp ong đặt giữa quầy gỗ...",
-    choices: [
-      { label: "❤️ 'Trong bóng tối, người ta không cần phải cố tỏ ra mạnh mẽ nữa.'", deltaTrust: 1, deltaClarity: 0, reply: "Ánh nến hắt lên đôi mắt vị khách một quầng sáng dịu dàng — tiếng thở dài nặng nề suốt cả ngày bỗng tan biến." },
-      { label: "✨ 'Đôi khi tắt bớt ánh sáng nhân tạo mới giúp ta nhìn rõ phương hướng thật sự.'", deltaTrust: 0, deltaClarity: 1, reply: "Vị khách mỉm cười gật đầu trong ánh nến ấm, tâm trí trở nên sáng tỏ lạ thường." }
-    ]
-  },
-  {
-    id: "me_wrong_call",
-    title: "📞 Cuộc Gọi Nhầm Số Lúc 02:15",
-    prompt: "Chiếc điện thoại bàn cũ trên kệ bỗng reo vang. Đầu dây bên kia là giọng một người lạ đứng trú mưa ở trạm xe buýt gọi nhầm số...",
-    choices: [
-      { label: "❤️ Dịu dàng trò chuyện vài câu chúc người lạ bình an về tới nhà.", deltaTrust: 1, deltaClarity: 0, reply: "Vị khách ngồi trước quầy nghe thấy liền mỉm cười ấm áp: 'Chỉ một cuộc gọi nhầm số mà quán cũng đối xử tử tế đến vậy...'" },
-      { label: "✨ Chỉ dẫn tuyến xe buýt đêm cuối cùng đang chạy qua đại lộ gần đó.", deltaTrust: 0, deltaClarity: 1, reply: "Người đầu dây bên kia rối rít cảm ơn; vị khách trong quán cũng gật gù trân trọng sự chu đáo của Thỏ Con." }
-    ]
-  },
-  {
-    id: "me_cat_ticket",
-    title: "🐱 Mèo Tam Thể Tha Về Tấm Vé Tàu Cũ",
-    prompt: "Chú mèo tam thể nhảy phóc lên quầy, thả xuống trước mặt khách một tấm vé tàu hỏa cũ đã phai màu mực...",
-    choices: [
-      { label: "❤️ 'Chắc chú mèo muốn nhắc chúng ta nhớ về chuyến đi vô tư nhất thời trẻ.'", deltaTrust: 1, deltaClarity: 0, reply: "Vị khách khẽ vuốt lưng chú mèo và kể lại kỷ niệm tuổi thơ trong trẻo mà bấy lâu đã quên mất." },
-      { label: "✨ 'Mỗi chuyến tàu đều có ga dừng để kiểm tra lại hành lý trước khi đi tiếp.'", deltaTrust: 0, deltaClarity: 1, reply: "Vị khách nhìn tấm vé cũ rồi mỉm cười: 'Đúng vậy, mình cần bỏ bớt những gánh nặng không thuộc về mình.'" }
-    ]
-  },
-  {
-    id: "me_old_radio",
-    title: "📻 Tần Số Radio Từ Mười Năm Trước",
-    prompt: "Bạn khẽ xoay núm dò sóng trên chiếc radio cổ — bất ngờ vang lên bản thu thanh cũ về một tiệm nước từng mở cửa suốt mùa khủng hoảng năm xưa...",
-    choices: [
-      { label: "❤️ 'Thời đại nào cũng có những cơn bão, nhưng lòng tốt của con người thì chưa từng cũ.'", deltaTrust: 1, deltaClarity: 0, reply: "Giai điệu xưa cũ hòa cùng tiếng mưa khiến cả góc quán lắng lại đầy xúc động." },
-      { label: "✨ 'Lịch sử luôn lặp lại theo vòng xoáy, và con người luôn tìm được cách thích nghi.'", deltaTrust: 0, deltaClarity: 1, reply: "Vị khách gật gù suy ngẫm, nỗi hoang mang trước biến động thời cuộc vơi đi một nửa." }
-    ]
-  },
-  {
-    id: "me_stray_postcard",
-    title: "📮 Phong Thư Không Tên Dưới Khe Cửa",
-    prompt: "Một cơn gió lùa đẩy qua khe cửa gỗ một phong thư nhỏ chỉ vỏn vẹn dòng chữ: 'Gửi người đang thức lúc nửa đêm: bạn đã làm rất tốt rồi.'",
-    choices: [
-      { label: "❤️ Đưa lá thư cho vị khách đọc cùng như một lời nhắn gửi từ thành phố.", deltaTrust: 1, deltaClarity: 0, reply: "Đôi mắt vị khách rưng rưng khi đọc dòng chữ viết tay mộc mạc ấy." },
-      { label: "✨ Ghim lá thư lên bảng gỗ để tiếp sức cho tất cả những vị khách ghé sau.", deltaTrust: 0, deltaClarity: 1, reply: "Vị khách mỉm cười tán thành: 'Những điều tử tế nhỏ bé được lưu giữ lại sẽ tạo nên sức mạnh lớn.'" }
-    ]
-  },
-  {
-    id: "me_herbal_sample",
-    title: "🍵 Chén Trà Hoa Cúc Thử Nghiệm",
-    prompt: "Trong lúc chờ nước sôi, Thỏ Con rót mời khách một chén trà hoa cúc mật ong vừa ủ thử nghiệm...",
-    choices: [
-      { label: "❤️ 'Uống một ngụm ấm trước đã, chuyện công việc để sau hẵng tính.'", deltaTrust: 1, deltaClarity: 0, reply: "Hương hoa cúc thanh mát làm dịu ngay cổ họng khô rát của vị khách." },
-      { label: "✨ 'Hương vị tinh tế cần thời gian ủ chậm — suy nghĩ thấu đáo cũng vậy.'", deltaTrust: 0, deltaClarity: 1, reply: "Vị khách nhấp từng ngụm nhỏ, nhịp thở chậm rãi và điềm tĩnh trở lại." }
-    ]
-  }
+const STORY_CHAPTERS = [
+  { no: 1, icon: "🌧️", name: "Gặp Gỡ", desc: "Bảy vị khách bước vào tiệm lần đầu." },
+  { no: 2, icon: "🔁", name: "Trở Lại", desc: "Họ quay lại — đôi khi cùng nhau." },
+  { no: 3, icon: "⏳", name: "Hiện Tại", desc: "Giữa cơn bão giá cả, trí tuệ nhân tạo và suy thoái." },
+  { no: 4, icon: "🌅", name: "Tương Lai", desc: "Mỗi người đứng trước một ngã rẽ và chọn đường đi tiếp." }
 ];

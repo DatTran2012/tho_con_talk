@@ -174,10 +174,10 @@
       <!-- Sequential Monthly Rhythm Selector -->
       <div class="space-y-2">
         <div class="flex items-center justify-between">
-          <h3 class="font-bold text-xs sm:text-sm text-amber-200">🗓️ Chọn Nhịp Điệu Tháng Trực (Mở Khóa Tuần Tự)</h3>
+          <h3 class="font-bold text-xs sm:text-sm text-amber-200">📖 Bốn Chương Của Tháng Mưa (Mở Khóa Dần)</h3>
           <span class="text-[11px] text-stone-400">Mỗi tháng gồm 4 tuần • 28 đêm</span>
         </div>
-        <div id="shift-mode-selector" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5"></div>
+        <div id="shift-mode-selector" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
       </div>
 
       <!-- Shift Notes -->
@@ -230,6 +230,7 @@
         <button type="button" id="btn-quick-voice" class="min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer" title="Bật/tắt giọng đọc">🗣️</button>
         <button type="button" id="btn-quick-ambience" class="hidden sm:inline-block min-h-[36px] min-w-[36px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-amber-200 cursor-pointer" title="Âm thanh &amp; Mùa">🎛️</button>
         <button type="button" id="btn-quick-log" class="min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-200 cursor-pointer" title="Nhật ký thoại">📜</button>
+        <button type="button" id="btn-hud-home" title="Về trang chủ" aria-label="Về trang chủ" class="min-h-[34px] px-2 sm:px-3 py-1 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-stone-700 text-xs text-stone-200 cursor-pointer">🏠</button>
         <button type="button" id="btn-open-drawer" class="min-h-[34px] px-2 sm:px-3 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-xs font-semibold text-amber-200 cursor-pointer">☰ Menu</button>
       </div>
     </header>
@@ -248,6 +249,7 @@
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-2.5">
             <span id="speaker-avatar" class="w-9 h-9 rounded-2xl bg-amber-500/15 border border-amber-400/30 flex items-center justify-center text-lg">🐰</span>
+            <span id="speaker-mood" class="hidden w-8 h-8 -ml-1.5 rounded-full bg-stone-900/90 border border-amber-400/30 flex items-center justify-center text-lg mood-pop" title="Tâm trạng"></span>
             <div>
               <div id="speaker-name" class="font-bold text-sm sm:text-base text-amber-200">Thỏ Con</div>
               <div id="speaker-role" class="text-[11px] text-stone-400">Chủ Quán Nửa Đêm</div>
@@ -347,6 +349,9 @@
         <button type="button" data-drawer-action="dossiers" class="min-h-[44px] px-3 py-2 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 border border-purple-400/35 text-xs text-purple-200 flex items-center justify-between cursor-pointer">
           <span>📖 Hồ Sơ Khách</span><span id="mobile-dossiers-badge" class="font-mono-code text-[11px]">0/24</span>
         </button>
+        <button type="button" id="btn-drawer-home" class="min-h-[44px] px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/35 text-xs text-amber-200 flex items-center justify-between cursor-pointer">
+          <span>🏠 Về Trang Chủ</span><span class="font-mono-code text-[11px] text-stone-400">Tự lưu</span>
+        </button>
         <button type="button" id="btn-drawer-history" class="min-h-[44px] px-3 py-2 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/35 text-xs text-sky-200 flex items-center justify-between cursor-pointer">
           <span>🗓️ Xem Lại Các Đêm</span><span id="mobile-history-badge" class="font-mono-code text-[11px]">0</span>
         </button>
@@ -380,18 +385,6 @@
         <button type="button" id="btn-night8-secret" class="min-h-[44px] px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/45 text-xs text-amber-200 font-semibold flex items-center justify-between cursor-pointer">
           <span>🌅 Đêm Hội Ngộ</span><span id="mobile-night8-badge" class="font-mono-code text-[11px]">🔒</span>
         </button>
-      </div>
-
-      <!-- Save Backup / Restore Box -->
-      <div class="p-3 rounded-2xl bg-stone-950/80 border border-stone-800 space-y-2 text-xs">
-        <div class="flex items-center justify-between">
-          <span class="font-semibold text-stone-300">💾 Sao Lưu &amp; Khôi Phục Tiến Trình</span>
-          <div class="flex gap-1.5">
-            <button type="button" id="btn-export-save" class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 text-[11px] cursor-pointer">📤 Xuất Mã</button>
-            <button type="button" id="btn-import-save" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 text-[11px] cursor-pointer">📥 Nạp Mã</button>
-          </div>
-        </div>
-        <input id="save-code-input" type="text" placeholder="Dán mã lưu JSON vào đây để khôi phục..." class="w-full px-2.5 py-1.5 rounded-xl bg-stone-900 border border-stone-700 text-[11px] font-mono-code text-stone-200 focus:outline-none focus:border-amber-400" />
       </div>
 
       <div class="pt-2 border-t border-stone-800 flex items-center justify-between gap-2">
@@ -748,6 +741,11 @@
   <script src="js/data/06-dossiers-secrets.js"></script>
   <script src="js/data/07-ending-cutscenes.js"></script>
   <script src="js/data/08-achievements-world.js"></script>
+  <script src="js/data/09-story-ch1.js"></script>
+  <script src="js/data/09-story-ch2.js"></script>
+  <script src="js/data/09-story-ch3.js"></script>
+  <script src="js/data/09-story-ch4.js"></script>
+  <script src="js/data/09-story-index.js"></script>
   <script src="js/03-state.js"></script>
   <script src="js/04-audio.js"></script>
   <script src="js/04b-voice.js"></script>

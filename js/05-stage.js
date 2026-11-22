@@ -411,6 +411,34 @@ class CafeStageRenderer {
     ctx.quadraticCurveTo(shelfX + shelfW * 0.25 + 17, shelf2Y - 14, shelfX + shelfW * 0.25 + 15, shelf2Y - 20);
     ctx.stroke();
 
+    // Kệ sách: 7 gáy sách, mỗi khách một cuốn (chỗ trống nếu chưa gặp)
+    {
+      const slotW = (shelfW * 0.56) / 7;
+      const bkX = shelfX + shelfW * 0.42;
+      let allBooks = true;
+      STANDARD_GUEST_ORDER.forEach((gid, i) => {
+        const got = Boolean(persistentArchive.shelfBooks && persistentArchive.shelfBooks[gid]);
+        if (!got) allBooks = false;
+        const bx = bkX + i * slotW;
+        const bh = 20 + ((i * 5) % 4) * 3;
+        if (got) {
+          ctx.fillStyle = CHARACTERS[gid].outfitColor;
+          ctx.fillRect(bx, shelf2Y - bh, slotW * 0.78, bh);
+          ctx.fillStyle = "rgba(255,255,255,0.35)";
+          ctx.fillRect(bx + 1, shelf2Y - bh + 4, slotW * 0.78 - 2, 2);
+        } else {
+          ctx.strokeStyle = "rgba(180,140,90,0.35)";
+          ctx.lineWidth = 1;
+          ctx.strokeRect(bx, shelf2Y - 18, slotW * 0.78, 18);
+        }
+      });
+      if (allBooks) {
+        ctx.fillStyle = `rgba(253, 224, 71, ${0.1 + 0.08 * Math.sin(timeSec * 2)})`;
+        ctx.fillRect(bkX - 3, shelf2Y - 30, slotW * 7 + 3, 32);
+      }
+      this.hitboxes.push({ id: "shelf", x: bkX - 4, y: shelf2Y - 34, w: slotW * 7 + 8, h: 40 });
+    }
+
     const clockX = shelfX + shelfW * 0.5;
     const clockY = h * 0.11;
     const clockSecret = isSecretUnlocked("secret_clock");
@@ -884,6 +912,11 @@ class CafeStageRenderer {
       if (x >= box.x && x <= box.x + box.w && y >= box.y && y <= box.y + box.h) {
         if (box.id === "lantern") {
           if (typeof devLanternTap === "function") devLanternTap();
+          return;
+        }
+        if (box.id === "shelf") {
+          audioEngine.playChime(494, 0.2, 0.035);
+          openBookshelf();
           return;
         }
         if (box.id === "clock") {

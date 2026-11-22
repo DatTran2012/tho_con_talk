@@ -24,7 +24,7 @@ function startNight(nightIdx) {
   if (!runState) return;
   cancelActiveBrewAnimation();
 
-  if (nightIdx > 0 && nightIdx % 7 === 0 && !weekRecipeGoalMet(Math.min(4, nightIdx / 7))) {
+  if (nightIdx > 0 && nightIdx % 7 === 0 && !weekRecipeGoalMet(nightIdx / 7 - 1)) {
     showWeekRecipeFailed(Math.min(4, nightIdx / 7));
     return;
   }
@@ -55,9 +55,9 @@ function startNight(nightIdx) {
   runState.lastDrinkReflectionText = "";
   runState.drawnCardData = null;
   runState.clock = story.t0;
+  if (nightIdx % 7 === 0) runState.weekSigs = [];
   if (story.n === 1) {
-    const need = WEEK_RECIPE_TARGETS[story.ch - 1];
-    setTimeout(() => showToast(`🍹 Mục tiêu Chương ${story.ch}: khám phá tổng cộng ${need}/7 công thức nước độc quyền (đang có ${recipesDiscoveredCount()})`), 1800);
+    setTimeout(() => showToast(`🍹 Mục tiêu Chương ${story.ch}: trong tuần này hãy pha thành công ${weekGoalFor(story.ch - 1)} công thức độc quyền khác nhau`), 1800);
   }
 
   if ((persistentArchive.maxChapter || 1) < story.ch) {
@@ -142,6 +142,7 @@ function applyStoryControl(step) {
     setStoryClock(v);
   } else if (k === "+") {
     if (!runState.presentGuests.includes(v)) runState.presentGuests.push(v);
+    unlockShelfBook(v);
     audioEngine.playChime(520 + runState.presentGuests.length * 40, 0.25, 0.03);
   } else if (k === "-") {
     runState.presentGuests = runState.presentGuests.filter((id) => id !== v);

@@ -29,6 +29,7 @@ function devUnlockEverything() {
   all(DRINK_CARDS, a.unlockedDrinkCards);
   all(SIGNATURE_RECIPES, a.unlockedSignatures);
   all(EASTER_EGGS, a.discoveredEasterEggs);
+  Object.keys(SHELF_BOOKS).forEach((g) => (a.shelfBooks[g] = true));
   all(SEASON_THEMES, a.visitedSeasons);
   all(SECRET_VAULT, a.unlockedSecrets);
   // Thành tựu: mở hết, trừ "twist" để vẫn test được cảnh bí mật cuối game
@@ -98,13 +99,18 @@ function renderDevTools() {
     btn("restore", "♻️ Khôi phục save thật") +
     btn("secret", "🌟 Đặt sẵn điều kiện cho kết bí mật (giữ twist chưa xem)") +
     btn("story", "📖 Đọc toàn bộ hội thoại 28 đêm") +
+    btn("lint", "🔎 Tự kiểm tra độ chặt chẽ của toàn bộ thoại (28 đêm)") +
     btn("jump", "⏭️ Chơi thử từ một đêm bất kỳ…") +
-    btn("recipes", "🍹 Đặt số công thức nước đã biết (0–8)…") +
+    btn("recipes", "🍹 Đặt số ly độc quyền đã pha trong tuần (0–7)…") +
     btn("weekend", "📅 Kết thúc ngay tuần n (kiểm tra cổng công thức)…") +
-    btn("finale", "🏁 Xem trang cảm ơn hết 28 đêm") +
+    btn("finale", "🏁 Xem trang cảm ơn hết 28 đêm (xem trước)") +
+    btn("simlow", "🧪 Mô phỏng chơi HẾT 28 đêm nhưng THIẾU tiến trình (kiểm tra trang cảm ơn)") +
+    btn("simmid", "🧪 Mô phỏng hết 28 đêm, thiếu ĐÚNG 1 mục (kiểm tra cửa chưa mở)") +
+    btn("simfull", "🧪 Mô phỏng hết 28 đêm, ĐỦ tiến trình (kiểm tra cánh cửa thứ hai xuất hiện)") +
+    btn("simfresh", "🧹 Đặt save về như người chơi mới (giữ bản sao lưu)") +
     btn("picker", "🔁 Mở bảng chọn đêm chơi lại") +
     btn("lockch", "🔒 Khóa lại chương (chỉ còn Chương 1) + bỏ lá bài ẩn") +
-    btn("hidden17", "🎴 Mở/khóa lá bài 17 + Ly Cánh Cửa Thứ Hai") +
+    btn("hidden17", "🎴 Mở/khóa lá bài 17 + 2 ly bí mật") +
     btn("thanks", "🎖️ Xem trang chúc mừng (xem trước)") +
     btn("off", "⛔ Tắt chế độ dev");
   document.body.appendChild(fab);
@@ -125,24 +131,35 @@ function renderDevTools() {
       updateAllProgressBadges();
     } else if (k === "thanks") showThanksPage();
     else if (k === "story") devOpenStoryViewer();
+    else if (k === "lint") devLintStory();
     else if (k === "jump") devJumpToNight();
     else if (k === "recipes") devSetRecipeCount();
     else if (k === "weekend") devForceWeekEnd();
     else if (k === "hidden17") {
       const on = !persistentArchive.unlockedDrinkCards.dc_17;
-      if (on) { persistentArchive.unlockedDrinkCards.dc_17 = true; persistentArchive.unlockedSignatures.sig_second_door = true; persistentArchive.unlockedSecrets.secret_card_17 = true; persistentArchive.unlockedSecrets.secret_signature = true; }
-      else { delete persistentArchive.unlockedDrinkCards.dc_17; delete persistentArchive.unlockedSignatures.sig_second_door; delete persistentArchive.unlockedSecrets.secret_card_17; delete persistentArchive.unlockedSecrets.secret_signature; }
+      if (on) { persistentArchive.unlockedDrinkCards.dc_17 = true; secretRecipes().forEach((s) => (persistentArchive.unlockedSignatures[s.id] = true)); persistentArchive.unlockedSecrets.secret_card_17 = true; persistentArchive.unlockedSecrets.secret_signature = true; }
+      else { delete persistentArchive.unlockedDrinkCards.dc_17; secretRecipes().forEach((s) => delete persistentArchive.unlockedSignatures[s.id]); delete persistentArchive.unlockedSecrets.secret_card_17; delete persistentArchive.unlockedSecrets.secret_signature; }
       saveArchive();
       updateAllProgressBadges();
-      showToast(on ? "🛠️ DEV: đã mở lá bài 17 + ly Cánh Cửa Thứ Hai" : "🛠️ DEV: đã khóa lại lá bài 17 + ly ẩn");
+      showToast(on ? "🛠️ DEV: đã mở lá bài 17 + 2 ly bí mật" : "🛠️ DEV: đã khóa lại lá bài 17 + ly ẩn");
     }
     else if (k === "finale") showFinalePage();
+    else if (k === "simlow" || k === "simmid" || k === "simfull") devSimulateMonthEnd(k);
+    else if (k === "simfresh") {
+      if (!safeGetItem(DEV_BACKUP_KEY)) safeSetItem(DEV_BACKUP_KEY, JSON.stringify(persistentArchive));
+      persistentArchive = sanitizeArchive(createDefaultArchive());
+      saveArchive();
+      safeRemoveItem(STORAGE_KEY_RUN);
+      runState = null;
+      updateAllProgressBadges();
+      showToast("🛠️ DEV: đã đặt save như người chơi mới (bấm 'Khôi phục save thật' để trả lại)");
+    }
     else if (k === "picker") openReplayPicker();
     else if (k === "lockch") {
       persistentArchive.maxChapter = 1;
       persistentArchive.completedModes = {};
       delete persistentArchive.unlockedDrinkCards.dc_17;
-      delete persistentArchive.unlockedSignatures.sig_second_door;
+      secretRecipes().forEach((s) => delete persistentArchive.unlockedSignatures[s.id]);
       saveArchive();
       updateAllProgressBadges();
       showToast("🛠️ DEV: đã khóa lại Chương 2–4 và lá bài ẩn");
@@ -260,20 +277,141 @@ function devJumpToNight() {
 /* ---- Công cụ test: công thức nước, kết thúc tuần, cổng chương ---- */
 function devSetRecipeCount() {
   const reg = regularRecipes();
-  const v = window.prompt(`Số công thức nước đã khám phá (0–${reg.length}).\nMục tiêu: hết tuần 1/2/3/4 cần 1/3/5/7.`, "0");
+  const v = window.prompt(`Số công thức độc quyền đã pha TRONG TUẦN HIỆN TẠI (0–${reg.length}).\nTuần này cần ${currentWeekGoal()} món khác nhau mới qua chương.`, "0");
   if (v === null) return;
   const n = Math.max(0, Math.min(reg.length, Math.floor(Number(v)) || 0));
-  reg.forEach((sig, i) => {
-    if (i < n) persistentArchive.unlockedSignatures[sig.id] = true;
-    else delete persistentArchive.unlockedSignatures[sig.id];
-  });
+  if (!runState) runState = createNewRunState();
+  runState.weekSigs = reg.slice(0, n).map((s) => s.id);
+  reg.forEach((sig, i) => { if (i < n) persistentArchive.unlockedSignatures[sig.id] = true; });
+  saveRunState();
   saveArchive();
   updateAllProgressBadges();
-  showToast(`🛠️ DEV: đang có ${n}/${reg.length} công thức nước`);
+  showToast(`🛠️ DEV: tuần này đã pha ${n} công thức độc quyền (cần ${currentWeekGoal()})`);
+}
+
+/* Mô phỏng hết 28 đêm ở 3 mức tiến trình, đi qua đúng luồng thật: tổng kết tháng → trang cảm ơn / cửa bí mật.
+   low  = chỉ có vài kết cục, vài công thức  → phải ra trang cảm ơn, KHÔNG nhắc bí mật, có nút chọn đêm chơi lại
+   mid  = mở khóa hết trừ đúng 1 kết cục      → cửa bí mật vẫn đóng
+   full = mở khóa hết (trừ cảnh twist chưa xem) → cửa bí mật hiện ra */
+function devSimulateMonthEnd(mode) {
+  if (!safeGetItem(DEV_BACKUP_KEY)) safeSetItem(DEV_BACKUP_KEY, JSON.stringify(persistentArchive));
+  ["modal-history", "modal-epilogue", "modal-finale", "modal-thanks", "mobile-drawer"].forEach(closeModal);
+  if (mode === "low") {
+    persistentArchive = sanitizeArchive(createDefaultArchive());
+    const reg = regularRecipes();
+    reg.slice(0, 3).forEach((sg) => (persistentArchive.unlockedSignatures[sg.id] = true));
+    Object.keys(SOLO_ENDINGS_DATA).slice(0, 2).forEach((g) => Object.keys(SOLO_ENDINGS_DATA[g]).slice(0, 1).forEach((p) => (persistentArchive.unlockedEndings[`${g}_${p}`] = true)));
+    persistentArchive.totalDrinksServed = 12;
+  } else {
+    devUnlockEverything();
+    if (mode === "mid") {
+      const first = Object.keys(persistentArchive.unlockedEndings)[0];
+      if (first) delete persistentArchive.unlockedEndings[first];
+    }
+  }
+  persistentArchive.twistEndingSeen = false;
+  persistentArchive.twistAnnounced = false;
+  persistentArchive.thanksSeen = false;
+  persistentArchive.completedModes = {};
+  persistentArchive.maxChapter = 4;
+  delete persistentArchive.unlockedAchievements.ach_twist;
+  delete persistentArchive.unlockedDrinkCards.dc_17;
+  secretRecipes().forEach((sg) => delete persistentArchive.unlockedSignatures[sg.id]);
+  POST_TWIST_SECRETS.forEach((id) => delete persistentArchive.unlockedSecrets[id]);
+  saveArchive();
+  updateAllProgressBadges();
+
+  runState = createNewRunState();
+  const fake = (wk, n) => ({ weekNum: wk, nightInWeek: n, guestNames: "Khách thử nghiệm", drinkName: "—", endingTitle: "Kết đêm (dev)", pathTag: "🛠️ DEV", summary: "Đêm giả lập để thử màn tổng kết." });
+  runState.nightIndex = 28;
+  runState.awaitingNightStart = true;
+  runState.weekResults = Array.from({ length: 7 }, (_, i) => fake(4, i + 1));
+  runState.allMonthResults = Array.from({ length: 28 }, (_, i) => fake(Math.floor(i / 7) + 1, (i % 7) + 1));
+  runState.weekSigs = regularRecipes().slice(0, WEEK_RECIPE_GOALS[3]).map((sg) => sg.id);
+  runState.monthCounted = false;
+  saveRunState();
+  switchScreen("screen-game");
+  showEpilogueModal(true);
+  showToast(`🛠️ DEV: mô phỏng hết 28 đêm (${mode}). Bấm nút cuối trong bảng tổng kết để xem tiếp.`);
+}
+
+/* Tự kiểm tra kịch bản: người nói có đang ở trong quán không, ai vào/ra trùng lặp, ly riêng cho từng khách,
+   lựa chọn đủ 3 phương án, biến thể thoại có bản dự phòng, đồng hồ không lùi (trừ khi qua nửa đêm), mỗi đêm đúng 1 lá bài,
+   không lặp nguyên văn một câu dài giữa hai đêm, và không lộ chuyện bệnh tật / cánh cửa thứ hai trong truyện chính. */
+function devLintStory() {
+  const issues = [];
+  const seen = new Map();
+  const toMin = (t) => { const [h, m] = String(t).split(":").map(Number); return h * 60 + m; };
+  const flat = (x) => (typeof x === "string" ? x : Object.values(x || {}).join(" | "));
+  STORY_NIGHTS.forEach((n, i) => {
+    const tag = `Đêm ${i + 1} (${n.title})`;
+    const add = (m) => issues.push(`${tag}: ${m}`);
+    const present = new Set();
+    const brewed = new Set();
+    const spoke = new Set();
+    let last = toMin(n.t0);
+    let cards = 0;
+    const scan = (t, si) => {
+      if (t && typeof t === "object" && !("d" in t) && !("h" in t)) add(`biến thể thiếu bản dự phòng (bước ${si})`);
+      const all = flat(t);
+      if (/ung thư|hóa trị|xạ trị|khối u|di căn/i.test(all)) add(`nhắc bệnh nặng trong truyện chính (bước ${si})`);
+      if (/cánh cửa thứ hai/i.test(all)) add(`lộ "cánh cửa thứ hai" trong truyện chính (bước ${si})`);
+      all.split(" | ").forEach((p) => {
+        const key = p.trim();
+        if (key.length > 40) { if (seen.has(key)) add(`lặp nguyên văn với đêm ${seen.get(key)} (bước ${si})`); else seen.set(key, i + 1); }
+      });
+    };
+    n.steps.forEach((st, si) => {
+      const k = st[0];
+      if (k === "@") {
+        const m = toMin(st[1]);
+        if (m < last - 300 === false && m < last && last - m < 720) add(`đồng hồ lùi ${last}→${m} (bước ${si})`);
+        last = m;
+      } else if (k === "+") {
+        if (present.has(st[1])) add(`${st[1]} vào quán hai lần (bước ${si})`);
+        if (!n.guests.includes(st[1])) add(`${st[1]} vào quán nhưng không nằm trong danh sách khách`);
+        present.add(st[1]);
+      } else if (k === "-") {
+        if (!present.has(st[1])) add(`${st[1]} rời quán khi chưa có mặt (bước ${si})`);
+        present.delete(st[1]);
+      } else if (k === "card") cards++;
+      else if (k === "?") {
+        for (let j = 2; j < 5; j++) {
+          const o = st[j];
+          if (!o || o.length !== 3 || o.some((x) => !x)) { add(`lựa chọn ${j - 1} thiếu nội dung (bước ${si})`); continue; }
+          if (o[1] !== "host" && !present.has(o[1])) add(`${o[1]} đáp lại nhưng không có mặt (bước ${si})`);
+          scan(o[2], si);
+        }
+      } else if (k === "brew") {
+        if (!present.has(st[1])) add(`ly riêng cho ${st[1]} khi chưa có mặt (bước ${si})`);
+        brewed.add(st[1]);
+        scan(st[2], si); scan(st[3], si);
+      } else {
+        if (k !== "host" && k !== "sys") {
+          if (!present.has(k)) add(`${k} nói khi chưa vào/đã rời quán (bước ${si})`);
+          spoke.add(k);
+        }
+        scan(st[1], si);
+      }
+    });
+    if (cards !== 1) add(`có ${cards} lá bài (cần đúng 1)`);
+    n.guests.forEach((g) => {
+      if (!spoke.has(g)) add(`${g} không nói câu nào`);
+      if (n.n !== 7 || n.ch !== 4) { if (!brewed.has(g)) add(`${g} chưa có ly riêng`); }
+    });
+  });
+  const box = document.getElementById("history-body");
+  const title = document.getElementById("history-title");
+  if (!box || !title) { window.alert(issues.length ? issues.join("\n") : "Không phát hiện lỗi"); return; }
+  title.textContent = `🔎 Kiểm tra kịch bản — ${issues.length ? issues.length + " điểm cần xem" : "không phát hiện lỗi"}`;
+  box.innerHTML = issues.length
+    ? issues.map((x) => `<div class="p-2.5 rounded-xl bg-rose-950/40 border border-rose-500/30 text-xs text-rose-100">${escapeHtml(x)}</div>`).join("")
+    : `<div class="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-xs text-emerald-100">✅ 28 đêm: người nói đều đang ở trong quán, mỗi đêm đúng 1 lá bài, mọi khách đều có ly riêng, không lặp câu dài, không lộ chuyện bệnh hay cánh cửa thứ hai.</div>`;
+  openModal("modal-history");
 }
 
 function devForceWeekEnd() {
-  const v = window.prompt("Kết thúc ngay tuần số mấy? (1–4)\nNếu chưa đủ công thức nước sẽ hiện màn 'chưa đạt mục tiêu'.", "1");
+  const v = window.prompt("Kết thúc ngay tuần số mấy? (1–4)\nNếu tuần này chưa pha đủ số ly của tuần đó (T1: 1, T2–4: 2) sẽ hiện màn 'chưa đạt mục tiêu'.", "1");
   const w = Math.floor(Number(v));
   if (!w || w < 1 || w > 4) return;
   ["modal-history", "modal-epilogue", "modal-finale", "mobile-drawer"].forEach(closeModal);

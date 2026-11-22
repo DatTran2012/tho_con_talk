@@ -233,7 +233,7 @@ function renderChapterInfo() {
     chapterBadge.title = chap.desc;
   }
   if (drawerInfo) {
-    drawerInfo.textContent = `${chap.icon} Chương ${story.ch}/4 • ${chap.name} • Đêm ${night}/28 • 🍹 Công thức ${recipesDiscoveredCount()}/${WEEK_RECIPE_TARGETS[story.ch - 1]}`;
+    drawerInfo.textContent = `${chap.icon} Chương ${story.ch}/4 • ${chap.name} • Đêm ${night}/28 • 🍹 Ly tuần này ${Math.min(weekRecipeCount(), currentWeekGoal())}/${currentWeekGoal()}`;
     drawerInfo.classList.remove("hidden");
   }
 }

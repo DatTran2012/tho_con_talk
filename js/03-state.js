@@ -34,6 +34,7 @@ function createDefaultArchive() {
     unlockedEndings: {},
     unlockedCutscenes: { origin_thocon_1: true },
     unlockedKeepsakes: {},
+    shelfBooks: {},
     unlockedDrinkCards: {},
     unlockedSignatures: {},
     unlockedAchievements: {},
@@ -90,6 +91,7 @@ function sanitizeArchive(rawObj) {
     unlockedEndings: safeObj(rawObj.unlockedEndings, {}),
     unlockedCutscenes: { origin_thocon_1: true, ...safeObj(rawObj.unlockedCutscenes, {}) },
     unlockedKeepsakes: safeObj(rawObj.unlockedKeepsakes, {}),
+    shelfBooks: safeObj(rawObj.shelfBooks, {}),
     unlockedDrinkCards: safeObj(rawObj.unlockedDrinkCards, {}),
     unlockedSignatures: safeObj(rawObj.unlockedSignatures, {}),
     unlockedAchievements: safeObj(rawObj.unlockedAchievements, {}),
@@ -154,6 +156,7 @@ function createNewRunState() {
     weeklyStanceCounts: { heart: 0, mind: 0, silent: 0, duo: 0, duo_heart: 0, duo_mind: 0 },
     monthlyStanceCounts: { heart: 0, mind: 0, silent: 0, duo: 0, duo_heart: 0, duo_mind: 0 },
     guestPath: {},
+    weekSigs: [],
     presentGuests: [],
     pendingReply: null,
     brewDoneAt: -1,
@@ -253,16 +256,67 @@ function countUnlockedIn(list, map) {
   return list.filter((x) => map && map[x.id]).length;
 }
 
-/* Mục tiêu công thức nước theo chương: hết tuần n phải khám phá tổng cộng ít nhất bấy nhiêu công thức (1 → 3 → 5 → 7) */
-const WEEK_RECIPE_TARGETS = [1, 3, 5, 7];
+/* Tổng 9 ly: 7 ly thường + 2 ly bí mật của "Cánh Cửa Thứ Hai".
+   Mục tiêu mỗi tuần: pha thành công số công thức độc quyền KHÁC NHAU trong tuần đó = 1 + 2 + 2 + 2 = 7. */
+const WEEK_RECIPE_GOALS = [1, 2, 2, 2];
+function weekGoalFor(weekIdx) {
+  return WEEK_RECIPE_GOALS[Math.max(0, Math.min(3, weekIdx))];
+}
+function currentWeekGoal() {
+  return weekGoalFor(runState ? Math.floor((runState.nightIndex || 0) / 7) : 0);
+}
 function regularRecipes() {
   return SIGNATURE_RECIPES.filter((s) => !s.hidden);
+}
+function secretRecipes() {
+  return SIGNATURE_RECIPES.filter((s) => s.hidden);
 }
 function recipesDiscoveredCount(archive = persistentArchive) {
   return countUnlockedIn(regularRecipes(), archive.unlockedSignatures);
 }
-function weekRecipeGoalMet(week) {
-  return recipesDiscoveredCount() >= WEEK_RECIPE_TARGETS[Math.max(0, Math.min(3, week - 1))];
+function weekRecipeCount() {
+  return runState && Array.isArray(runState.weekSigs) ? runState.weekSigs.length : 0;
+}
+/* weekIdx: tuần vừa kết thúc (0–3). Mặc định: tuần của đêm hiện tại. */
+function weekRecipeGoalMet(weekIdx) {
+  const w = weekIdx === undefined ? Math.floor((runState ? runState.nightIndex : 0) / 7) : weekIdx;
+  return weekRecipeCount() >= weekGoalFor(w);
+}
+
+function unlockShelfBook(gid) {
+  if (!SHELF_BOOKS[gid] || !persistentArchive.shelfBooks) return;
+  if (persistentArchive.shelfBooks[gid]) return;
+  persistentArchive.shelfBooks[gid] = true;
+  saveArchive();
+  const full = Object.keys(SHELF_BOOKS).every((g) => persistentArchive.shelfBooks[g]);
+  if (typeof showToast === "function") {
+    showToast(full
+      ? "📚 Kệ sách đã đầy: bảy cuốn, bảy người. Thỏ Con khẽ lau bụi từng gáy sách."
+      : `📚 Kệ sách có thêm một cuốn: ${SHELF_BOOKS[gid].title}`);
+  }
+  if (full && typeof checkAndUnlockAchievements === "function") checkAndUnlockAchievements();
+}
+
+function openBookshelf() {
+  const box = document.getElementById("history-body");
+  const title = document.getElementById("history-title");
+  if (!box || !title) return;
+  const got = STANDARD_GUEST_ORDER.filter((g) => persistentArchive.shelfBooks && persistentArchive.shelfBooks[g]);
+  title.textContent = `📚 Kệ Sách Của Quán — ${got.length}/${STANDARD_GUEST_ORDER.length}`;
+  box.innerHTML =
+    `<div class="text-xs text-stone-400 mb-2">Mỗi vị khách để lại một cuốn khi họ bước vào quán lần đầu.</div>` +
+    STANDARD_GUEST_ORDER.map((g) => {
+      const b = SHELF_BOOKS[g];
+      const c = CHARACTERS[g];
+      if (!persistentArchive.shelfBooks || !persistentArchive.shelfBooks[g]) {
+        return `<div class="p-2.5 rounded-xl bg-stone-900/70 border border-stone-800 text-xs text-stone-500">📕 Một chỗ trống trên kệ… chờ một vị khách chưa ghé.</div>`;
+      }
+      return `<div class="p-2.5 rounded-xl bg-stone-900/90 border border-amber-500/25"><div class="text-sm text-amber-200 font-bold" style="border-left:4px solid ${c.outfitColor};padding-left:8px">${escapeHtml(b.title)}</div><div class="text-[11px] text-stone-400 mt-0.5">của ${escapeHtml(c.name)}</div><div class="text-xs text-stone-200 mt-1.5 italic">${escapeHtml(b.page)}</div></div>`;
+    }).join("") +
+    (got.length === STANDARD_GUEST_ORDER.length
+      ? `<div class="p-3 rounded-xl bg-amber-950/40 border border-amber-400/40 text-xs text-amber-100 italic">Thỏ Con xếp bảy cuốn sách cạnh nhau, gáy sách đủ màu như bảy chiếc ghế quanh quầy. “Mỗi người đã để lại một trang ở đây. Cảm ơn vì đã cho mình giữ chúng.”</div>`
+      : "");
+  openModal("modal-history");
 }
 
 function countUnlockedEndings(archive = persistentArchive) {

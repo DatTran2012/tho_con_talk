@@ -713,8 +713,14 @@ function finalizeDrinkService(guests, base, accentIds, challengeBonus, challenge
   let drinkName = "";
   if (matchedSignature) {
     drinkName = `✨ ${matchedSignature.name}`;
+    const isNewSig = !persistentArchive.unlockedSignatures[matchedSignature.id];
     persistentArchive.unlockedSignatures[matchedSignature.id] = true;
-    showToast(`🍹 Mở khóa công thức độc quyền: ${matchedSignature.name}!`);
+    if (!Array.isArray(runState.weekSigs)) runState.weekSigs = [];
+    const countedBefore = runState.weekSigs.includes(matchedSignature.id);
+    if (!countedBefore) runState.weekSigs.push(matchedSignature.id);
+    showToast(
+      `${isNewSig ? "🍹 Mở khóa công thức độc quyền" : "🍹 Pha lại công thức độc quyền"}: ${matchedSignature.name}! (tuần này ${Math.min(runState.weekSigs.length, currentWeekGoal())}/${currentWeekGoal()})`
+    );
   } else {
     const accNames = accentIds
       .map((id) => DRINK_ACCENTS.find((a) => a.id === id))

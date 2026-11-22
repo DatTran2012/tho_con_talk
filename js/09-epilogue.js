@@ -297,7 +297,7 @@ function completeCurrentNight() {
 
   const goNext = () => {
     const doneWeek = runState.nightIndex / 7;
-    if (runState.nightIndex % 7 === 0 && !weekRecipeGoalMet(doneWeek)) {
+    if (runState.nightIndex % 7 === 0 && !weekRecipeGoalMet(doneWeek - 1)) {
       showWeekRecipeFailed(doneWeek);
     } else if (runState.nightIndex >= 28) {
       showEpilogueModal(true);
@@ -402,19 +402,19 @@ function showEpilogueModal(isMonthComplete = false) {
 
 /* Tuần chưa đạt mục tiêu công thức nước: phải chơi lại tuần đó trước khi mở chương tiếp theo */
 function showWeekRecipeFailed(week) {
-  const need = WEEK_RECIPE_TARGETS[week - 1];
-  const have = recipesDiscoveredCount();
+  const need = weekGoalFor(week - 1);
+  const have = weekRecipeCount();
   const chap = STORY_CHAPTERS[week - 1];
   runState.retryWeek = week;
   saveRunState();
   document.getElementById("epilogue-kicker").textContent = `🍹 CHƯƠNG ${week} • CHƯA ĐẠT MỤC TIÊU`;
   document.getElementById("epilogue-heading").textContent = "Quán Còn Thiếu Một Ly Nước Đặc Biệt";
   document.getElementById("epilogue-stance-summary").innerHTML = `
-    <div><strong>Mục tiêu:</strong> khám phá ít nhất <span class="text-amber-200">${need}</span> công thức nước độc quyền (đang có <span class="text-amber-200">${have}</span>).</div>
-    <div class="mt-1 text-amber-200/90">Mở "Album Ly" trong Menu để xem gợi ý cho các công thức chưa lộ diện, rồi chơi lại Chương ${week} (${chap.name}) và thử pha lại.</div>`;
+    <div><strong>Mục tiêu:</strong> pha thành công ít nhất <span class="text-amber-200">${need}</span> công thức độc quyền khác nhau trong tuần (tuần này mới được <span class="text-amber-200">${have}</span>).</div>
+    <div class="mt-1 text-amber-200/90">Mở "Album Ly" trong Menu để xem gợi ý cho các công thức chưa lộ diện, rồi chơi lại Chương ${week} (${chap.name}) và thử pha lại. Cả công thức đã biết cũng được tính nếu bạn pha lại trong tuần.</div>`;
   const list = document.getElementById("epilogue-results-list");
   list.innerHTML = "";
-  regularRecipes().filter((s) => !persistentArchive.unlockedSignatures[s.id])
+  regularRecipes().filter((s) => !(runState.weekSigs || []).includes(s.id))
     .slice(0, 3)
     .forEach((sig) => {
       const base = DRINK_BASES.find((b) => b.id === sig.base);

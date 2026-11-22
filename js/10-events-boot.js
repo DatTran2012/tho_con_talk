@@ -174,8 +174,8 @@ function finishTwistEnding() {
   twistStageMode = null;
   persistentArchive.twistEndingSeen = true;
   persistentArchive.unlockedDrinkCards.dc_17 = true;
-  persistentArchive.unlockedSignatures.sig_second_door = true;
-  showToast("🎴 Lá bài thứ 17 và công thức Ly Cánh Cửa Thứ Hai đã mở khóa!");
+  secretRecipes().forEach((s) => (persistentArchive.unlockedSignatures[s.id] = true));
+  showToast("🎴 Lá bài thứ 17 và 2 công thức bí mật (Ly Cánh Cửa Thứ Hai, Ly Tiếng Gõ Cửa) đã mở khóa!");
   checkSecrets();
   if (!persistentArchive.unlockedAchievements.ach_twist) {
     persistentArchive.unlockedAchievements.ach_twist = true;
@@ -200,7 +200,7 @@ function startTwistEnding() {
   document.getElementById("dialogue-action-area").innerHTML = "";
   setDialogue("Thỏ Con", "Chủ Quán Nửa Đêm", "🐰", "Quầy gỗ vắng lặng. Ngọn đèn vàng vẫn sáng, như mọi đêm.", false);
   playCutsceneChain(["twist_01", "twist_02", "twist_03", "twist_04"], () =>
-    runTwistScene(() => playCutsceneChain(["twist_05", "twist_06", "twist_07", "secret_card_17", "secret_signature"], finishTwistEnding))
+    runTwistScene(() => playCutsceneChain(["twist_05", "twist_06", "twist_07", "secret_card_17"], finishTwistEnding))
   );
 }
 
@@ -216,7 +216,7 @@ function getSecretProgress(id) {
     case "secret_card_17":
       return [a.unlockedDrinkCards.dc_17 ? 1 : 0, 1];
     case "secret_signature":
-      return [a.unlockedSignatures.sig_second_door ? 1 : 0, 1];
+      return [countUnlockedIn(secretRecipes(), a.unlockedSignatures), secretRecipes().length];
     case "secret_keepsakes":
       return [STANDARD_GUEST_ORDER.filter((g) => a.unlockedKeepsakes[g]).length, STANDARD_GUEST_ORDER.length];
     case "secret_endings":
@@ -283,9 +283,10 @@ function checkAndUnlockAchievements() {
     ach_duo_first: uniqueDuoPairsUnlocked >= 1,
     ach_duo_all: uniqueDuoPairsUnlocked >= ALL_DUO_KEYS.length,
     ach_signature_1: sigCount >= 1,
-    ach_signature_all: sigCount >= 6,
+    ach_signature_all: recipesDiscoveredCount(a) >= regularRecipes().length,
     ach_keepsake_1: keepsakesCount >= 1,
     ach_keepsake_all: keepsakesCount >= 7,
+    ach_bookshelf_all: Object.keys(SHELF_BOOKS).every((g) => a.shelfBooks && a.shelfBooks[g]),
     ach_endings_7: endingsCount >= 7,
     ach_endings_18: endingsCount >= 18,
     ach_endings_27: endingsCount >= TOTAL_ENDINGS,

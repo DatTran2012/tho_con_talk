@@ -74,8 +74,8 @@ const SIGNATURE_RECIPES = [
   { id: "sig_clear_horizon", name: "Chân Trời Thanh Yên", base: "yuzu", accents: ["mint", "chamomile"], hint: "Rượu Thanh Yên + Lá Bạc Hà + Hoa Cúc Khô", desc: "Sáng trong và tĩnh tại, giúp tâm trí nhìn rõ con đường phía trước." },
   { id: "sig_starlight_brew", name: "Ủ Lạnh Ánh Sao", base: "coldbrew", accents: ["orange_peel", "mint"], hint: "Cà Phê Ủ Lạnh + Vỏ Cam Sấy + Lá Bạc Hà", desc: "Sự kết hợp tinh tế dành cho những tâm hồn sáng tạo thức cùng thành phố." },
   { id: "sig_lotus_lullaby", name: "Ru Hồ Sen Khuya", base: "lotus_milk", accents: ["lavender", "honey"], hint: "Sữa Hạt Sen Rang + Oải Hương Khô + Mật Ong Rừng", desc: "Ngọt dịu như lời ru, dành cho những đêm đầu óc không chịu ngủ." },
-  { id: "sig_second_door", hidden: true, name: "Ly Cánh Cửa Thứ Hai", base: "", accents: [], hint: "Chỉ pha được khi cánh cửa thứ hai mở ra", desc: "Ly nước dành cho người giữ đèn: ấm, hơi đắng, hậu ngọt. Uống thật chậm để nhớ rằng mình cũng được phép ở lại.", },
-  { id: "sig_amber_grain", name: "Cốm Rang Mùa Cũ", base: "brown_rice", accents: ["osmanthus", "ginger"], hint: "Trà Gạo Lứt Rang + Hoa Quế Ngâm Đường + Gừng Tươi", desc: "Ấm bụng, thơm mùi bếp cũ — nhớ nhà trong từng ngụm." }
+  { id: "sig_second_door", secret: 1, hidden: true, name: "Ly Cánh Cửa Thứ Hai", base: "", accents: [], hint: "Chỉ pha được khi cánh cửa thứ hai mở ra", desc: "Ly nước dành cho người giữ đèn: ấm, hơi đắng, hậu ngọt. Uống thật chậm để nhớ rằng mình cũng được phép ở lại.", },
+  { id: "sig_door_knock", secret: 2, hidden: true, name: "Ly Tiếng Gõ Cửa", base: "", accents: [], hint: "Chỉ pha được khi cánh cửa thứ hai mở ra", desc: "Ly nước dành cho người dám gõ cửa xin được ở lại: chua dịu, ấm nồng, hậu ngọt. Một ly để nói thật rằng: mình cần có người ngồi cùng." }
 ];
 
 const DRINK_CARDS = [
@@ -193,7 +193,7 @@ const DRINK_CARDS = [
     question: "Thứ gì bạn từng làm bằng cả đôi tay và sự kiên nhẫn khiến bạn tự hào nhất?",
     hostAnswers: [
       { label: "❤️ 'Chính là tự tay đóng từng tấm ván quầy gỗ thông và gây dựng góc quán nhỏ này từ con số không.'", deltaTrust: 1, deltaClarity: 0 },
-      { label: "✨ 'Là việc tìm tòi cân bằng từng giọt cốt nước và thảo mộc để tạo nên 6 công thức độc quyền.'", deltaTrust: 0, deltaClarity: 1 }
+      { label: "✨ 'Là việc tìm tòi cân bằng từng giọt cốt nước và thảo mộc để tạo nên 7 công thức độc quyền.'", deltaTrust: 0, deltaClarity: 1 }
     ]
   },
   {

@@ -71,6 +71,17 @@ const CHARACTER_DOSSIERS = [
 const ALL_DUO_KEYS = Object.keys(DUO_PAIRINGS);
 const STANDARD_GUEST_ORDER = ["vy", "minh", "linh", "tuan", "khang", "hoa", "an"];
 
+/* ---- KỆ SÁCH CỦA QUÁN: mỗi khách để lại một cuốn khi họ bước vào quán lần đầu ---- */
+const SHELF_BOOKS = {
+  vy:    { title: "Sổ Tay Phóng Viên Thực Địa", page: "Trang đầu viết nghiêng: ‘Ghi lại giọng người thật. Chẳng ai cho điểm, nhưng mình nhớ từng người.’" },
+  minh:  { title: "Nhật Ký Gỡ Lỗi", page: "Dòng đầu tiên: ‘Mỗi dòng mã đều có một người ở đầu bên kia. Nhớ hỏi họ trước khi chạy.’" },
+  linh:  { title: "Cuốn Sổ Bìa Đỏ", page: "Một trang gấp góc: ‘Mẹ khâu áo bằng chỉ trắng mà chỉ nhớ màu xanh.’" },
+  tuan:  { title: "Tập Tranh Siêu Nhân", page: "Những tờ giấy nét chì nguệch ngoạc, góc dưới ghi: ‘Tặng bố, người chạy xe giỏi nhất.’" },
+  khang: { title: "Sổ Mẫu Da Thuộc", page: "Mẫu da dán từng trang, chú thích bút chì: ‘Da tốt là da chịu được năm tháng.’" },
+  hoa:   { title: "Sổ Thu Chi Của Cô Hoa", page: "Cột ghi chú cuối trang: ‘Con số nào cũng có một câu chuyện đứng phía sau.’" },
+  an:    { title: "Tập Thơ Chép Tay", page: "Bác chép những câu thơ học trò từng thuộc, lề trang chi chít chữ ký nhỏ xíu." }
+};
+
 /* ---- KHO BÍ MẬT: phần thưởng khi hoàn thành các mốc sưu tầm ---- */
 const SECRET_VAULT = [
   {
@@ -87,9 +98,9 @@ const SECRET_VAULT = [
   },
   {
     id: "secret_signature", icon: "🍵🤍", title: "Ly Cánh Cửa Thứ Hai",
-    hint: "Một công thức chỉ lộ diện trong đêm bí mật cuối cùng của quán.",
+    hint: "Hai công thức chỉ lộ diện trong đêm bí mật cuối cùng của quán.",
     reward: "🪵 Mở khóa «Quầy Gỗ Viền Vàng» trong Custom Không Gian Quán",
-    story: "Sau lá bài ấy, Thỏ Con thấy trong ngăn kéo một mảnh giấy ố vàng của người chủ quán già: “Ly cuối cùng: một chén trà hoa cúc mật ong, thêm một lát gừng mỏng, và một lần lắng nghe thật lòng — pha cho chính người giữ đèn.” Bên dưới ghi thêm: “Ly này không dành cho khách. Nó dành cho người đã pha nước cho tất cả mọi người.” Thỏ Con pha nó thật chậm, ấm, hơi đắng, hậu ngọt, và lần đầu tiên tự uống một ly dành cho mình."
+    story: "Sau lá bài ấy, Thỏ Con thấy trong ngăn kéo một mảnh giấy ố vàng của người chủ quán già: “Ly cuối cùng: một chén trà hoa cúc mật ong, thêm một lát gừng mỏng, và một lần lắng nghe thật lòng — pha cho chính người giữ đèn.” Bên dưới ghi thêm: “Ly này không dành cho khách. Nó dành cho người đã pha nước cho tất cả mọi người.” Thỏ Con pha nó thật chậm, ấm, hơi đắng, hậu ngọt, và lần đầu tiên tự uống một ly dành cho mình. Ở mặt sau mảnh giấy còn một dòng nhỏ: “Còn một ly nữa — Ly Tiếng Gõ Cửa — dành cho người dám gõ cửa xin được ở lại. Nếu có ai gõ, đừng hỏi vì sao; cứ pha.” Thỏ Con đặt công thức thứ hai cạnh công thức đầu tiên: hai ly cuối cùng, một cho người mở cửa, một cho người gõ cửa."
   },
   {
     id: "secret_keepsakes", icon: "🏺💡", title: "Kệ Kỷ Vật Sáng Đèn",

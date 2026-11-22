@@ -20,20 +20,20 @@ const STORY_CH4 = [
       ["@", "21:15"],
       ["+", "vy"],
       ["vy", {
-        h: "Thỏ Con ơi! Chị nhớ chuyện em viết bằng sự chân thành không? Loạt phóng sự của em có một tòa soạn lớn gọi rồi! Em chưa dám tin!",
-        m: "Thỏ Con ơi! Kênh phóng sự độc lập của em có hơn mười ngàn người theo dõi rồi! Và có một tòa soạn lớn đã nhắn tin cho em!",
-        s: "Thỏ Con ơi. Em đã học được cách lắng nghe, như cái đêm chị để em ngồi im. Và có một tòa soạn lớn vừa nhắn cho em.",
+        h: "Thỏ Con ơi! Loạt bài kiểm chứng tin giả của em lan rộng lắm, và có một tòa soạn lớn gọi em rồi! Em chưa dám tin!",
+        m: "Thỏ Con ơi! Sau vụ tiệm bánh mì, kênh phóng sự của em có hơn mười ngàn người theo dõi rồi! Và có một tòa soạn lớn đã nhắn tin cho em!",
+        s: "Thỏ Con ơi. Em đã học được cách lắng nghe, như cái đêm chị lặng lẽ rót trà cho em và anh Minh làm việc. Và có một tòa soạn lớn vừa nhắn cho em.",
         d: "Thỏ Con ơi, em có tin này. Có một tòa soạn lớn vừa nhắn cho em. Em chưa biết nên mừng hay lo."
       }],
       ["host", "Vy ngồi xuống đã. Kể từ đầu cho mình nghe."],
       ["vy", "Họ muốn em làm biên tập viên mảng nhân vật, lương gấp ba lần. Nhưng họ có một điều kiện: mỗi ngày phải đăng mười lăm bài, và em được dùng công cụ viết tự động để kịp tiến độ."],
       ["vy", "Mười lăm bài một ngày. Em tính thử rồi. Em sẽ không còn thời gian gõ cửa một nhà nào."],
       ["@", "21:45"],
-      ["host", "Mình nghe thấy tiếng máy ghi âm của em đang tắt. Em ghi âm bao nhiêu giờ rồi?"],
+      ["host", "(nhìn chiếc máy ghi âm nằm im trên quầy) Em đã ghi âm bao nhiêu giờ rồi?"],
       ["vy", "Cả trăm giờ ạ. Em có giọng của bác bán vé số, cô lao công, chủ tiệm bánh mì. Em chưa viết hết một phần mười."],
       ["?", "Mình đẩy tách trà sang phía Vy, nghe tiếng mưa nhỏ dần ngoài cửa.",
         ["Mình thấy em đang giữ một kho báu mà chưa ai có. Chắc em biết câu trả lời rồi, đúng không?", "vy", "Em biết. Em chỉ cần một ai đó nói ra thành tiếng để em dám chọn."],
-        ["Em có thể làm hai việc: nhận vị trí để có thu nhập ổn định, nhưng thương lượng làm một chuyên mục dài hơi riêng, mỗi tháng một nhân vật, không dùng máy viết.", "vy", "Một chuyên mục dài hơi riêng. Em chưa nghĩ ra đường này. Nếu họ từ chối thì em từ chối họ lại, thế thôi."],
+        ["Em có thể làm hai việc: nhận vị trí để có thu nhập ổn định, nhưng thương lượng làm một chuyên mục dài hơi riêng, mỗi tháng một nhân vật, không dùng máy viết.", "vy", "Một chuyên mục dài hơi riêng. Em chưa nghĩ ra đường này. Nếu họ từ chối thì em vẫn còn kênh của mình, thế thôi."],
         ["Gật đầu thật chậm và rót thêm trà, để Vy tự nghe lòng mình.", "vy", "Chị im lặng mà em nghe rõ câu trả lời trong đầu. Lạ thật."]],
       ["@", "22:10"],
       ["brew", "vy", "Em một ly tỉnh táo, chua dịu của trái cây, the mát đầu lưỡi, để em còn viết thư trả lời họ ngay tối nay.", "Vy nhấp ngụm đầu, gõ phím liền tay: vị thanh này làm đầu em sáng ra, em biết mình sẽ viết gì."],
@@ -54,14 +54,14 @@ const STORY_CH4 = [
     close: "Minh chọn con đường vừa giữ nghề, vừa giữ lương tâm.",
     intro: [
       "Đêm thứ hai của tuần thứ tư. Công ty của Minh thông báo giai đoạn hai của kế hoạch tự động hóa. Có một lời đề nghị: lên chức, tăng lương, đổi lại là ký vào bản kế hoạch cắt giảm lớn hơn.",
-      "Chiếc ghế cạnh cửa sổ quen thuộc vẫn đợi. Có ai đó đã đặt sẵn chú vịt cao su lên đó, từ lúc nào chẳng rõ."
+      "Chiếc ghế cạnh cửa sổ quen thuộc vẫn đợi. Thỏ Con lau nó thật sạch, như thể chú vịt cao su sắp quay lại cùng chủ của nó."
     ],
     steps: [
       ["@", "01:45"],
       ["+", "minh"],
       ["minh", {
-        h: "Chào chủ quán. Tôi ghé vì nhớ chỗ này. Tuần qua tôi nhớ lời cô nói, và tôi đã dám nói ‘khoan đã’ trong một cuộc họp lớn.",
-        m: "Chào chủ quán. Bản đề xuất thiết kế lấy con người làm trung tâm của tôi được duyệt thử. Nhưng đồng thời tôi nhận được một đề nghị khó.",
+        h: "Chào chủ quán. Tôi ghé vì nhớ chỗ này. Tuần qua tôi nhớ buổi tối ở đây, và tôi đã dám nói ‘con người luôn đứng tên’ trong một cuộc họp lớn.",
+        m: "Chào chủ quán. Nguyên tắc ‘máy gợi ý, người quyết định’ tôi viết cùng chị Linh đã được đưa vào bản thiết kế. Nhưng đồng thời tôi nhận được một đề nghị khó.",
         s: "Chào chủ quán. Cái khoảng lặng ở đây tôi nhớ hoài. Hôm nay tôi cần một khoảng lặng giữa hai quyết định.",
         d: "Chào chủ quán. Tôi ghé một lúc. Tôi đang phải chọn giữa hai con đường."
       }],
@@ -114,7 +114,7 @@ const STORY_CH4 = [
       ["linh", "Bác An, cháu xin bác đọc đoạn đầu cho mọi người. Giọng bác ấm hơn giọng cháu."],
       ["an", "Bác đọc nhé. ‘Mẹ khâu áo bằng chỉ trắng mà chỉ nhớ màu xanh.’ (ngừng một lúc lâu, giọng hơi nghẹn) Đoạn này bác từng đọc một mình, giờ đọc cho mọi người nghe thì khác hẳn."],
       ["@", "20:15"],
-      ["host", "Cả quán im phăng phắc. Có người lau mắt. Mình cũng thế."],
+      ["host", "(cả quán im phăng phắc, có người lau mắt) Mình cũng thế."],
       ["?", "Buổi đọc kết thúc, mọi người vẫn ngồi lại. Mình mở lời.",
         ["Chị Linh, cuốn sách của chị là một ngọn đèn. Mình nghe được cả quán đang cùng nhớ về mẹ mình.", "linh", "Chị muốn mẹ chị nghe giọng bác An đọc đoạn này. Mẹ chị mắt kém lắm."],
         ["Chị có thể thu giọng bác An đọc, làm bản sách nói bằng giọng người thật để gửi cho mẹ chị và những cụ ông cụ bà mắt kém.", "an", "Giọng của ông già này mà làm sách nói à? Bác thấy chuyện này vui, cháu Linh ạ."],
@@ -154,9 +154,9 @@ const STORY_CH4 = [
         h: "Chào cháu, chào anh Khang. Cô nhận được tin tốt. Công ty giữ lại cô, vì cô bé trưởng nhóm lên tiếng giúp. Nhưng cô vẫn muốn làm cố vấn cho xưởng của anh Khang buổi tối.",
         m: "Chào cháu, chào anh Khang. Cô nhận được tin tốt. Công ty đổi mô hình, giữ lại cô làm người kiểm tra cuối cùng. Máy làm, cô soát.",
         s: "Chào cháu, chào anh Khang. Cô nhận tin khá bất ngờ. Công ty giữ lại cô vì cô là người duy nhất ngờ ra một khoản sai.",
-        d: "Chào cháu, chào anh Khang. Cô vẫn chưa nhận tin chắc chắn, nhưng cô bớt sợ rồi, vì tối nay có chỗ để đến."
+        d: "Chào cháu, chào anh Khang. Công ty giữ lại cô nhưng đổi sang việc kiểm tra cuối. Cô vẫn còn lo, nhưng cô bớt sợ rồi, vì tối nay có chỗ để đến."
       }],
-      ["khang", "Cô Hoa, anh có cái này tặng cô. (đưa chiếc ví da nhỏ, mặt sau khắc dòng chữ ‘Hoa — người giữ sổ’)"],
+      ["khang", "Cô Hoa, cháu có cái này tặng cô. (đưa chiếc ví da nhỏ, mặt sau khắc dòng chữ ‘Hoa — người giữ sổ’)"],
       ["hoa", "Ôi anh Khang. Cô xúc động quá. Cô sẽ dùng nó đựng tiền chợ, tiền cô chia cho thằng con."],
       ["@", "23:05"],
       ["?", "Hai người đang giữ cho nhau một cái nghề. Mình rót thêm hai ly nước nóng.",
@@ -180,22 +180,22 @@ const STORY_CH4 = [
     guests: ["tuan"], end: null,
     close: "Anh Tuấn nhìn thấy tương lai của hai đứa nhỏ, và cả của chính mình.",
     intro: [
-      "Đêm thứ năm của tuần thứ tư. Giá sữa, giá học phí, giá xăng đều tăng, nhưng ở đầu hẻm, một biển hiệu mới vừa treo lên: ‘Trạm Bảo Trì Xe Điện — Tuyển Thợ Lành Nghề’.",
+      "Đêm thứ năm của tuần thứ tư. Giá sữa, giá học phí, giá xăng đều tăng, nhưng ở đầu hẻm, một tấm biển vẫn treo đó: ‘Trạm Bảo Trì Xe Điện — Tuyển Thợ Lành Nghề’.",
       "Chiếc mũ bảo hiểm cũ vẫn treo ở giá cạnh cửa. Thỏ Con lau nó mỗi ngày, như đang giữ chỗ."
     ],
     steps: [
       ["@", "02:10"],
       ["+", "tuan"],
       ["tuan", {
-        h: "Chào em! Anh có tin vui nhất đời! Xưởng xe điện nhận anh làm tổ phó kỹ thuật, bắt đầu thứ Hai! Anh nghĩ tới em đầu tiên, vì em là người đã nói anh nên nộp hồ sơ.",
-        m: "Chào em. Cậu Minh gửi tin: bên ứng dụng đã bỏ luật trừ điểm vùng ngập nhờ bản đồ của anh em chạy đêm. Anh em ai cũng mừng. Anh cũng vừa nhận được lời mời vào xưởng xe điện.",
-        s: "Chào em. Dạo này anh học cách ngồi yên, nhờ cái chạm tay lặng lẽ của em. Anh cũng nhận được lời mời vào xưởng xe điện.",
-        d: "Chào em. Anh ngồi một lúc nhé. Xưởng xe điện gọi anh phỏng vấn lại vòng hai, anh vừa mừng vừa sợ."
+        h: "Chào em! Anh có tin vui nhất đời! Xưởng xe điện mời anh làm tổ phó kỹ thuật, bắt đầu thứ Hai! Bữa cơm chung hôm ấy làm anh tin mình xứng đáng, nên anh nghĩ tới mọi người ở đây đầu tiên.",
+        m: "Chào em. Cậu Minh gửi tin: bên ứng dụng đã bỏ luật trừ điểm vùng ngập nhờ bản đồ của anh em chạy đêm. Anh em ai cũng mừng. Anh cũng vừa nhận được lời mời làm tổ phó ở xưởng xe điện.",
+        s: "Chào em. Dạo này anh học cách ngồi yên, nhờ cái chạm tay lặng lẽ của em. Anh cũng đã nộp hồ sơ vào xưởng xe điện, và họ vừa mời anh làm tổ phó kỹ thuật.",
+        d: "Chào em. Anh ngồi một lúc nhé. Anh có nộp hồ sơ vào xưởng xe điện, họ vừa báo anh đậu vị trí tổ phó kỹ thuật, anh vừa mừng vừa sợ."
       }],
       ["host", "Anh Tuấn ngồi đi. Hôm nay anh không phải chạy chuyến nào à?"],
       ["tuan", "Anh xin nghỉ một đêm. Đêm nay hai đứa nhỏ đòi bố ở nhà ngủ cùng, nhưng anh lại ra đây. Anh có chuyện muốn nghĩ cho kỹ."],
       ["@", "02:35"],
-      ["tuan", "Làm tổ phó thì ổn định, nhưng phải đi làm ban ngày, tối không chạy giao hàng được nữa. Thu nhập chạy đêm hiện giờ nhiều hơn lương xưởng. Anh sợ thiếu tiền."],
+      ["tuan", "Làm tổ phó thì ổn định, nhưng phải đi làm ban ngày, tối không chạy giao hàng được nữa. Chạy đêm hiện giờ nhỉnh hơn lương xưởng một chút, mà anh thì kiệt sức. Anh sợ thiếu tiền."],
       ["tuan", "Mà đứa lớn năm nay đã biết hỏi: ‘Bố ơi, sao bố toàn ngủ ban ngày?’. Anh không biết trả lời thế nào."],
       ["?", "Mình đặt tờ giấy siêu nhân anh Tuấn vừa lấy ra từ túi áo lên quầy.",
         ["Tờ giấy này đã đi cùng anh qua bao đêm mưa. Có lẽ hai đứa nhỏ không cần bố giàu hơn, chỉ cần bố ở nhà vào buổi tối.", "tuan", "Em nói đúng. Anh biết mà. Anh chỉ cần ai đó nói ra thôi."],
@@ -280,7 +280,7 @@ const STORY_CH4 = [
       ["tuan", "Anh đến rồi! Hai đứa nhỏ gửi tranh siêu nhân cho chủ quán. Mỗi tờ vẽ một chú thỏ cầm ấm trà."],
       ["@", "22:30"],
       ["+", "minh"],
-      ["minh", "Tôi đến cuối cùng. Công ty chấp nhận bản đề xuất đào tạo lại của tôi, nhưng chỉ cho thử một nhóm nhỏ. Tôi coi đó là chiến thắng."],
+      ["minh", "Tôi đến muộn một chút. Công ty chấp nhận bản đề xuất đào tạo lại của tôi, nhưng chỉ cho thử một nhóm nhỏ. Tôi coi đó là chiến thắng."],
       ["@", "22:45"],
       ["+", "vy"],
       ["vy", "Em đây! Em mang cả máy ghi âm. Tối nay em ghi lại giọng của cả bảy người."],
@@ -292,9 +292,19 @@ const STORY_CH4 = [
         ["Mỉm cười, nhìn từng gương mặt thân quen quanh quầy.", "vy", "Chị không cần nói gì cả. Em đọc được hết trong mắt chị."]],
       ["@", "23:45"],
       ["brew", "an", "Cho bác một ly hoài niệm, chua ngọt thanh tao, thoảng mùi hoa nhẹ như chiều thu. Đêm nay bác muốn uống thật chậm.", "Bác An nhấp một ngụm, mắt long lanh: vị này gợi bác nhớ đêm đầu tiên bác tới đây, mưa còn lất phất."],
-      ["@", "00:10"],
+      ["@", "23:55"],
+      ["brew", "hoa", "Cô xin một tách thật dịu, ngọt thanh, thoảng hương hoa, để đêm nay cô còn ngủ ngon sau bữa cháo này.", "Cô Hoa nâng tách bằng hai tay: ngọt thanh và ấm, hệt bát canh mẹ nấu ngày cô còn bé. Cô cười, mắt đỏ hoe."],
+      ["@", "00:05"],
+      ["brew", "tuan", "Cho anh một ly ấm bụng, đậm đà, cay nồng với ngọt hậu, giống đêm đầu tiên anh ghé.", "Anh Tuấn nhấp ngụm, gật đầu thật chậm: đúng vị đêm mưa đầu tiên. Lần này anh không còn vội đi đâu cả."],
+      ["@", "00:15"],
+      ["brew", "linh", "Chị một ly chua ngọt dịu nhẹ, thơm mùi hoa, gợi hoài niệm chút thôi, để nghe bác An đọc thơ.", "Chị Linh nhấp ngụm nhỏ: vị này như giữ một cuốn sách còn thơm mùi mực, chị chỉ muốn ngồi yên mà nghe."],
+      ["@", "00:25"],
+      ["brew", "khang", "Cho anh ly ấm trầm, hậu cay ấm, thoảng mùi gỗ, uống chậm cho cả nhóm nhìn.", "Anh Khang nhấp ngụm, mỉm cười: mùi gỗ với sáp ong, đúng mùi xưởng của anh. Anh thấy mình thuộc về một nơi."],
+      ["@", "00:40"],
+      ["brew", "minh", "Cho tôi một ly đậm, đắng gọn, hậu có chút mặn dịu hoặc ấm cay, để tối nay tôi nói chuyện mà không phải nhìn đồng hồ.", "Minh ngửa cổ uống hết, rồi đặt ly xuống thật khẽ: cái đắng gọn này hợp với một đêm không còn gì phải gỡ lỗi."],
+      ["@", "00:55"],
       ["brew", "vy", "Em một ly tỉnh táo, chua dịu, the mát. Đêm nay em muốn thức tới sáng.", "Vy nhấp ngụm đầu, bật cười: em nhớ ngụm đầu tiên của đêm đầu tiên. Một ly nước đã đổi cả hướng đi của em."],
-      ["@", "01:00"],
+      ["@", "01:20"],
       ["card"],
       ["@", "01:45"],
       ["vy", "Em muốn nói điều này. Mỗi người trong chúng ta vào đây đều đang sợ một thứ: bị thay thế, bị bỏ lại, hết tiền, hết việc. Nhưng đêm nay chẳng ai còn sợ."],
@@ -304,12 +314,12 @@ const STORY_CH4 = [
       ["an", "Thôi bác đọc bài thơ nhé. Bài này bác viết mới, cho quán: ‘Mưa đi qua con hẻm, đèn vàng vẫn đợi. Mỗi người một chiếc ghế, mỗi người một câu chuyện. Ai cũng từng lạc, ai cũng được về.’"],
       ["tuan", "Câu cuối anh sẽ nhớ cả đời."],
       ["@", "05:10"],
-      ["sys", "Trời hửng sáng. Cơn mưa cuối cùng của Tháng Mưa tạnh hẳn. Bảy người ngồi quanh quầy gỗ, bên cạnh Thỏ Con, nhìn tia nắng đầu tiên chiếu vào kệ sách ở góc quán."],
+      ["sys", "Trời hửng sáng. Cơn mưa cuối cùng của Tháng Mưa tạnh hẳn. Bảy người ngồi quanh quầy gỗ, bên cạnh Thỏ Con, nhìn tia nắng đầu tiên chiếu lên kệ sách, nơi bảy cuốn sách của bảy người đang nằm cạnh nhau."],
       ["@", "05:30"],
       ["host", "Chào buổi sáng, mọi người. Cảm ơn vì đã đi cùng mình hết một mùa mưa. Cửa quán lúc nào cũng mở."],
       ["vy", "Mình sẽ quay lại. Cả bảy người."],
       ["@", "05:40"],
-      ["host", "(nhìn đồng hồ, khẽ mỉm cười) Còn khoảng một tiếng rưỡi nữa là bảy giờ. Mình có một cuộc hẹn sớm. Mọi người cứ ngồi thêm một lát, mình quay lại ngay."]
+      ["host", "(nhìn đồng hồ, khẽ mỉm cười) Còn hơn một tiếng nữa là bảy giờ. Mình có một cuộc hẹn sớm. Mọi người cứ ngồi thêm một lát, mình quay lại ngay."]
     ]
   }
 ];

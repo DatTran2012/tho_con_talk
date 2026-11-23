@@ -633,8 +633,7 @@ function renderVoiceControls() {
   });
   const note = document.getElementById("voice-note");
   if (!CafeVoice.supported) note.textContent = "Trình duyệt này chưa hỗ trợ giọng đọc.";
-  else if (!viVoices.length) note.textContent = "Chưa tìm thấy giọng tiếng Việt trên thiết bị; sẽ dùng giọng mặc định.";
-  else if (on) note.textContent = "Đang BẬT: đọc toàn bộ lời thoại, cutscene, hồi tưởng và tổng kết. Mỗi nhân vật có cao độ giọng riêng.";
+  else if (on) note.textContent = "Đang BẬT: lời thoại dùng giọng thu sẵn (mp3) riêng của từng nhân vật. Chỉ những câu chưa có file mới đọc bằng giọng của trình duyệt." + (viVoices.length ? "" : " (Thiết bị này chưa có giọng tiếng Việt dự phòng.)");
   else note.textContent = "Đang TẮT: game hoàn toàn im lặng, không đọc bất kỳ nội dung nào.";
 }
 

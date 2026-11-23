@@ -24,3 +24,9 @@ js/11-dev-tools.js      công cụ dev nội bộ (?dev=1 hoặc Ctrl+Shift+D) -
 
 Các file JS là script thường (không phải module) và **phải giữ đúng thứ tự** như trong `index.html`,
 vì chúng dùng chung biến toàn cục.
+
+## Giọng đọc mp3 & nhạc nền (tự tạo, không cần mạng)
+- `assets/voice/*.mp3` (~1.030 file): lời thoại thu sẵn cho Thỏ Con và 7 vị khách (mỗi người một giọng), lời trên lá bài DRINK và cắt cảnh. Game ưu tiên phát file mp3; câu nào chưa có file (ví dụ bản tổng kết đầu/cuối tuần có số liệu) mới dùng giọng của trình duyệt. Danh sách file nằm ở `assets/voice/manifest.js`; tên file là mã băm của (giọng | câu thoại).
+- `assets/music/*.mp3` (7 bản lo-fi): xuân / hạ / thu / đông (theo mùa của tuần), Piano Cũ, Đêm Tĩnh Lặng, Khúc Ca Người Gác Đêm (kênh bí mật). Nhạc lặp liền mạch (chồng mờ 3 giây) và tự nhỏ đi khi có người nói.
+- Tạo lại: `tools/voice_lines.js` + `tools/voice_lines_runtime.js` liệt kê câu thoại; `tools/gen_voice.py` đọc bằng Piper (sherpa-onnx, các mô hình vi_VN vais1000 / 25hours_single / vivos); `tools/gen_music.py` tổng hợp nhạc bằng numpy. Đổi giọng từng nhân vật ở bảng `VOICES` trong `gen_voice.py`. Sửa lời thoại thì chạy lại các bước trên (file mới được tạo, file cũ không còn dùng).
+- Chế độ dev có thêm nút nghe thử 8 giọng, nghe thử từng bản nhạc, thống kê file.

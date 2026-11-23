@@ -112,6 +112,9 @@ function renderDevTools() {
     btn("lockch", "🔒 Khóa lại chương (chỉ còn Chương 1) + bỏ lá bài ẩn") +
     btn("hidden17", "🎴 Mở/khóa lá bài 17 + 2 ly bí mật") +
     btn("thanks", "🎖️ Xem trang chúc mừng (xem trước)") +
+    btn("voices", "🗣️ Nghe thử 8 giọng mp3 (mỗi người một câu)") +
+    btn("music", "🎵 Nghe thử các bản nhạc nền (bấm để đổi bản kế tiếp)") +
+    btn("clips", "📼 Thống kê file thoại mp3 / nhạc đã có") +
     btn("off", "⛔ Tắt chế độ dev");
   document.body.appendChild(fab);
   document.body.appendChild(panel);
@@ -144,6 +147,9 @@ function renderDevTools() {
       showToast(on ? "🛠️ DEV: đã mở lá bài 17 + 2 ly bí mật" : "🛠️ DEV: đã khóa lại lá bài 17 + ly ẩn");
     }
     else if (k === "finale") showFinalePage();
+    else if (k === "voices") devVoiceDemo();
+    else if (k === "music") devMusicNext();
+    else if (k === "clips") devClipStats();
     else if (k === "simlow" || k === "simmid" || k === "simfull") devSimulateMonthEnd(k);
     else if (k === "simfresh") {
       if (!safeGetItem(DEV_BACKUP_KEY)) safeSetItem(DEV_BACKUP_KEY, JSON.stringify(persistentArchive));
@@ -170,6 +176,28 @@ function renderDevTools() {
       devSetMode(false);
     }
   });
+}
+
+/* ---- Thử giọng đọc mp3 và nhạc nền ---- */
+function devVoiceDemo() {
+  const who = [["Thỏ Con", "Chào bạn, mình là Thỏ Con, chủ quán nửa đêm."]]
+    .concat(STANDARD_GUEST_ORDER.map((id) => [CHARACTERS[id].name, `Mình là ${CHARACTERS[id].name.split(" (")[0]}, đêm nay mưa to quá nhỉ.`]));
+  CafeVoice.speakMany(who.map(([speaker, text]) => ({ speaker, text })), true);
+  showToast("🛠️ DEV: đọc thử 8 giọng. Câu nào chưa có mp3 sẽ dùng giọng trình duyệt.");
+}
+const DEV_MUSIC_IDS = ["spring", "summer", "autumn", "winter", "piano", "dawn", "keeper"];
+let devMusicIdx = -1;
+function devMusicNext() {
+  devMusicIdx = (devMusicIdx + 1) % DEV_MUSIC_IDS.length;
+  const id = DEV_MUSIC_IDS[devMusicIdx];
+  audioEngine.enabled = true;
+  audioEngine.userMuted = false;
+  audioEngine.music.play(id);
+  showToast(`🛠️ DEV: đang phát bản "${id}" (${devMusicIdx + 1}/${DEV_MUSIC_IDS.length}). Bấm lần nữa để đổi bản.`);
+}
+function devClipStats() {
+  const n = typeof VOICE_CLIPS !== "undefined" ? VOICE_CLIPS.size : 0;
+  showToast(`🛠️ DEV: ${n} file thoại mp3, ${DEV_MUSIC_IDS.length} bản nhạc. Câu chưa có file sẽ dùng giọng trình duyệt.`);
 }
 
 /* ---- Mở chế độ dev trên điện thoại: chạm đèn lồng 10 lần rồi nhập mật khẩu ---- */

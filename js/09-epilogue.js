@@ -286,7 +286,13 @@ function completeCurrentNight() {
   runState.weekResults.push(nightResultObj);
   runState.allMonthResults.push(nightResultObj);
 
-  runState.nightIndex += 1;
+  if (runState.singleRetry) {
+    // chơi lại riêng một đêm: xong thì quay về cuối tuần để kiểm tra lại mục tiêu ly nước
+    runState.nightIndex = runState.singleRetry * 7;
+    runState.singleRetry = 0;
+  } else {
+    runState.nightIndex += 1;
+  }
   runState.awaitingNightStart = true;
   runState.beatIndex = 0;
   runState.subBeat = 0;
@@ -423,11 +429,43 @@ function showWeekRecipeFailed(week) {
       card.innerHTML = `🔒 Công thức chưa lộ diện • nền gợi ý: ${base ? `${base.icon} ${base.name}` : "?"}`;
       list.appendChild(card);
     });
+  const pick = document.createElement("div");
+  pick.className = "pt-2 space-y-1.5";
+  pick.innerHTML = `<div class="text-[11px] font-bold text-amber-200">🎯 Hoặc chỉ chơi lại MỘT đêm (giữ nguyên ${have}/${need} công thức đã pha tuần này):</div>`;
+  for (let k = 0; k < 7; k++) {
+    const st = STORY_NIGHTS[(week - 1) * 7 + k];
+    if (!st) continue;
+    const gl = st.guests.length > 3 ? "cả quán" : st.guests.map((g) => CHARACTERS[g].name.split(" (")[0]).join(" & ");
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "w-full text-left p-2 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-stone-700 cursor-pointer text-[11px] text-stone-200";
+    b.innerHTML = `Đêm ${k + 1}/7 • ${escapeHtml(st.title)} <span class="text-stone-500">• ${escapeHtml(gl)}</span>`;
+    b.addEventListener("click", () => replaySingleNight(week, k));
+    pick.appendChild(b);
+  }
+  list.appendChild(pick);
   const nextBtn = document.getElementById("btn-epilogue-next-week");
   nextBtn.classList.remove("hidden");
-  nextBtn.textContent = `🔁 Chơi Lại Chương ${week} ▸`;
+  nextBtn.textContent = `🔁 Chơi Lại Cả Chương ${week} ▸`;
   document.getElementById("btn-epilogue-new-week").classList.add("hidden");
   openModal("modal-epilogue");
+}
+
+function replaySingleNight(week, k) {
+  if (!runState) return;
+  closeModal("modal-epilogue");
+  const idx = (week - 1) * 7 + k;
+  runState.retryWeek = 0;
+  runState.singleRetry = week;
+  runState.weekResults = (runState.weekResults || []).filter((r) => !(r.weekNum === week && r.nightInWeek === k + 1));
+  runState.allMonthResults = (runState.allMonthResults || []).filter((r) => !(r.weekNum === week && r.nightInWeek === k + 1));
+  runState.nightIndex = idx;
+  runState.awaitingNightStart = true;
+  runState.beatIndex = 0;
+  runState.subBeat = 0;
+  saveRunState();
+  showToast(`🎯 Chơi lại riêng Đêm ${k + 1}/7 — hãy pha thêm công thức mới rồi cuối tuần sẽ kiểm tra lại mục tiêu.`);
+  startNight(idx);
 }
 
 function proceedToNextWeekWithRecap() {

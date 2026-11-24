@@ -24,7 +24,7 @@ function startNight(nightIdx) {
   if (!runState) return;
   cancelActiveBrewAnimation();
 
-  if (nightIdx > 0 && nightIdx % 7 === 0 && !weekRecipeGoalMet(nightIdx / 7 - 1)) {
+  if (!runState.singleRetry && nightIdx > 0 && nightIdx % 7 === 0 && !weekRecipeGoalMet(nightIdx / 7 - 1)) {
     showWeekRecipeFailed(Math.min(4, nightIdx / 7));
     return;
   }
@@ -32,7 +32,7 @@ function startNight(nightIdx) {
     showEpilogueModal(true);
     return;
   }
-  if (nightIdx > 0 && nightIdx % 7 === 0 && runState.weekResults.length >= 7) {
+  if (!runState.singleRetry && nightIdx > 0 && nightIdx % 7 === 0 && runState.weekResults.length >= 7) {
     showEpilogueModal(false);
     return;
   }
@@ -55,7 +55,7 @@ function startNight(nightIdx) {
   runState.lastDrinkReflectionText = "";
   runState.drawnCardData = null;
   runState.clock = story.t0;
-  if (nightIdx % 7 === 0) runState.weekSigs = [];
+  if (nightIdx % 7 === 0 && !runState.singleRetry) runState.weekSigs = [];
   if (story.n === 1) {
     setTimeout(() => showToast(`🍹 Mục tiêu Chương ${story.ch}: trong tuần này hãy pha thành công ${weekGoalFor(story.ch - 1)} công thức độc quyền khác nhau`), 1800);
   }

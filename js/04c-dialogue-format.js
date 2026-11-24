@@ -193,3 +193,17 @@ function detectMood(text) {
   if (/(\.\.\.|…)\s*$/.test(s.trim())) return "💭";
   return "";
 }
+
+/* Cảm xúc dùng cho nét mặt + cử động nhân vật trên sân khấu (dựa trên detectMood) */
+function detectEmotion(text) {
+  const m = detectMood(text);
+  const t = String(text || "").trim();
+  if (m === "🤔") return /\?\s*$/.test(t) ? "curious" : "thinking";
+  if (m === "💭") return "thinking";
+  if (["😄", "😊", "🥰", "💪", "✨", "🌙"].includes(m)) return "happy";
+  if (["🥹", "😴", "😮‍💨", "🕰️"].includes(m)) return "sad";
+  if (m === "😲") return "surprised";
+  if (m === "😠") return "angry";
+  if (m === "😨" || m === "😟") return "worried";
+  return "neutral";
+}

@@ -157,6 +157,7 @@ function createNewRunState() {
     monthlyStanceCounts: { heart: 0, mind: 0, silent: 0, duo: 0, duo_heart: 0, duo_mind: 0 },
     guestPath: {},
     weekSigs: [],
+    singleRetry: 0,
     presentGuests: [],
     pendingReply: null,
     brewDoneAt: -1,

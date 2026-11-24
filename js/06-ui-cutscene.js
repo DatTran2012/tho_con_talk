@@ -127,7 +127,19 @@ function setDialogue(speakerName, speakerRole, avatar, text, canAdvance = true, 
   }
   const shownText = view.mainText;
   currentFullDialogueText = shownText;
-  stageRenderer.talkAnimTimer = 900;
+  {
+    // ai đang nói + cảm xúc câu này -> sân khấu chỉ cho NGƯỜI NÓI mấp máy miệng, người còn lại lắng nghe
+    const nm = view.firstSpeaker || speakerName;
+    let sid = null;
+    if (!(view.narrationOnly || opts.narr || opts.sys)) {
+      const ch = Object.values(CHARACTERS).find((x) => x.name === nm);
+      sid = ch ? ch.id : /Thỏ Con/.test(nm) ? "host" : null;
+    }
+    stageRenderer.speakerId = sid;
+    stageRenderer.emotion = sid ? detectEmotion(`${view.directions || ""} ${shownText}`) : "neutral";
+    stageRenderer.talkAnimTimer = sid ? Math.max(900, Math.min(9000, shownText.length * 62)) : 0;
+    stageRenderer.talkStart = performance.now();
+  }
 
   let nameShown = speakerName;
   let avatarShown = avatar;

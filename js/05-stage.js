@@ -26,6 +26,8 @@ class CafeStageRenderer {
     this.bunnyWaveTimer = 0;
     this.radioPulseTimer = 0;
     this.talkAnimTimer = 0;
+    this.speakerId = null;
+    this.emotion = "neutral";
     this.hitboxes = [];
   }
 
@@ -45,191 +47,217 @@ class CafeStageRenderer {
     );
   }
 
+  /* Chân dung kiểu hoạt hình: đầu to, viền đậm, mắt to có tròng + điểm sáng, lông mày biểu cảm, má hồng, tóc riêng từng người */
   drawPersonPortrait(ctx, x, y, scale, opts) {
     const {
       hairColor = "#292524",
       outfitColor = "#d97706",
-      skinColor = "#fde68a",
+      skinColor = "#fcd9b0",
       accessory = "none",
       isTalking = false,
+      emotion = "neutral",
+      listening = false,
       timeSec = 0,
       seed = 0
     } = opts;
-
+    const OL = "#2b1b14";                       // màu viền
     const breathY = Math.sin(timeSec * 2.1 + seed) * 1.4 * scale;
     const isBlinking = Math.sin(timeSec * 1.7 + seed * 2.3) > 0.965;
+    const look = Math.sin(timeSec * 0.5 + seed) * 1.1;   // mắt liếc nhẹ
+    const bob = isTalking ? Math.sin(timeSec * 9) * 0.6 : 0;
+    const shade = (c, a) => { ctx.fillStyle = c; ctx.globalAlpha = a; };
+    const fillStroke = (lw = 1.6) => { ctx.fill(); ctx.lineWidth = lw; ctx.strokeStyle = OL; ctx.lineJoin = "round"; ctx.stroke(); };
+    const longHair = accessory === "headphones" || accessory === "scarf";
+
+    const EMO = isTalking || listening || emotion !== "neutral" ? emotion : "neutral";
+    const hop = isTalking && (EMO === "happy" || EMO === "surprised") ? Math.abs(Math.sin(timeSec * 6 + seed)) * 2.2 : 0;
+    const lean = isTalking ? Math.sin(timeSec * 3.1 + seed) * 0.03 : listening ? Math.sin(timeSec * 1.2 + seed) * 0.012 : 0;
+    const nodY = listening ? Math.max(0, Math.sin(timeSec * 1.7 + seed)) * 1.4 : 0;
+    const slump = EMO === "sad" ? 2.2 : 0;
+    const tilt = (EMO === "curious" ? 0.09 : EMO === "thinking" ? -0.08 : EMO === "sad" ? 0.05 : EMO === "shy" ? -0.05 : 0) + (listening ? Math.sin(timeSec * 1.3 + seed) * 0.02 : 0);
 
     ctx.save();
-    ctx.translate(x, y + breathY);
+    ctx.translate(x, y + breathY - hop);
+    ctx.rotate(lean);
     ctx.scale(scale, scale);
 
-    // Soft shadow behind figure
     ctx.fillStyle = "rgba(0,0,0,0.35)";
-    ctx.beginPath();
-    ctx.ellipse(0, 4, 29, 10, 0, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, 4 + hop, 29, 10, 0, 0, Math.PI * 2); ctx.fill();
 
-    // Back hair for long-haired characters
-    if (accessory === "headphones" || accessory === "scarf" || accessory === "shawl") {
-      ctx.fillStyle = hairColor;
-      ctx.beginPath();
-      ctx.roundRect(-21, -56, 42, 46, 16);
-      ctx.fill();
+    // --- tóc phía sau ---
+    ctx.fillStyle = hairColor;
+    if (longHair) {                        // tóc dài chấm vai, đuôi tóc cong
+      ctx.beginPath(); ctx.moveTo(-21, -52); ctx.quadraticCurveTo(-27, -24, -19, -14); ctx.quadraticCurveTo(-9, -12, -8, -24);
+      ctx.lineTo(8, -24); ctx.quadraticCurveTo(9, -12, 19, -14); ctx.quadraticCurveTo(27, -24, 21, -52); ctx.closePath(); fillStroke();
+    } else if (accessory === "shawl") {    // búi tóc phía sau đỉnh đầu
+      ctx.beginPath(); ctx.arc(0, -71, 8.5, 0, Math.PI * 2); fillStroke();
+      ctx.strokeStyle = "rgba(255,255,255,0.25)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(0, -71, 5, 0.2, 2.6); ctx.stroke();
     }
 
-    // Torso & Shoulders
+    // --- thân + vai ---
     ctx.fillStyle = outfitColor;
-    ctx.beginPath();
-    ctx.moveTo(-27, 4);
-    ctx.quadraticCurveTo(-28, -22, -13, -26);
-    ctx.lineTo(13, -26);
-    ctx.quadraticCurveTo(28, -22, 27, 4);
-    ctx.closePath();
-    ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-28, 4); ctx.quadraticCurveTo(-30, -22, -14, -27); ctx.lineTo(14, -27); ctx.quadraticCurveTo(30, -22, 28, 4); ctx.closePath(); fillStroke();
+    shade("#000", 0.16); ctx.beginPath(); ctx.moveTo(10, -26); ctx.quadraticCurveTo(26, -22, 27, 3); ctx.lineTo(14, 3); ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1;  // đổ bóng bên phải
+    shade("#fff", 0.14); ctx.beginPath(); ctx.moveTo(-22, -12); ctx.quadraticCurveTo(-24, -20, -14, -24); ctx.lineTo(-12, -20); ctx.quadraticCurveTo(-18, -17, -17, -8); ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1;
+    // cổ áo chữ V
+    ctx.fillStyle = "rgba(255,255,255,0.28)"; ctx.beginPath(); ctx.moveTo(-9, -27); ctx.lineTo(0, -13); ctx.lineTo(9, -27); ctx.closePath(); ctx.fill();
 
-    // Collar V-neck
-    ctx.fillStyle = "rgba(255,255,255,0.2)";
-    ctx.beginPath();
-    ctx.moveTo(-8, -26);
-    ctx.lineTo(0, -13);
-    ctx.lineTo(8, -26);
-    ctx.closePath();
-    ctx.fill();
-
-    // Outfit accessories
+    // --- phụ kiện trên áo ---
     if (accessory === "apron") {
-      ctx.fillStyle = "#451a03";
-      ctx.beginPath();
-      ctx.roundRect(-16, -24, 32, 28, 4);
-      ctx.fill();
-      ctx.strokeStyle = "#d97706";
-      ctx.lineWidth = 1.4;
-      ctx.strokeRect(-14, -22, 28, 25);
+      ctx.fillStyle = "#5b2a0c"; ctx.beginPath(); ctx.roundRect(-16, -24, 32, 28, 5); fillStroke(1.3);
+      ctx.fillStyle = "#d97706"; ctx.beginPath(); ctx.roundRect(-8, -12, 16, 9, 2); ctx.fill();         // túi tạp dề
+      ctx.strokeStyle = "#d97706"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(-12, -26); ctx.lineTo(-8, -33); ctx.moveTo(12, -26); ctx.lineTo(8, -33); ctx.stroke();
     } else if (accessory === "scarf") {
-      ctx.fillStyle = "#9f1239";
-      ctx.beginPath();
-      ctx.roundRect(-16, -28, 32, 9, 4);
-      ctx.fill();
-      ctx.fillRect(4, -22, 8, 22);
+      ctx.fillStyle = "#be123c"; ctx.beginPath(); ctx.roundRect(-17, -30, 34, 10, 5); fillStroke(1.3);
+      ctx.beginPath(); ctx.roundRect(4, -23, 9, 22, 3); fillStroke(1.3);
+      ctx.strokeStyle = "rgba(255,255,255,0.35)"; ctx.lineWidth = 1; for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.moveTo(5, -18 + k * 6); ctx.lineTo(12, -18 + k * 6); ctx.stroke(); }
     } else if (accessory === "shawl") {
-      ctx.strokeStyle = "#f3e8ff";
-      ctx.lineWidth = 2;
-      ctx.setLineDash([3, 3]);
-      ctx.beginPath();
-      ctx.arc(0, -24, 18, 0.15 * Math.PI, 0.85 * Math.PI);
-      ctx.stroke();
-      ctx.setLineDash([]);
+      ctx.fillStyle = "#e9d5ff"; ctx.beginPath(); ctx.moveTo(-27, 3); ctx.quadraticCurveTo(-29, -22, -14, -28); ctx.lineTo(-6, -27); ctx.lineTo(0, -8); ctx.lineTo(6, -27); ctx.lineTo(14, -28); ctx.quadraticCurveTo(29, -22, 27, 3); ctx.lineTo(18, 3); ctx.quadraticCurveTo(19, -16, 8, -21); ctx.lineTo(0, -4); ctx.lineTo(-8, -21); ctx.quadraticCurveTo(-19, -16, -18, 3); ctx.closePath(); fillStroke(1.2);
     } else if (accessory === "headphones") {
-      ctx.fillStyle = "#1c1917";
-      ctx.beginPath();
-      ctx.roundRect(-17, -27, 7, 10, 3);
-      ctx.roundRect(10, -27, 7, 10, 3);
-      ctx.fill();
+      // dây tai nghe vắt cổ
+      ctx.strokeStyle = "#1c1917"; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-17, -26); ctx.quadraticCurveTo(0, -8, 17, -26); ctx.stroke();
     }
 
-    // Neck & Head
+    // --- cổ ---
+    ctx.fillStyle = skinColor; ctx.beginPath(); ctx.roundRect(-5.5, -35, 11, 11, 3); fillStroke(1.3);
+    shade("#7c2d12", 0.18); ctx.fillRect(-4.5, -33, 9, 4); ctx.globalAlpha = 1;
+
+    ctx.save(); ctx.translate(0, bob + nodY + slump); ctx.translate(0, -30); ctx.rotate(tilt); ctx.translate(0, 30);
+    // --- tai ---
     ctx.fillStyle = skinColor;
-    ctx.fillRect(-5, -33, 10, 9);
-    ctx.beginPath();
-    ctx.ellipse(0, -45, 16, 18, 0, 0, Math.PI * 2);
-    ctx.fill();
+    [-1, 1].forEach((sd) => { ctx.beginPath(); ctx.ellipse(sd * 19, -44, 3.6, 4.6, 0, 0, Math.PI * 2); fillStroke(1.3); ctx.fillStyle = "rgba(244,114,142,0.3)"; ctx.beginPath(); ctx.ellipse(sd * 19, -44, 1.6, 2.4, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = skinColor; });
+    // --- đầu to (chibi) ---
+    ctx.fillStyle = skinColor;
+    ctx.beginPath(); ctx.moveTo(-19, -48); ctx.bezierCurveTo(-19, -66, 19, -66, 19, -48); ctx.bezierCurveTo(19, -32, 9, -26, 0, -26); ctx.bezierCurveTo(-9, -26, -19, -32, -19, -48); ctx.closePath(); fillStroke(1.8);
+    shade("#c2410c", 0.1); ctx.beginPath(); ctx.ellipse(10, -36, 9, 8, 0.4, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;   // bóng má
 
-    // Subtle warm blush
-    ctx.fillStyle = "rgba(244, 63, 94, 0.18)";
-    ctx.beginPath();
-    ctx.ellipse(-9, -41, 3.5, 2, 0, 0, Math.PI * 2);
-    ctx.ellipse(9, -41, 3.5, 2, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Hair front & bangs
+    // --- tóc phía trước (kiểu theo từng người) ---
     ctx.fillStyle = hairColor;
     ctx.beginPath();
-    ctx.arc(0, -48, 17, Math.PI, Math.PI * 2);
-    ctx.lineTo(17, -43);
-    ctx.quadraticCurveTo(8, -51, 0, -47);
-    ctx.quadraticCurveTo(-8, -51, -17, -43);
-    ctx.closePath();
-    ctx.fill();
-
-    // Cap
+    if (accessory === "headphones") {        // Vy: mái ngôi giữa, tóc dài
+      ctx.moveTo(-20, -44); ctx.bezierCurveTo(-24, -70, 24, -70, 20, -44); ctx.quadraticCurveTo(16, -52, 6, -57); ctx.quadraticCurveTo(0, -50, -4, -57); ctx.quadraticCurveTo(-14, -52, -20, -44);
+    } else if (accessory === "glasses") {    // Minh: tóc ngắn bồng, vài lọn vểnh
+      ctx.moveTo(-20, -44); ctx.bezierCurveTo(-24, -72, 24, -72, 20, -44); ctx.lineTo(16, -52); ctx.lineTo(11, -49); ctx.lineTo(6, -56); ctx.lineTo(0, -50); ctx.lineTo(-6, -57); ctx.lineTo(-12, -50); ctx.lineTo(-17, -53);
+    } else if (accessory === "scarf") {      // Linh: tóc mái bằng
+      ctx.moveTo(-20, -42); ctx.bezierCurveTo(-24, -72, 24, -72, 20, -42); ctx.lineTo(18, -52); ctx.quadraticCurveTo(0, -48, -18, -52);
+    } else if (accessory === "cap") {        // Tuấn: tóc ngắn lòi dưới mũ
+      ctx.moveTo(-19, -46); ctx.quadraticCurveTo(-20, -52, -14, -54); ctx.lineTo(14, -54); ctx.quadraticCurveTo(20, -52, 19, -46); ctx.lineTo(16, -50); ctx.lineTo(-16, -50);
+    } else if (accessory === "apron") {      // Khang: rẽ ngôi lệch
+      ctx.moveTo(-20, -44); ctx.bezierCurveTo(-24, -72, 24, -72, 20, -44); ctx.quadraticCurveTo(14, -54, 2, -56); ctx.quadraticCurveTo(-6, -48, -20, -44);
+    } else if (accessory === "shawl") {      // Hoa: tóc chải ngược gọn vào búi
+      ctx.moveTo(-20, -44); ctx.bezierCurveTo(-23, -70, 23, -70, 20, -44); ctx.quadraticCurveTo(12, -56, 0, -57); ctx.quadraticCurveTo(-12, -56, -20, -44);
+    } else {                                 // An: tóc bạc thưa, trán cao
+      ctx.moveTo(-20, -46); ctx.bezierCurveTo(-22, -62, -12, -68, -4, -62); ctx.quadraticCurveTo(0, -60, 4, -62); ctx.bezierCurveTo(12, -68, 22, -62, 20, -46); ctx.quadraticCurveTo(16, -56, 8, -58); ctx.quadraticCurveTo(0, -54, -8, -58); ctx.quadraticCurveTo(-16, -56, -20, -46);
+    }
+    ctx.closePath(); fillStroke(1.6);
+    shade("#fff", 0.18); ctx.beginPath(); ctx.ellipse(-6, -60, 7, 2.2, -0.3, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;   // ánh tóc
     if (accessory === "cap") {
-      ctx.fillStyle = "#14532d";
-      ctx.beginPath();
-      ctx.arc(0, -51, 17, Math.PI, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#052e16";
-      ctx.beginPath();
-      ctx.ellipse(3, -51, 20, 4, 0.06, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.fillStyle = "#166534"; ctx.beginPath(); ctx.moveTo(-20, -52); ctx.bezierCurveTo(-22, -72, 22, -72, 20, -52); ctx.closePath(); fillStroke(1.6);
+      ctx.fillStyle = "#14532d"; ctx.beginPath(); ctx.ellipse(8, -52, 17, 3.6, 0.05, 0, Math.PI * 2); fillStroke(1.4);
+      ctx.fillStyle = "#fde68a"; ctx.beginPath(); ctx.arc(0, -62, 2.4, 0, Math.PI * 2); ctx.fill();
+    }
+    if (accessory === "headphones") {        // vòng tai nghe + 2 đệm tai
+      ctx.strokeStyle = "#1c1917"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, -50, 21, Math.PI * 1.02, Math.PI * 1.98); ctx.stroke();
+      ctx.fillStyle = "#1c1917"; [-1, 1].forEach((sd) => { ctx.beginPath(); ctx.roundRect(sd * 21 - 4, -52, 8, 13, 3.5); fillStroke(1.1); ctx.fillStyle = "#f59e0b"; ctx.beginPath(); ctx.roundRect(sd * 21 - 2, -49, 4, 7, 2); ctx.fill(); ctx.fillStyle = "#1c1917"; });
     }
 
-    // Eyes
-    if (isBlinking) {
-      ctx.strokeStyle = "#292524";
-      ctx.lineWidth = 1.6;
-      ctx.beginPath();
-      ctx.moveTo(-8, -44);
-      ctx.lineTo(-4, -44);
-      ctx.moveTo(4, -44);
-      ctx.lineTo(8, -44);
-      ctx.stroke();
+    // --- lông mày + mắt theo cảm xúc ---
+    const browCol = hairColor === "#d4d4d8" ? "#9ca3af" : hairColor;
+    ctx.strokeStyle = browCol; ctx.lineWidth = 1.9; ctx.lineCap = "round";
+    const talkLift = isTalking ? -1.2 - Math.abs(Math.sin(timeSec * 3)) * 0.8 : 0;
+    // (nội, ngoại, nâng) cho mỗi bên: lông mày nghiêng theo cảm xúc
+    const BR = { neutral: [0, 0, 0], happy: [0, -1, -1.5], sad: [-2.6, 1.2, -0.5], worried: [-2.6, 1.2, -1], surprised: [-1, -1, -4.5], angry: [1.8, -1.6, 1], curious: [0, 0, -1], thinking: [0, 0, 0], shy: [-1, 0.6, 0] }[EMO] || [0, 0, 0];
+    [-1, 1].forEach((sd, si) => {
+      let lift = BR[2] + talkLift; if (EMO === "thinking" && sd > 0) lift -= 2.8; if (EMO === "curious" && sd > 0) lift -= 1.8;
+      ctx.beginPath(); ctx.moveTo(sd * 3.5, -52 + lift + BR[0] + 0.8); ctx.quadraticCurveTo(sd * 8, -55.2 + lift + (BR[0] + BR[1]) / 2, sd * 12.5, -52 + lift + BR[1] + 0.6); ctx.stroke();
+    });
+    const ex = 7.6, ey = -44;
+    const blinkNow = isBlinking && EMO !== "happy";
+    const happyEyes = EMO === "happy" && (!isTalking || Math.sin(timeSec * 1.6 + seed) > -0.3);   // mắt cười ^ ^
+    const big = EMO === "surprised" ? 1.15 : 1;
+    const lx = EMO === "thinking" ? 2.2 : EMO === "shy" ? -2.2 : look * 0.7, ly = EMO === "thinking" ? -2 : EMO === "shy" ? 1.5 : 0.6;
+    if (blinkNow) {
+      ctx.strokeStyle = OL; ctx.lineWidth = 2;
+      [-1, 1].forEach((sd) => { ctx.beginPath(); ctx.arc(sd * ex, ey - 1, 4, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke(); });
+    } else if (happyEyes) {
+      ctx.strokeStyle = OL; ctx.lineWidth = 2.1;
+      [-1, 1].forEach((sd) => { ctx.beginPath(); ctx.arc(sd * ex, ey + 1.5, 4.2, 1.12 * Math.PI, 1.88 * Math.PI); ctx.stroke(); });
     } else {
-      ctx.fillStyle = "#1c1917";
-      ctx.beginPath();
-      ctx.arc(-6, -44, 2.1, 0, Math.PI * 2);
-      ctx.arc(6, -44, 2.1, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.arc(-5.3, -44.7, 0.8, 0, Math.PI * 2);
-      ctx.arc(6.7, -44.7, 0.8, 0, Math.PI * 2);
-      ctx.fill();
+      [-1, 1].forEach((sd) => {
+        ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.ellipse(sd * ex, ey, 4.7 * big, 5.5 * big, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.lineWidth = 1.2; ctx.strokeStyle = OL; ctx.stroke();
+        const px = sd * ex + lx, py = ey + ly;
+        const pr = EMO === "surprised" ? 0.75 : 1;
+        ctx.fillStyle = hairColor === "#d4d4d8" ? "#6b7280" : "#3b2416"; ctx.beginPath(); ctx.ellipse(px, py, 3.4 * pr, 4.2 * pr, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#0c0a09"; ctx.beginPath(); ctx.ellipse(px, py + 0.2, 1.9 * pr, 2.6 * pr, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(px - 1.2, py - 2.2, 1.3, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(px + 1.2, py + 1.4, 0.7, 0, Math.PI * 2); ctx.fill();
+        if (EMO === "sad" || EMO === "worried") { ctx.fillStyle = skinColor; ctx.beginPath(); ctx.ellipse(sd * ex, ey - 4.4, 5.2, 2.6, 0, 0, Math.PI * 2); ctx.fill(); }   // mí rũ
+        if (EMO === "angry") { ctx.fillStyle = skinColor; ctx.beginPath(); ctx.moveTo(sd * ex - 5.5, ey - 6); ctx.lineTo(sd * ex + 5.5, ey - 6); ctx.lineTo(sd * ex - sd * 5.5, ey - 1.5); ctx.closePath(); ctx.fill(); }
+        ctx.strokeStyle = OL; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(sd * ex, ey - 0.3, 5 * big, 1.12 * Math.PI, 1.9 * Math.PI); ctx.stroke();
+      });
     }
 
-    // Glasses
+    // --- kính ---
     if (accessory === "glasses") {
-      ctx.strokeStyle = "#e2e8f0";
-      ctx.lineWidth = 1.3;
-      ctx.strokeRect(-11, -48, 9, 7);
-      ctx.strokeRect(2, -48, 9, 7);
-      ctx.beginPath();
-      ctx.moveTo(-2, -44.5);
-      ctx.lineTo(2, -44.5);
-      ctx.stroke();
+      ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 1.5; ctx.fillStyle = "rgba(186,230,253,0.18)";
+      [-1, 1].forEach((sd) => { ctx.beginPath(); ctx.roundRect(sd * ex - 6.5, ey - 6.5, 13, 12.5, 4); ctx.fill(); ctx.stroke(); });
+      ctx.beginPath(); ctx.moveTo(-1, ey - 1); ctx.lineTo(1, ey - 1); ctx.stroke();
+      ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-12, ey - 4); ctx.lineTo(-9.5, ey - 6); ctx.stroke();
     } else if (accessory === "round_glasses") {
-      ctx.strokeStyle = "#fbbf24";
-      ctx.lineWidth = 1.3;
-      ctx.beginPath();
-      ctx.arc(-6, -44, 4.5, 0, Math.PI * 2);
-      ctx.moveTo(10.5, -44);
-      ctx.arc(6, -44, 4.5, 0, Math.PI * 2);
-      ctx.moveTo(-1.5, -44);
-      ctx.lineTo(1.5, -44);
-      ctx.stroke();
+      ctx.strokeStyle = "#b45309"; ctx.lineWidth = 1.5; ctx.fillStyle = "rgba(254,243,199,0.15)";
+      [-1, 1].forEach((sd) => { ctx.beginPath(); ctx.arc(sd * ex, ey, 6.6, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); });
+      ctx.beginPath(); ctx.moveTo(-1, ey - 1); ctx.quadraticCurveTo(0, ey - 3, 1, ey - 1); ctx.stroke();
     }
 
-    // Mouth
-    ctx.strokeStyle = "#78350f";
-    ctx.lineWidth = 1.5;
+    // --- má hồng, mũi, miệng, hiệu ứng cảm xúc ---
+    const shy = EMO === "shy" || EMO === "happy" ? 0.85 : 0.55;
+    const bl = ctx.createRadialGradient(0, 0, 0.5, 0, 0, 5.5);
+    bl.addColorStop(0, `rgba(251,113,133,${shy})`); bl.addColorStop(1, "rgba(251,113,133,0)");
+    [-1, 1].forEach((sd) => { ctx.save(); ctx.translate(sd * 12, -36.5); ctx.fillStyle = bl; ctx.beginPath(); ctx.ellipse(0, 0, 5.5, 3.6, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); });
+    ctx.strokeStyle = "rgba(124,45,18,0.65)"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(0.6, -37.6, 1.6, 0.9 * Math.PI, 0.25 * Math.PI, true); ctx.stroke();
+    const flap = Math.abs(Math.sin(timeSec * 12));
     if (isTalking) {
-      const openH = 1.8 + Math.abs(Math.sin(timeSec * 12)) * 2.4;
-      ctx.fillStyle = "#9f1239";
-      ctx.beginPath();
-      ctx.ellipse(0, -36.5, 3, openH, 0, 0, Math.PI * 2);
-      ctx.fill();
+      let mw = 3.6, mh = 1.8 + flap * 2.8;
+      if (EMO === "surprised") { mw = 2.8; mh = 3 + flap * 1.5; } else if (EMO === "happy") { mw = 4.6; mh = 2 + flap * 2.4; } else if (EMO === "sad") { mw = 2.8; mh = 1.3 + flap * 1.6; }
+      ctx.fillStyle = "#7f1d1d"; ctx.beginPath(); ctx.ellipse(0, -32.2, mw, mh, 0, 0, Math.PI * 2); fillStroke(1.1);
+      ctx.fillStyle = "#fb7185"; ctx.beginPath(); ctx.ellipse(0, -32.2 + mh * 0.5, mw * 0.6, mh * 0.45, 0, 0, Math.PI * 2); ctx.fill();
+      if (EMO !== "sad") { ctx.fillStyle = "#fff"; ctx.fillRect(-mw * 0.7, -33.6 - mh * 0.2, mw * 1.4, 1.3); }
     } else {
-      ctx.beginPath();
-      ctx.arc(0, -38.5, 3.8, 0.18 * Math.PI, 0.82 * Math.PI);
+      ctx.strokeStyle = "#7c2d12"; ctx.lineWidth = 1.6; ctx.beginPath();
+      if (EMO === "happy" || listening) { ctx.arc(0, -35.7, 4.8, 0.12 * Math.PI, 0.88 * Math.PI); }
+      else if (EMO === "sad") { ctx.arc(0, -29.5, 3.6, 1.18 * Math.PI, 1.82 * Math.PI); }
+      else if (EMO === "worried") { ctx.moveTo(-3.5, -31.5); ctx.quadraticCurveTo(-1.7, -33.2, 0, -31.5); ctx.quadraticCurveTo(1.7, -29.8, 3.5, -31.5); }
+      else if (EMO === "surprised") { ctx.ellipse(0, -31.5, 2, 2.8, 0, 0, Math.PI * 2); }
+      else if (EMO === "angry") { ctx.moveTo(-3.5, -30.5); ctx.lineTo(3.5, -31.5); }
+      else if (EMO === "thinking") { ctx.moveTo(-2.5, -31.8); ctx.lineTo(3.2, -32.8); }
+      else { ctx.arc(0, -35.2, 4.4, 0.16 * Math.PI, 0.84 * Math.PI); }
       ctx.stroke();
     }
-
+    // hiệu ứng cảm xúc: mồ hôi (lo/ngại), giọt lệ (buồn), lấp lánh (vui), dấu hỏi (băn khoăn), gân (giận)
+    if (EMO === "worried" || EMO === "shy") { ctx.fillStyle = "rgba(147,197,253,0.9)"; ctx.beginPath(); ctx.moveTo(16, -55 + Math.sin(timeSec * 2) * 0.8); ctx.quadraticCurveTo(20, -48, 16, -46); ctx.quadraticCurveTo(12, -48, 16, -55 + Math.sin(timeSec * 2) * 0.8); ctx.fill(); }
+    if (EMO === "sad" && isTalking) { const p = (timeSec * 0.7) % 1; ctx.fillStyle = `rgba(147,197,253,${0.9 - p * 0.7})`; ctx.beginPath(); ctx.ellipse(ex + 2, ey + 6 + p * 8, 1.3, 2, 0, 0, Math.PI * 2); ctx.fill(); }
+    if (EMO === "happy" && isTalking) { ctx.fillStyle = "#fde047"; [[-23, -62], [24, -58]].forEach(([sx, sy], i) => { const sc = 0.6 + 0.4 * Math.sin(timeSec * 5 + i * 2); ctx.save(); ctx.translate(sx, sy); ctx.scale(sc, sc); ctx.beginPath(); ctx.moveTo(0, -4); ctx.lineTo(1.2, -1.2); ctx.lineTo(4, 0); ctx.lineTo(1.2, 1.2); ctx.lineTo(0, 4); ctx.lineTo(-1.2, 1.2); ctx.lineTo(-4, 0); ctx.lineTo(-1.2, -1.2); ctx.closePath(); ctx.fill(); ctx.restore(); }); }
+    if ((EMO === "curious" || EMO === "thinking") && (isTalking || EMO === "thinking")) { ctx.fillStyle = "#fde68a"; ctx.font = "bold 11px Inter"; ctx.textAlign = "center"; ctx.fillText(EMO === "curious" ? "?" : "…", 21, -62 - Math.abs(Math.sin(timeSec * 2.5)) * 2); ctx.textAlign = "start"; }
+    if (EMO === "angry") { ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(14, -60); ctx.lineTo(17, -57); ctx.lineTo(14, -57); ctx.lineTo(17, -54); ctx.stroke(); }
+    ctx.restore();   // bob
+    // bàn tay minh họa khi đang nói (giơ lên theo nhịp câu)
+    if (isTalking && ["happy", "surprised", "curious", "worried", "angry", "neutral"].includes(EMO)) {
+      const lift = (Math.sin(timeSec * 3.6 + seed) + 1) * 4.5;
+      ctx.fillStyle = skinColor;
+      ctx.beginPath(); ctx.arc(26, -12 - lift, 4.4, 0, Math.PI * 2); fillStroke(1.3);
+      ctx.strokeStyle = outfitColor; ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(24, -4); ctx.lineTo(26, -12 - lift + 3); ctx.stroke();
+    }
     ctx.restore();
   }
 
-  drawBunnyBarista(ctx, x, y, scale, waveActive, isTalking, timeSec) {
+  drawBunnyBarista(ctx, x, y, scale, waveActive, isTalking, timeSec, emotion = "neutral", listening = false) {
     const breathY = Math.sin(timeSec * 2.4) * 1.4 * scale;
+    const hopB = isTalking && (emotion === "happy" || emotion === "surprised") ? Math.abs(Math.sin(timeSec * 6)) * 2.2 * scale : 0;
+    const sadB = emotion === "sad" || emotion === "worried";
     ctx.save();
-    ctx.translate(x, y + breathY);
+    ctx.translate(x, y + breathY - hopB);
+    ctx.rotate(isTalking ? Math.sin(timeSec * 3.1) * 0.03 : listening ? Math.sin(timeSec * 1.2) * 0.012 : 0);
     ctx.scale(scale, scale);
 
     // Drop shadow
@@ -246,7 +274,7 @@ class CafeStageRenderer {
     ctx.lineTo(12, -25);
     ctx.quadraticCurveTo(26, -21, 26, 4);
     ctx.closePath();
-    ctx.fill();
+    ctx.fill(); ctx.lineWidth = 1.6; ctx.strokeStyle = "#3a2a2a"; ctx.lineJoin = "round"; ctx.stroke();
 
     ctx.fillStyle = "#b45309";
     ctx.beginPath();
@@ -273,18 +301,19 @@ class CafeStageRenderer {
     ctx.fill();
 
     // Bunny ears
-    const earTilt = waveActive ? Math.sin(timeSec * 14) * 0.28 : Math.sin(timeSec * 1.6) * 0.04;
+    const earTilt = waveActive ? Math.sin(timeSec * 14) * 0.28 : Math.sin(timeSec * 1.6) * 0.04 + (isTalking ? Math.sin(timeSec * 5) * 0.05 : 0);
+    const earDroop = sadB ? 0.35 : emotion === "happy" || emotion === "surprised" ? -0.1 : 0;
     [
-      { dx: -8, rot: -0.12 + earTilt },
-      { dx: 8, rot: 0.12 - earTilt }
+      { dx: -8, rot: -0.12 + earTilt - earDroop },
+      { dx: 8, rot: 0.12 - earTilt + earDroop }
     ].forEach((ear) => {
       ctx.save();
       ctx.translate(ear.dx, -56);
       ctx.rotate(ear.rot);
       ctx.fillStyle = "#fafaf9";
       ctx.beginPath();
-      ctx.ellipse(0, -16, 5.5, 19, 0, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.ellipse(0, -16, 5.8, 19, 0, 0, Math.PI * 2);
+      ctx.fill(); ctx.lineWidth = 1.6; ctx.strokeStyle = "#3a2a2a"; ctx.lineJoin = "round"; ctx.stroke();
       ctx.fillStyle = "#fda4af";
       ctx.beginPath();
       ctx.ellipse(0, -16, 2.7, 13, 0, 0, Math.PI * 2);
@@ -295,8 +324,9 @@ class CafeStageRenderer {
     // Bunny head & rosy cheeks
     ctx.fillStyle = "#fafaf9";
     ctx.beginPath();
-    ctx.ellipse(0, -43, 18, 16, 0, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.ellipse(0, -43, 19.5, 17, 0, 0, Math.PI * 2);
+    ctx.fill(); ctx.lineWidth = 1.6; ctx.strokeStyle = "#3a2a2a"; ctx.lineJoin = "round"; ctx.stroke();
+    ctx.fillStyle = "rgba(120,113,108,0.12)"; ctx.beginPath(); ctx.ellipse(9, -38, 9, 9, 0.4, 0, Math.PI * 2); ctx.fill();
 
     ctx.fillStyle = "rgba(251, 113, 133, 0.35)";
     ctx.beginPath();
@@ -305,16 +335,14 @@ class CafeStageRenderer {
     ctx.fill();
 
     // Eyes, nose & mouth
-    ctx.fillStyle = "#1c1917";
-    ctx.beginPath();
-    ctx.arc(-6.5, -43, 2.3, 0, Math.PI * 2);
-    ctx.arc(6.5, -43, 2.3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath();
-    ctx.arc(-5.7, -43.8, 0.9, 0, Math.PI * 2);
-    ctx.arc(7.3, -43.8, 0.9, 0, Math.PI * 2);
-    ctx.fill();
+    const blink = Math.sin(timeSec * 1.5 + 0.7) > 0.965;
+    [-1, 1].forEach((sd) => {
+      if (blink) { ctx.strokeStyle = "#292524"; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(sd * 7.2, -44, 3.6, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke(); return; }
+      ctx.fillStyle = "#1c1917"; ctx.beginPath(); ctx.ellipse(sd * 7.2, -43, 3.6, 4.6, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#7f1d1d"; ctx.beginPath(); ctx.ellipse(sd * 7.2, -41.6, 2.6, 2.4, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(sd * 7.2 - 1.1, -44.6, 1.3, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(sd * 7.2 + 1.2, -41.4, 0.7, 0, Math.PI * 2); ctx.fill();
+    });
 
     ctx.fillStyle = "#fb7185";
     ctx.beginPath();
@@ -324,18 +352,25 @@ class CafeStageRenderer {
     ctx.strokeStyle = "#57534e";
     ctx.lineWidth = 1.4;
     if (isTalking) {
+      const o = emotion === "surprised" ? 2.2 : 1.8;
       ctx.fillStyle = "#fb7185";
       ctx.beginPath();
-      ctx.ellipse(0, -35.5, 2.8, 1.8 + Math.abs(Math.sin(timeSec * 12)) * 2, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, -35.5, emotion === "surprised" ? 2.2 : 2.8, o + Math.abs(Math.sin(timeSec * 12)) * 2, 0, 0, Math.PI * 2);
       ctx.fill();
+    } else if (sadB) {
+      ctx.beginPath(); ctx.arc(-2.5, -33.4, 2.5, 1.15 * Math.PI, 1.85 * Math.PI); ctx.stroke(); ctx.beginPath(); ctx.arc(2.5, -33.4, 2.5, 1.15 * Math.PI, 1.85 * Math.PI); ctx.stroke();
     } else {
+      const w2 = emotion === "happy" || listening ? 3 : 2.5;
       ctx.beginPath();
-      ctx.arc(-2.5, -37, 2.5, 0.1 * Math.PI, 0.85 * Math.PI);
+      ctx.arc(-2.5, -37, w2, 0.1 * Math.PI, 0.85 * Math.PI);
       ctx.stroke();
       ctx.beginPath();
-      ctx.arc(2.5, -37, 2.5, 0.15 * Math.PI, 0.9 * Math.PI);
+      ctx.arc(2.5, -37, w2, 0.15 * Math.PI, 0.9 * Math.PI);
       ctx.stroke();
     }
+    if (emotion === "happy" && isTalking) { ctx.fillStyle = "#fde047"; [[-24, -66], [25, -62]].forEach(([sx, sy], i) => { const sc = 0.6 + 0.4 * Math.sin(timeSec * 5 + i * 2); ctx.save(); ctx.translate(sx, sy); ctx.scale(sc, sc); ctx.beginPath(); ctx.moveTo(0, -4); ctx.lineTo(1.2, -1.2); ctx.lineTo(4, 0); ctx.lineTo(1.2, 1.2); ctx.lineTo(0, 4); ctx.lineTo(-1.2, 1.2); ctx.lineTo(-4, 0); ctx.lineTo(-1.2, -1.2); ctx.closePath(); ctx.fill(); ctx.restore(); }); }
+    if (sadB && isTalking) { ctx.fillStyle = "rgba(147,197,253,0.9)"; ctx.beginPath(); ctx.moveTo(17, -52); ctx.quadraticCurveTo(21, -45, 17, -43); ctx.quadraticCurveTo(13, -45, 17, -52); ctx.fill(); }
+    if (emotion === "curious" && isTalking) { ctx.fillStyle = "#fde68a"; ctx.font = "bold 11px Inter"; ctx.textAlign = "center"; ctx.fillText("?", 25, -50); ctx.textAlign = "start"; }
 
     ctx.restore();
   }
@@ -369,14 +404,38 @@ class CafeStageRenderer {
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, w, h);
 
-    ctx.strokeStyle = "rgba(0,0,0,0.22)";
-    ctx.lineWidth = 1;
+    // tường kiểu anime: giấy dán tường sọc mảnh, hoa văn chấm, ốp gỗ chân tường, đèn dây
     const panelStep = Math.max(28, w * 0.055);
-    for (let px = 0; px < w; px += panelStep) {
-      ctx.beginPath();
-      ctx.moveTo(px, 0);
-      ctx.lineTo(px, h * 0.72);
+    for (let px = 0, k = 0; px < w; px += panelStep, k++) {
+      ctx.fillStyle = k % 2 ? "rgba(255,255,255,0.028)" : "rgba(0,0,0,0.10)";
+      ctx.fillRect(px, 0, panelStep, h * 0.72);
+    }
+    ctx.fillStyle = "rgba(255,220,170,0.05)";
+    for (let py = h * 0.04; py < h * 0.6; py += 17) for (let px = (Math.floor(py / 17) % 2) * 14 + 6; px < w; px += 28) { ctx.beginPath(); ctx.arc(px, py, 1.3, 0, Math.PI * 2); ctx.fill(); }
+    const wy = h * 0.58;
+    const wg = ctx.createLinearGradient(0, wy, 0, h * 0.72);
+    wg.addColorStop(0, "rgba(40,20,12,0.55)"); wg.addColorStop(1, "rgba(20,10,8,0.75)");
+    ctx.fillStyle = wg; ctx.fillRect(0, wy, w, h * 0.72 - wy);
+    ctx.fillStyle = "rgba(255,200,140,0.35)"; ctx.fillRect(0, wy, w, 1.6);
+    ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.fillRect(0, wy + 1.6, w, 2);
+    ctx.strokeStyle = "rgba(255,200,140,0.12)"; ctx.lineWidth = 1;
+    for (let px = w * 0.02; px < w; px += w * 0.1) ctx.strokeRect(px, wy + 7, w * 0.08, h * 0.72 - wy - 11);
+    // đèn dây nhấp nháy dọc trần
+    {
+      const n = 11;
+      ctx.strokeStyle = "rgba(90,60,40,0.8)"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(0, h * 0.015);
+      for (let i = 1; i <= 60; i++) { const t = i / 60; ctx.lineTo(w * t, h * 0.015 + Math.sin(t * Math.PI * 6) * h * 0.012 + h * 0.018 * Math.abs(Math.sin(t * Math.PI * n / 2))); }
       ctx.stroke();
+      const cols = ["#fde68a", "#fda4af", "#a5f3fc", "#fcd34d", "#f9a8d4"];
+      for (let i = 0; i < n; i++) {
+        const t = (i + 0.5) / n, bx = w * t, by = h * 0.015 + Math.sin(t * Math.PI * 6) * h * 0.012 + h * 0.018 * Math.abs(Math.sin(t * Math.PI * n / 2)) + 3;
+        const tw = 0.65 + 0.35 * Math.sin(now * 0.003 + i * 1.7);
+        const gl = ctx.createRadialGradient(bx, by, 0, bx, by, 13);
+        gl.addColorStop(0, "rgba(255,240,200," + 0.55 * tw + ")"); gl.addColorStop(1, "rgba(255,200,120,0)");
+        ctx.fillStyle = gl; ctx.fillRect(bx - 14, by - 14, 28, 28);
+        ctx.fillStyle = cols[i % cols.length]; ctx.globalAlpha = 0.6 + 0.4 * tw; ctx.beginPath(); ctx.arc(bx, by, 2.4, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
+      }
     }
 
     // 2. Back-Bar Wooden Shelf, Bottles & Wall Clock
@@ -531,6 +590,34 @@ class CafeStageRenderer {
     ctx.beginPath();
     ctx.roundRect(winX, winY, winW, winH, 8);
     ctx.clip();
+    // bầu trời đêm kiểu anime: chuyển màu xanh thẫm -> tím -> ánh hồng ở chân trời, trăng lớn, sao, mây, đường chân trời thành phố
+    {
+      const sg = ctx.createLinearGradient(0, winY, 0, winY + winH);
+      sg.addColorStop(0, "#0a0e2e"); sg.addColorStop(0.5, "#2a2766"); sg.addColorStop(0.82, "#7a4a8a"); sg.addColorStop(1, "#e0905a");
+      ctx.fillStyle = sg; ctx.fillRect(winX, winY, winW, winH);
+      for (let i = 0; i < 26; i++) {
+        const sx = winX + ((i * 73) % 100) / 100 * winW, sy = winY + ((i * 41) % 60) / 100 * winH, tw = 0.4 + 0.6 * Math.abs(Math.sin(now * 0.0015 + i));
+        ctx.fillStyle = `rgba(255,255,255,${0.7 * tw})`; ctx.fillRect(sx, sy, i % 5 === 0 ? 2 : 1.2, i % 5 === 0 ? 2 : 1.2);
+      }
+      const mx = winX + winW * 0.76, my = winY + winH * 0.24, mr = Math.min(winW, winH) * 0.12;
+      const mg = ctx.createRadialGradient(mx, my, mr * 0.6, mx, my, mr * 3.2);
+      mg.addColorStop(0, "rgba(255,244,200,0.5)"); mg.addColorStop(1, "rgba(255,244,200,0)");
+      ctx.fillStyle = mg; ctx.fillRect(winX, winY, winW, winH);
+      ctx.fillStyle = "#fff6d6"; ctx.beginPath(); ctx.arc(mx, my, mr, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "rgba(220,200,150,0.5)"; [[-0.3, -0.2, 0.22], [0.25, 0.15, 0.17], [-0.1, 0.35, 0.12]].forEach(([dx, dy, rr]) => { ctx.beginPath(); ctx.arc(mx + dx * mr, my + dy * mr, rr * mr, 0, Math.PI * 2); ctx.fill(); });
+      ctx.fillStyle = "rgba(180,170,230,0.28)";
+      for (let i = 0; i < 3; i++) { const cx = winX + ((now * 0.004 * (1 + i * 0.4) + i * 90) % (winW + 80)) - 40, cy = winY + winH * (0.3 + i * 0.12); ctx.beginPath(); ctx.ellipse(cx, cy, 26, 6, 0, 0, Math.PI * 2); ctx.ellipse(cx + 14, cy - 3, 16, 5, 0, 0, Math.PI * 2); ctx.fill(); }
+      // thành phố xa: tòa nhà bóng đen có ô cửa sổ sáng đèn
+      const gy = winY + winH;
+      [[0.0, 0.2, 0.30], [0.16, 0.16, 0.22], [0.3, 0.2, 0.36], [0.5, 0.14, 0.26], [0.64, 0.2, 0.32], [0.82, 0.18, 0.24]].forEach(([bxr, bwr, bhr], bi) => {
+        const bx = winX + bxr * winW, bw = bwr * winW, bh = bhr * winH;
+        ctx.fillStyle = bi % 2 ? "#1a1535" : "#120f2a"; ctx.fillRect(bx, gy - bh, bw, bh);
+        for (let wy2 = gy - bh + 5; wy2 < gy - 4; wy2 += 8) for (let wx2 = bx + 3; wx2 < bx + bw - 3; wx2 += 6) {
+          const on = ((Math.floor(wx2) * 7 + Math.floor(wy2) * 13 + bi) % 5) < 2;
+          if (on) { ctx.fillStyle = (Math.floor(wx2) + Math.floor(wy2)) % 3 ? "rgba(253,224,71,0.85)" : "rgba(253,186,116,0.85)"; ctx.fillRect(wx2, wy2, 2.6, 3.2); }
+        }
+      });
+    }
 
     this.drops.forEach((d) => {
       if (season.weatherType === "petals") {
@@ -585,6 +672,20 @@ class CafeStageRenderer {
     ctx.stroke();
     ctx.fillStyle = "#5c2d16";
     ctx.fillRect(winX - 4, winY + winH, winW + 8, 5);
+    ctx.fillStyle = "rgba(255,220,170,0.25)"; ctx.fillRect(winX - 4, winY + winH, winW + 8, 1.2);
+    // rèm cửa kéo hai bên + thanh treo
+    ctx.fillStyle = "#6b3a1f"; ctx.fillRect(winX - 10, winY - 7, winW + 20, 3); ctx.beginPath(); ctx.arc(winX - 10, winY - 5.5, 3, 0, 7); ctx.arc(winX + winW + 10, winY - 5.5, 3, 0, 7); ctx.fill();
+    [[winX - 6, 1], [winX + winW + 6, -1]].forEach(([ex2, sd]) => {
+      const cw = winW * 0.17, sway = Math.sin(now * 0.0012 + sd) * 1.2;
+      const cg = ctx.createLinearGradient(ex2, 0, ex2 + sd * cw, 0);
+      cg.addColorStop(0, "#9f1f45"); cg.addColorStop(1, "#5e1230");
+      ctx.fillStyle = cg; ctx.beginPath(); ctx.moveTo(ex2, winY - 4);
+      ctx.lineTo(ex2 + sd * cw, winY - 4); ctx.quadraticCurveTo(ex2 + sd * cw * 0.55 + sway, winY + winH * 0.6, ex2 + sd * cw * 0.9, winY + winH + 3);
+      ctx.lineTo(ex2, winY + winH + 3); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,0.25)"; ctx.lineWidth = 1;
+      for (let f = 1; f < 4; f++) { ctx.beginPath(); ctx.moveTo(ex2 + sd * cw * f / 4, winY - 4); ctx.quadraticCurveTo(ex2 + sd * cw * (f / 4) + sway * 0.5, winY + winH * 0.6, ex2 + sd * cw * (f / 4) * 0.95, winY + winH + 3); ctx.stroke(); }
+      ctx.fillStyle = "rgba(255,255,255,0.12)"; ctx.fillRect(ex2 + (sd > 0 ? 3 : -5), winY, 2, winH);
+    });
 
     if (isSecretUnlocked("secret_seasons")) {
       ctx.save();
@@ -755,7 +856,7 @@ class CafeStageRenderer {
     const bunnyX = w * 0.34;
     const waveActive = this.bunnyWaveTimer > 0;
     if (this.bunnyWaveTimer > 0) this.bunnyWaveTimer -= 16;
-    this.drawBunnyBarista(ctx, bunnyX, counterY + 2, portraitScale, waveActive, isTalkingNow, timeSec);
+    this.drawBunnyBarista(ctx, bunnyX, counterY + 2, portraitScale, waveActive, isTalkingNow && (this.speakerId === "host" || !this.speakerId), timeSec, this.speakerId === "host" ? this.emotion : "neutral", Boolean(this.speakerId) && this.speakerId !== "host");
     if (isSecretUnlocked("secret_master")) {
       ctx.save();
       ctx.fillStyle = "#fde047";
@@ -787,7 +888,9 @@ class CafeStageRenderer {
         hairColor: guest.hairColor,
         outfitColor: guest.outfitColor,
         accessory: guest.accessory,
-        isTalking: isTalkingNow,
+        isTalking: isTalkingNow && this.speakerId === guest.id,
+        listening: Boolean(this.speakerId) && this.speakerId !== guest.id,
+        emotion: this.speakerId === guest.id ? this.emotion : "neutral",
         timeSec,
         seed: idx + 1.5
       });
@@ -815,6 +918,8 @@ class CafeStageRenderer {
     ctx.fillRect(0, counterY, w, h - counterY);
     ctx.fillStyle = woodPalette.top;
     ctx.fillRect(0, counterY, w, 10);
+    ctx.fillStyle = "rgba(255,235,200,0.22)"; ctx.fillRect(0, counterY, w, 1.6);               // ánh bóng mép gỗ
+    { const rg = ctx.createRadialGradient(w * 0.48, counterY + 4, 2, w * 0.48, counterY + 4, w * 0.3); rg.addColorStop(0, "rgba(253,224,71,0.35)"); rg.addColorStop(1, "rgba(253,224,71,0)"); ctx.save(); ctx.translate(0, counterY + 4); ctx.scale(1, 0.12); ctx.translate(0, -(counterY + 4)); ctx.fillStyle = rg; ctx.fillRect(0, counterY - 60, w, 140); ctx.restore(); }  // phản chiếu đèn trên mặt quầy
     ctx.fillStyle = woodPalette.trim;
     ctx.fillRect(0, counterY + 10, w, 2);
 
@@ -927,6 +1032,31 @@ class CafeStageRenderer {
       ctx.arc(decorX - 7, decorY - 15, 4.5, 0, Math.PI * 2);
       ctx.arc(decorX + 4, decorY - 15, 4.5, 0, Math.PI * 2);
       ctx.fill();
+    }
+
+    // 7a. Tủ kính kỷ vật: 7 ngăn nhỏ, kỷ vật nào đã nhận thì hiện biểu tượng; chạm để mở bộ sưu tập
+    {
+      const cx0 = w * 0.775 - 15, cw = 30, ch = 40, cy0 = counterY - ch;
+      const got = STANDARD_GUEST_ORDER.map((g) => Boolean(persistentArchive.unlockedKeepsakes && persistentArchive.unlockedKeepsakes[g]));
+      const all = got.every(Boolean), n = got.filter(Boolean).length;
+      if (all) { const g2 = ctx.createRadialGradient(cx0 + cw / 2, cy0 + ch / 2, 4, cx0 + cw / 2, cy0 + ch / 2, 34); g2.addColorStop(0, `rgba(253,224,71,${0.25 + 0.1 * Math.sin(timeSec * 2)})`); g2.addColorStop(1, "rgba(253,224,71,0)"); ctx.fillStyle = g2; ctx.fillRect(cx0 - 20, cy0 - 14, cw + 40, ch + 28); }
+      ctx.fillStyle = "#4a2c17"; ctx.fillRect(cx0, cy0, cw, ch);                       // khung gỗ
+      ctx.fillStyle = "#1c130d"; ctx.fillRect(cx0 + 2, cy0 + 4, cw - 4, ch - 6);        // lòng tủ
+      ctx.fillStyle = "#5c3a20"; ctx.beginPath(); ctx.moveTo(cx0 - 2, cy0 + 4); ctx.lineTo(cx0 + cw / 2, cy0 - 3); ctx.lineTo(cx0 + cw + 2, cy0 + 4); ctx.fill(); // mái
+      ctx.fillStyle = all ? "rgba(253,224,71,0.18)" : "rgba(253,224,71,0.06)"; ctx.fillRect(cx0 + 2, cy0 + 4, cw - 4, ch - 6);
+      ctx.fillStyle = "#4a2c17"; ctx.fillRect(cx0 + 2, cy0 + 4 + (ch - 6) / 3, cw - 4, 1.5); ctx.fillRect(cx0 + 2, cy0 + 4 + 2 * (ch - 6) / 3, cw - 4, 1.5); // ngăn
+      ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "7px sans-serif";
+      STANDARD_GUEST_ORDER.forEach((gid, i) => {
+        const row = i < 3 ? 0 : i < 5 ? 1 : 2, col = i < 3 ? i : i < 5 ? i - 3 : i - 5, perRow = row === 0 ? 3 : 2;
+        const ix = cx0 + 2 + (cw - 4) * (col + 0.5) / (row === 0 ? 3 : 2.0 + (row === 2 ? 0 : 0)), iy = cy0 + 4 + (ch - 6) * (row + 0.5) / 3 - 1;
+        if (got[i]) { ctx.globalAlpha = 1; ctx.fillText(CHARACTERS[gid].keepsake.icon, ix, iy); }
+        else { ctx.globalAlpha = 0.35; ctx.fillStyle = "#a8a29e"; ctx.beginPath(); ctx.arc(ix, iy, 2, 0, 7); ctx.fill(); }
+      });
+      ctx.globalAlpha = 1; ctx.textAlign = "start"; ctx.textBaseline = "alphabetic";
+      ctx.fillStyle = "rgba(255,255,255,0.12)"; ctx.fillRect(cx0 + 4, cy0 + 5, 3, ch - 9);   // phản chiếu kính
+      ctx.strokeStyle = "#7c4a24"; ctx.lineWidth = 1; ctx.strokeRect(cx0 + 2, cy0 + 4, cw - 4, ch - 6);
+      ctx.fillStyle = "#fde68a"; ctx.font = "bold 6px Inter"; ctx.textAlign = "center"; ctx.fillText(`${n}/7`, cx0 + cw / 2, cy0 - 5); ctx.textAlign = "start";
+      this.hitboxes.push({ id: "keepsakes", x: cx0 - 2, y: cy0 - 12, w: cw + 4, h: ch + 12 });
     }
 
     // 7b. Bếp than hồng đặt ở chỗ ngồi (trên quầy, bên phải khách): lò đất nung, than cháy lập lòe, ấm nước bốc hơi
@@ -1072,6 +1202,47 @@ class CafeStageRenderer {
       ctx.fillText("♥ Purr~", catX - 2, catY - 18);
     }
     this.hitboxes.push({ id: "cat", x: catX - 4, y: catY - 16, w: 40, h: 30 });
+
+    // ===== hậu kỳ kiểu anime: chùm sáng, bokeh, bloom, sắc độ phim, tối góc =====
+    {
+      const lxx = w * 0.48, lyy = h * 0.14;
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      // chùm sáng chéo từ đèn lồng
+      const sh = 0.05 + 0.015 * Math.sin(timeSec * 0.9);
+      const shg = ctx.createLinearGradient(lxx, lyy, lxx, counterY);
+      shg.addColorStop(0, `rgba(255,214,140,${sh * 2.4})`); shg.addColorStop(1, "rgba(255,214,140,0)");
+      ctx.fillStyle = shg; ctx.beginPath(); ctx.moveTo(lxx - 8, lyy + 8); ctx.lineTo(lxx + 8, lyy + 8); ctx.lineTo(lxx + w * 0.16, counterY); ctx.lineTo(lxx - w * 0.16, counterY); ctx.closePath(); ctx.fill();
+      // quầng sáng (bloom) quanh đèn
+      const bg = ctx.createRadialGradient(lxx, lyy, 2, lxx, lyy, w * 0.2);
+      bg.addColorStop(0, "rgba(255,200,110,0.30)"); bg.addColorStop(1, "rgba(255,200,110,0)");
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h * 0.7);
+      // bokeh lơ lửng
+      for (let i = 0; i < 9; i++) {
+        const bx = ((i * 0.117 + 0.05 + Math.sin(timeSec * 0.07 + i) * 0.02) % 1) * w, by = (0.12 + ((i * 0.37) % 0.5)) * h + Math.sin(timeSec * 0.3 + i * 2) * 6, br = 10 + (i % 4) * 7;
+        const gg = ctx.createRadialGradient(bx, by, 0, bx, by, br);
+        const cc = ["255,200,120", "255,170,190", "170,220,255"][i % 3];
+        gg.addColorStop(0, `rgba(${cc},${0.10 + 0.05 * Math.sin(timeSec + i)})`); gg.addColorStop(0.75, `rgba(${cc},0.05)`); gg.addColorStop(1, `rgba(${cc},0)`);
+        ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+      // sắc độ phim: tím lạnh phía trên, cam ấm phía dưới
+      const cg = ctx.createLinearGradient(0, 0, 0, h);
+      cg.addColorStop(0, "rgba(70,50,140,0.14)"); cg.addColorStop(0.6, "rgba(0,0,0,0)"); cg.addColorStop(1, "rgba(255,140,60,0.09)");
+      ctx.fillStyle = cg; ctx.fillRect(0, 0, w, h);
+      // lấp lánh anime nhỏ
+      ctx.fillStyle = "rgba(255,248,210,0.9)";
+      for (let i = 0; i < 5; i++) {
+        const ph = (timeSec * 0.5 + i * 0.37) % 2; if (ph > 0.8) continue;
+        const a = Math.sin(ph / 0.8 * Math.PI), sx = w * (0.28 + i * 0.13), sy = h * (0.1 + ((i * 53) % 30) / 100), r = 4 * a;
+        ctx.globalAlpha = a; ctx.beginPath(); ctx.moveTo(sx, sy - r); ctx.lineTo(sx + r * 0.25, sy - r * 0.25); ctx.lineTo(sx + r, sy); ctx.lineTo(sx + r * 0.25, sy + r * 0.25); ctx.lineTo(sx, sy + r); ctx.lineTo(sx - r * 0.25, sy + r * 0.25); ctx.lineTo(sx - r, sy); ctx.lineTo(sx - r * 0.25, sy - r * 0.25); ctx.closePath(); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      // tối góc
+      const vg = ctx.createRadialGradient(w / 2, h * 0.5, Math.min(w, h) * 0.45, w / 2, h * 0.5, Math.max(w, h) * 0.75);
+      vg.addColorStop(0, "rgba(8,4,16,0)"); vg.addColorStop(1, "rgba(8,4,16,0.5)");
+      ctx.fillStyle = vg; ctx.fillRect(0, 0, w, h);
+    }
   }
 
   handleTap(clientX, clientY) {
@@ -1089,6 +1260,11 @@ class CafeStageRenderer {
         if (box.id === "shelf") {
           audioEngine.playChime(494, 0.2, 0.035);
           openBookshelf();
+          return;
+        }
+        if (box.id === "keepsakes") {
+          audioEngine.playChime(587, 0.2, 0.03);
+          if (typeof openKeepsakesModal === "function") openKeepsakesModal();
           return;
         }
         if (box.id === "fishtank") {

@@ -1479,7 +1479,7 @@ function bindAllUIEvents() {
 
   // Gameplay HUD & Stage
   document.getElementById("hud-weather-badge").addEventListener("click", openAmbienceModal);
-  document.getElementById("btn-quick-ambience").addEventListener("click", openAmbienceModal);
+  const qa = document.getElementById("btn-quick-ambience"); if (qa) qa.addEventListener("click", openAmbienceModal);
   document.getElementById("btn-quick-log").addEventListener("click", openLogModal);
   document.getElementById("btn-open-drawer").addEventListener("click", () => {
     updateAllProgressBadges();

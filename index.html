@@ -253,9 +253,7 @@
         <button type="button" id="btn-quick-save" class="min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/40 text-xs text-emerald-200 cursor-pointer" title="Lưu game">💾<span class="hidden sm:inline"> Lưu</span></button>
         <button type="button" id="btn-quick-auto" class="min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer" title="Tự động chuyển thoại">⏩</button>
         <button type="button" id="btn-quick-voice" class="min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer" title="Bật/tắt giọng đọc">🗣️</button>
-        <button type="button" id="btn-quick-ambience" class="hidden sm:inline-block min-h-[36px] min-w-[36px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-amber-200 cursor-pointer" title="Âm thanh &amp; Mùa">🎛️</button>
         <button type="button" id="btn-quick-log" class="min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-200 cursor-pointer" title="Nhật ký thoại">📜</button>
-        <button type="button" id="btn-hud-home" title="Về trang chủ" aria-label="Về trang chủ" class="min-h-[34px] px-2 sm:px-3 py-1 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-stone-700 text-xs text-stone-200 cursor-pointer">🏠</button>
         <button type="button" id="btn-open-drawer" class="min-h-[34px] px-2 sm:px-3 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-xs font-semibold text-amber-200 cursor-pointer">☰ Menu</button>
       </div>
     </header>
@@ -356,6 +354,9 @@
       </div>
 
       <div class="grid grid-cols-2 gap-2">
+        <button type="button" id="btn-open-journal" class="col-span-2 min-h-[52px] px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500/25 to-rose-500/20 hover:from-amber-500/35 hover:to-rose-500/30 border border-amber-300/50 text-sm font-bold text-amber-100 flex items-center justify-between cursor-pointer">
+          <span>📖 Sổ Tay Của Thỏ Con <span class="block text-[11px] font-normal text-amber-200/70">Khách · Ly Nước · Câu Chuyện · Thành Tựu</span></span><span id="journal-total-badge" class="font-mono-code text-xs text-amber-200" data-progress-percent>0%</span>
+        </button>
         <button type="button" data-drawer-action="cutscenes" class="min-h-[44px] px-3 py-2 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-stone-700 text-xs text-stone-200 flex items-center justify-between cursor-pointer">
           <span>🎬 Cutscene</span><span id="mobile-cutscene-badge" class="font-mono-code text-[11px] text-amber-300">1/58</span>
         </button>
@@ -542,6 +543,7 @@
         <div id="cs-player-night-main" class="font-serif-story text-2xl sm:text-3xl font-bold tracking-wider text-amber-200">TUẦN 1 • ĐÊM 1</div>
         <div id="cs-player-night-sub" class="text-[11px] font-mono-code text-amber-300/90 mt-1">👤 Đêm Đơn Khách • 🍂 Thu Mưa Hẻm Nhỏ</div>
       </div>
+      <canvas id="cs-canvas" class="hidden w-full rounded-2xl border border-amber-300/30 shadow-lg" style="aspect-ratio:640/300"></canvas>
       <div id="cs-player-icon" class="text-5xl sm:text-6xl py-2 drop-shadow">🌧️☕</div>
       <h3 id="cs-player-title" class="font-serif-story text-xl sm:text-2xl font-bold text-amber-100">Khung Cảnh Đêm Mưa</h3>
       <p id="cs-player-caption" class="font-serif-story italic text-sm sm:text-base text-stone-200 leading-relaxed whitespace-pre-line">
@@ -796,6 +798,9 @@
   <script src="js/04c-dialogue-format.js"></script>
   <script src="js/05-stage.js"></script>
   <script src="js/06-ui-cutscene.js"></script>
+  <script src="js/06b-journal.js"></script>
+  <script src="js/06c-cutscene-anim.js"></script>
+  <script src="js/06d-card-draw.js"></script>
   <script src="js/07-narrative.js"></script>
   <script src="js/08-brewing.js"></script>
   <script src="js/09-epilogue.js"></script>

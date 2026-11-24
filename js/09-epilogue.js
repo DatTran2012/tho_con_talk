@@ -25,6 +25,14 @@ function renderDrinkCardBeat(guests) {
     saveArchive();
     saveRunState();
     checkAndUnlockAchievements();
+    // chạy hiệu ứng rút bài TRƯỚC, xong mới hiện hội thoại (nếu không chạy được hiệu ứng thì hiện ngay)
+    if (typeof CardDrawFX !== "undefined") {
+      const dc = runState.drawnCardData;
+      const started = CardDrawFX.play(card, mode, () => {
+        if (runState && runState.drawnCardData === dc && !dc.resolved) renderDrinkCardBeat(getCurrentNightGuests());
+      });
+      if (started) return;
+    }
   }
 
   const card = DRINK_CARDS.find((c) => c.id === runState.drawnCardData.cardId) || DRINK_CARDS[0];

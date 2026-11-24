@@ -81,3 +81,99 @@ body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-ins
 
 @keyframes moodPop { 0% { transform: scale(0.4); opacity: 0; } 70% { transform: scale(1.18); opacity: 1; } 100% { transform: scale(1); } }
 .mood-pop { animation: moodPop 0.35s ease-out; }
+
+/* =====================================================================
+   Giao diện anime ấm áp (v2): nền đêm tím-nâu, khung gỗ/giấy có viền vàng mảnh, nút bo tròn
+   ===================================================================== */
+:root {
+  --plum-1: rgba(44, 28, 58, 0.95);
+  --plum-2: rgba(20, 13, 28, 0.97);
+  --gold: rgba(253, 214, 140, 0.42);
+  --rose-glow: rgba(244, 114, 182, 0.14);
+}
+body {
+  background:
+    radial-gradient(900px 420px at 15% -5%, rgba(120, 70, 170, 0.28), transparent 60%),
+    radial-gradient(800px 400px at 90% 0%, rgba(236, 120, 150, 0.16), transparent 62%),
+    linear-gradient(180deg, #17101f 0%, #0d0812 55%, #08050c 100%);
+  background-attachment: fixed;
+}
+.cafe-panel {
+  background: linear-gradient(165deg, var(--plum-1), var(--plum-2));
+  border: 1px solid var(--gold);
+  border-radius: 1.5rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), inset 0 0 0 1px rgba(255, 226, 170, 0.06), 0 0 38px var(--rose-glow);
+}
+.dialogue-box {
+  position: relative;
+  background: linear-gradient(180deg, rgba(40, 26, 52, 0.97), rgba(16, 10, 22, 0.98));
+  border: 1px solid var(--gold);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 226, 170, 0.18), 0 0 30px var(--rose-glow);
+}
+.dialogue-box::before { /* đường chỉ vàng + hoa văn góc như khung hộp thoại visual novel */
+  content: ""; position: absolute; left: 14px; right: 14px; top: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(253, 214, 140, 0.8), rgba(244, 114, 182, 0.6), transparent);
+  border-radius: 2px;
+}
+#speaker-name {
+  display: inline-block; padding: 1px 12px 1px 10px; border-radius: 999px;
+  background: linear-gradient(90deg, rgba(251, 191, 36, 0.22), rgba(244, 114, 182, 0.12));
+  border: 1px solid rgba(253, 214, 140, 0.35); letter-spacing: 0.01em;
+}
+#speaker-avatar { background: radial-gradient(circle at 30% 30%, rgba(253, 224, 71, 0.28), rgba(244, 114, 182, 0.18)); box-shadow: 0 0 14px rgba(251, 191, 36, 0.25); }
+#dialogue-text { font-size: 1.02rem; line-height: 1.8; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4); }
+#cafe-canvas-wrapper { border: 1px solid var(--gold); box-shadow: 0 18px 46px rgba(0, 0, 0, 0.7), 0 0 36px var(--rose-glow); border-radius: 1.5rem; }
+header.cafe-panel button, header.cafe-panel span.rounded-xl { border-radius: 999px; }
+header.cafe-panel button { transition: transform .12s, background .2s; }
+header.cafe-panel button:active { transform: scale(0.94); }
+#dialogue-action-area button { border-radius: 1rem; transition: transform .12s, filter .2s; }
+#dialogue-action-area button:hover { filter: brightness(1.12); }
+#dialogue-action-area button:active { transform: scale(0.98); }
+#btn-start-shuffle-week, #btn-open-journal { box-shadow: 0 6px 22px rgba(251, 146, 60, 0.28); }
+
+/* ---- Sổ Tay (gộp các kho sưu tầm) ---- */
+.journal-book {
+  height: min(88dvh, 760px);
+  background: linear-gradient(165deg, rgba(48, 31, 62, 0.98), rgba(18, 11, 26, 0.99));
+  border: 1px solid var(--gold);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 226, 170, 0.07), 0 0 50px var(--rose-glow);
+  overflow: hidden;
+}
+.journal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 14px 16px 8px; }
+.journal-bar { width: 140px; height: 6px; border-radius: 99px; background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(255, 255, 255, 0.08); overflow: hidden; }
+.journal-bar > i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #f59e0b, #f472b6); transition: width .6s; }
+.journal-x { width: 36px; height: 36px; flex: none; border-radius: 999px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); color: #d6d3d1; cursor: pointer; }
+.journal-x:hover { background: rgba(244, 114, 182, 0.2); }
+.journal-tabs { display: flex; gap: 6px; padding: 0 12px; border-bottom: 1px solid rgba(253, 214, 140, 0.2); overflow-x: auto; scrollbar-width: none; }
+.journal-tab {
+  display: flex; align-items: center; gap: 6px; padding: 8px 14px; margin-bottom: -1px; white-space: nowrap;
+  font-size: 12.5px; font-weight: 700; color: #a8a29e; cursor: pointer;
+  background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.07); border-bottom: none;
+  border-radius: 14px 14px 0 0; transition: background .2s, color .2s;
+}
+.journal-tab:hover { color: #f5e6c8; background: rgba(255, 255, 255, 0.06); }
+.journal-tab.on { color: #3b1d0a; background: linear-gradient(180deg, #fde68a, #f9b45c); border-color: rgba(253, 214, 140, 0.8); box-shadow: 0 -4px 16px rgba(251, 191, 36, 0.22); }
+.journal-subs { padding: 8px 12px 4px; }
+.journal-subrow { display: flex; flex-wrap: wrap; gap: 6px; }
+.journal-chip {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 34px; padding: 5px 12px; cursor: pointer;
+  font-size: 12px; color: #e7e0d4; border-radius: 999px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background .15s, transform .1s;
+}
+.journal-chip:hover { background: rgba(255, 255, 255, 0.1); }
+.journal-chip:active { transform: scale(0.96); }
+.journal-chip.on { background: linear-gradient(90deg, rgba(251, 191, 36, 0.3), rgba(244, 114, 182, 0.24)); border-color: rgba(253, 214, 140, 0.65); color: #fff4d6; }
+.journal-chip span:last-child { opacity: 0.85; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; }
+.journal-panes { flex: 1; min-height: 0; padding: 4px 14px 14px; display: flex; flex-direction: column; }
+.journal-pane { flex: 1; min-height: 0; width: 100%; }
+.journal-pane > div:first-child { padding-bottom: 8px; border-bottom: 1px dashed rgba(253, 214, 140, 0.18); }
+@media (max-width: 639px) {
+  .journal-book { height: 94dvh; border-radius: 1.25rem; }
+  .journal-tab { padding: 8px 10px; font-size: 12px; }
+}
+
+/* chữ cutscene hiện dần từng từ */
+.cs-w { opacity: 0; display: inline-block; transform: translateY(3px); animation: csWord .55s ease-out forwards; }
+.cs-w + .cs-w { margin-left: 0; }
+@keyframes csWord { to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .cs-w { animation-duration: .01s; animation-delay: 0s !important; } }

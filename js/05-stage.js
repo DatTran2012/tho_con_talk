@@ -21,6 +21,8 @@ class CafeStageRenderer {
       phase: Math.random() * Math.PI * 2
     }));
     this.catPurrTimer = 0;
+    this.plantTimer = 0;
+    this.cupTimer = 0;
     this.fishFeedTimer = 0;
     this.stoveTimer = 0;
     this.bunnyWaveTimer = 0;
@@ -954,10 +956,14 @@ class CafeStageRenderer {
       ctx.strokeStyle = "rgba(255,255,255,0.45)";
       ctx.lineWidth = 1.2;
       const steamShift = Math.sin(timeSec * 3) * 2;
-      ctx.beginPath();
-      ctx.moveTo(cupX - 2, cupY - 15);
-      ctx.quadraticCurveTo(cupX - 5 + steamShift, cupY - 22, cupX - 1, cupY - 28);
-      ctx.stroke();
+      const puff = this.cupTimer > 0 ? 1 + (this.cupTimer -= 16) / 500 : 1;
+      for (let k = 0; k < (this.cupTimer > 0 ? 3 : 1); k++) {
+        ctx.beginPath();
+        ctx.moveTo(cupX - 2 + k * 3, cupY - 15);
+        ctx.quadraticCurveTo(cupX - 5 + k * 3 + steamShift, cupY - 22 * puff, cupX - 1 + k * 3, cupY - 28 * puff);
+        ctx.stroke();
+      }
+      this.hitboxes.push({ id: "cup", x: cupX - 12, y: cupY - 32, w: 24, h: 36 });
     }
 
     // 7. Custom Countertop Decor
@@ -1022,16 +1028,38 @@ class CafeStageRenderer {
       ctx.closePath();
       ctx.fill();
     } else {
-      ctx.fillStyle = "#92400e";
-      ctx.beginPath();
-      ctx.roundRect(decorX - 12, decorY - 12, 20, 12, 3);
-      ctx.fill();
-      ctx.fillStyle = season.lantern;
-      ctx.beginPath();
-      ctx.arc(decorX - 2, decorY - 18, 6, 0, Math.PI * 2);
-      ctx.arc(decorX - 7, decorY - 15, 4.5, 0, Math.PI * 2);
-      ctx.arc(decorX + 4, decorY - 15, 4.5, 0, Math.PI * 2);
-      ctx.fill();
+      // chậu hoa theo mùa: tưới nước để cây lớn dần (mỗi 3 lần tưới lên một bậc, 15 lần là nở rộ)
+      const water = persistentArchive.plantWater || 0, stg = Math.min(5, Math.floor(water / 3));
+      const sway = Math.sin(timeSec * 1.4) * (1 + stg * 0.3), hgt = 4 + stg * 5.5;
+      const px = decorX - 2, py = decorY - 11;
+      ctx.fillStyle = "#b45309";                                   // chậu đất nung
+      ctx.beginPath(); ctx.moveTo(px - 10, py); ctx.lineTo(px + 10, py); ctx.lineTo(px + 7.5, py + 11); ctx.lineTo(px - 7.5, py + 11); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#92400e"; ctx.fillRect(px - 11, py - 2, 22, 3.4);
+      ctx.fillStyle = "rgba(255,255,255,0.16)"; ctx.fillRect(px - 8, py + 2, 2, 8);
+      ctx.fillStyle = "#3b2414"; ctx.fillRect(px - 9, py - 3, 18, 2);   // đất
+      ctx.strokeStyle = "#3f9d5a"; ctx.lineWidth = 2; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(px, py - 3); ctx.quadraticCurveTo(px + sway * 0.4, py - hgt * 0.5, px + sway, py - 3 - hgt); ctx.stroke();
+      ctx.fillStyle = "#4ade80";
+      const leaves = Math.min(6, 1 + stg + (water > 0 ? 1 : 0));
+      for (let k = 0; k < leaves; k++) { const ly = py - 5 - (hgt * (k + 0.5)) / (leaves + 0.5), sd = k % 2 ? 1 : -1; ctx.beginPath(); ctx.ellipse(px + sd * 4.5 + sway * 0.5, ly, 4.2, 1.9, sd * -0.5, 0, Math.PI * 2); ctx.fill(); }
+      if (stg >= 2) {                                                 // hoa nở dần từ bậc 2
+        const nb = stg - 1;
+        for (let k = 0; k < nb; k++) {
+          const bx = px + sway + (k - (nb - 1) / 2) * 6.5, by = py - 5 - hgt - (k % 2) * 4 + Math.sin(timeSec * 2 + k) * 0.6;
+          ctx.fillStyle = season.lantern;
+          for (let q = 0; q < 5; q++) { const an = q * 1.2566 + timeSec * 0.2; ctx.beginPath(); ctx.arc(bx + Math.cos(an) * 3, by + Math.sin(an) * 3, 2.5, 0, Math.PI * 2); ctx.fill(); }
+          ctx.fillStyle = "#fde047"; ctx.beginPath(); ctx.arc(bx, by, 1.8, 0, Math.PI * 2); ctx.fill();
+        }
+      } else if (water === 0) { ctx.fillStyle = "rgba(253,230,138,0.8)"; ctx.font = "bold 8px Inter"; ctx.fillText("💧", px - 5, py - 16 - Math.abs(Math.sin(timeSec * 2)) * 2); }
+      if (stg >= 5) { ctx.fillStyle = "rgba(253,246,200,0.9)"; for (let k = 0; k < 4; k++) { const p = (timeSec * 0.4 + k * 0.25) % 1; ctx.globalAlpha = 1 - p; ctx.beginPath(); ctx.arc(px - 12 + k * 8 + Math.sin(timeSec * 2 + k) * 3, py - 14 - hgt * 0.4 + p * 26, 1.3, 0, Math.PI * 2); ctx.fill(); } ctx.globalAlpha = 1; }
+      if (this.plantTimer > 0) {                                      // bình tưới nghiêng + giọt nước
+        this.plantTimer -= 16; const u = 1 - this.plantTimer / 1400;
+        ctx.save(); ctx.translate(px - 18, py - 24); ctx.rotate(-0.5 - 0.3 * Math.sin(u * 8));
+        ctx.fillStyle = "#94a3b8"; ctx.fillRect(-7, -4, 14, 8); ctx.fillRect(5, -2, 9, 2); ctx.restore();
+        ctx.fillStyle = "rgba(147,197,253,0.9)";
+        for (let k = 0; k < 5; k++) { const p = (u * 3 + k * 0.2) % 1; ctx.beginPath(); ctx.arc(px - 4 + k * 1.6, py - 22 + p * 18, 1.2, 0, Math.PI * 2); ctx.fill(); }
+      }
+      this.hitboxes.push({ id: "plant", x: decorX - 18, y: decorY - 52, w: 36, h: 54 });
     }
 
     // 7a. Tủ kính kỷ vật: 7 ngăn nhỏ, kỷ vật nào đã nhận thì hiện biểu tượng; chạm để mở bộ sưu tập
@@ -1260,6 +1288,26 @@ class CafeStageRenderer {
         if (box.id === "shelf") {
           audioEngine.playChime(494, 0.2, 0.035);
           openBookshelf();
+          return;
+        }
+        if (box.id === "plant") {
+          const before = persistentArchive.plantWater || 0, now2 = before + 1;
+          persistentArchive.plantWater = now2; this.plantTimer = 1400;
+          saveArchive(); audioEngine.playChime(660 + Math.min(now2, 15) * 12, 0.15, 0.03);
+          const stg = Math.min(5, Math.floor(now2 / 3));
+          const L = ["💧 Hạt mầm uống nước, khẽ động đậy.", "🌱 Chiếc lá mới vừa hé ra.", "🌿 Cây vươn lên một chút, như đang nghe quán kể chuyện.", "🌼 Nụ hoa đầu tiên chúm chím.", "🌸 Hoa bung thêm vài cánh nữa.", "✨ Chậu hoa nở rộ — cả quán thơm lên!"];
+          const W2 = ["💧 Nước thấm vào đất, tí tách.", "💧 Tưới thêm một chút nữa nhé."];
+          const msg = now2 === 15 ? "🌸 Chậu hoa nở rộ rồi! Thỏ Con nói đây là chậu hoa đẹp nhất tiệm." : now2 > 15 ? "🌸 Hoa đã nở rộ, được tưới nên thơm hơn nữa." : now2 % 3 === 0 ? L[stg] : W2[now2 % 2];
+          if (now2 === 15) { persistentArchive.plantBloomed = true; saveArchive(); }
+          showToast(`${msg} (${Math.min(now2, 15)}/15)`);
+          return;
+        }
+        if (box.id === "cup") {
+          this.cupTimer = 900; audioEngine.playChime(494, 0.2, 0.03);
+          const nm = runState && runState.lastDrinkName ? runState.lastDrinkName : "ly nước";
+          const ql = runState && runState.lastBrewQuality ? ` (${runState.lastBrewQuality})` : "";
+          const SL = [`☕ ${nm}${ql} còn ấm — hơi nước vẫn bay lên.`, "🫗 Thỏ Con khẽ đẩy ly lại gần hơn: «Uống đi, kẻo nguội.»", "🥄 Vị ngọt dịu lan ra, đủ để người ta nói thêm một câu."];
+          showToast(SL[Math.floor(Math.random() * SL.length)]);
           return;
         }
         if (box.id === "keepsakes") {

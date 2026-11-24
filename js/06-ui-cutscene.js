@@ -34,6 +34,7 @@ function openModal(modalId) {
 function closeModal(modalId) {
   // Đóng hộp thoại kể chuyện thì dừng giọng đọc của nó
   if (modalId === "modal-epilogue" || modalId === "modal-cutscene-player") CafeVoice.stop();
+  if (modalId === "modal-cutscene-player" && typeof CutsceneAnim !== "undefined") CutsceneAnim.stop();
   const el = document.getElementById(modalId);
   if (el) el.classList.add("hidden");
 }
@@ -318,6 +319,8 @@ function playCutscene(cutsceneId, onDone = null, nightMeta = null) {
     activeCutscenePages = null;
     document.getElementById("cs-player-icon").textContent = cs.icon;
     document.getElementById("cs-player-caption").textContent = cs.caption;
+    CutsceneAnim.show({ icon: cs.icon, text: cs.caption, location: cs.location, title: cs.title });
+    CutsceneAnim.revealText(document.getElementById("cs-player-caption"), cs.caption);
     CafeVoice.speak(cs.caption, "");
     document.getElementById("btn-cs-player-continue").textContent = "Tiếp Tục ▸";
   }
@@ -334,6 +337,8 @@ function renderCutscenePage() {
   document.getElementById("cs-player-location").textContent = `${st.location} • ${st.idx + 1}/${st.pages.length}`;
   document.getElementById("cs-player-icon").textContent = page.icon;
   document.getElementById("cs-player-caption").textContent = page.text;
+  CutsceneAnim.show({ icon: page.icon, text: page.text, location: st.location, title: document.getElementById("cs-player-title").textContent });
+  CutsceneAnim.revealText(document.getElementById("cs-player-caption"), page.text);
   const csToken = ++dialogueToken;
   const csFire = () => {
     clearAutoAdvance();

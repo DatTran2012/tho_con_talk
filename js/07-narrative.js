@@ -228,7 +228,18 @@ function renderStoryStep(step, story) {
     const guest = CHARACTERS[gid] || guests[0];
     if (!runState.presentGuests.includes(gid)) runState.presentGuests.push(gid);
     if (runState.brewDoneAt === runState.beatIndex) {
-      setDialogue(guest.name, guest.role, guest.avatar, `[${runState.lastDrinkName} — ${runState.lastBrewQuality}]\n\n${runState.lastDrinkReflectionText}`, true, storyTimeOpts({ narr: true }));
+      // lời dẫn khớp với cảnh mời nước vừa chiếu: phản ứng của khách theo chất lượng đúng ly này
+      const lastD = (runState.nightDrinks || [])[runState.nightDrinks.length - 1] || {};
+      const qk = /Hoàn Hảo/.test(lastD.quality || "") ? "perfect" : /Chuẩn/.test(lastD.quality || "") ? "good" : "plain";
+      const sn = guest.name.split(" (")[0];
+      const LEAD = {
+        perfect: [`${sn} khựng lại một nhịp, mắt sáng lên — đúng thứ mình đang cần.`, "happy"],
+        good: [`${sn} gật đầu, nét mặt dịu hẳn xuống.`, "happy"],
+        plain: [`${sn} nhấm nháp chậm rãi, nghĩ ngợi một lúc rồi mới gật nhẹ — chưa thật trọn vị, nhưng vẫn đủ ấm để mở lòng.`, "thinking"]
+      }[qk];
+      setDialogue(guest.name, guest.role, guest.avatar, `[${runState.lastDrinkName} — ${lastD.quality || runState.lastBrewQuality}]\n\n${LEAD[0]}\n\n${runState.lastDrinkReflectionText}`, true, storyTimeOpts({ narr: true }));
+      // giữ biểu cảm của khách đúng như trong cảnh vừa rồi (không mấp máy miệng vì đây là phần dẫn)
+      stageRenderer.speakerId = guest.id; stageRenderer.emotion = LEAD[1]; stageRenderer.talkAnimTimer = 0;
       return;
     }
     runState.currentBrewReflection = resolveStoryText(step[3], gid);

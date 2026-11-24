@@ -25,7 +25,8 @@ setTimeout(() => {
   const nights = w.eval('STORY_NIGHTS.length'); const cards = w.eval('DRINK_CARDS.filter(c=>!c.hidden).map(c=>c.id)');
   for (let n = 0; n < nights; n++) for (const cid of cards) for (const mode of ['host_answers', 'guest_answers']) {
     try {
-      w.eval(`runState.nightIndex=${n}; runState.drawnCardData={cardId:${JSON.stringify(cid)},mode:${JSON.stringify(mode)},resolved:false,outcomeText:""}; renderDrinkCardBeat(getCurrentNightGuests());`); flush();
+      w.eval(`runState.nightIndex=${n}; runState.drawnCardData={cardId:${JSON.stringify(cid)},mode:${JSON.stringify(mode)},resolved:false,phase:"q",outcomeText:""}; renderDrinkCardBeat(getCurrentNightGuests());`); flush();
+      w.eval(`runState.drawnCardData.phase="a"; renderDrinkCardBeat(getCurrentNightGuests());`); flush();
       w.eval(`(()=>{const gs=getCurrentNightGuests();const names=gs.map(g=>g.name.split(" (")[0]).join(" & ");runState.drawnCardData.resolved=true;runState.drawnCardData.outcomeText=${JSON.stringify(mode)}==="host_answers"?(GUEST_DRINK_CARD_REACTIONS[gs[0].id]||"Vị khách mỉm cười đầy trân trọng trước sự chân thành của Thỏ Con."):names+" khẽ mỉm cười gật đầu — sợi dây thấu hiểu bên quầy gỗ càng thêm sâu sắc.";renderDrinkCardBeat(gs);})()`); flush();
     } catch (e) { errs.push('card ' + e.message.slice(0, 80)); }
   }

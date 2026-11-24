@@ -103,6 +103,7 @@ def main():
         f = f"{out}/{l['key']}.mp3"
         if os.path.exists(f): continue
         v = VOICES.get(l['voice'], VOICES['narrator'])
+        if os.environ.get('NEUTRAL'): v = dict(lively=1.0, r=1.0, speed=1.0, eq='anull')  # giọng Piper gốc, không đổi cao độ/âm sắc
         x, sr = synth(l.get('raw') or l['text'], v['speed'], l['key'], v.get('lively', 1.0))
         if len(x) < 100: print('RỖNG', l['key'], l['text'][:40]); continue
         r = v['r']

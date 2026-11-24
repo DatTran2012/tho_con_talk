@@ -4,7 +4,9 @@ Dùng Azure Speech (vi-VN-HoaiMyNeural nữ, vi-VN-NamMinhNeural nam). Gói mi�
 Cách dùng (cần khóa của chính bạn, KHÔNG đưa khóa cho ai):
   pip install requests
   export AZURE_KEY=... AZURE_REGION=southeastasia
-  python3 tools/gen_voice_cloud.py tools/voice_lines.json assets/voice [voice_id ...]
+  python3 tools/gen_voice_cloud.py tools/voice_lines_all.json assets/voice [voice_id ...] [--force] [--test]
+  --test: chỉ tạo 2 câu mỗi nhân vật vào thư mục voice_test/ để nghe thử (không đụng assets/voice)
+  --force: ghi đè file đã có (BẮT BUỘC khi thay giọng Piper cũ bằng giọng Azure)
 File ra trùng tên khóa (key.mp3) nên ghi đè thẳng, không phải sửa code game. Chạy lại được (bỏ qua file đã có, dùng --force để ghi đè)."""
 import os, sys, re, json, requests, time
 KEY, REGION = os.environ.get('AZURE_KEY'), os.environ.get('AZURE_REGION', 'southeastasia')
@@ -42,7 +44,13 @@ def ssml(raw, v):
 def main():
     if not KEY: sys.exit('Thiếu AZURE_KEY')
     args = [a for a in sys.argv[1:] if not a.startswith('--')]; force = '--force' in sys.argv
-    lines = json.load(open(args[0], encoding='utf8')); out = args[1]; only = set(args[2:]); os.makedirs(out, exist_ok=True)
+    lines = json.load(open(args[0], encoding='utf8')); out = args[1]; only = set(args[2:])
+    if '--test' in sys.argv:
+        out, force, seen, pick = 'voice_test', True, {}, []
+        for l in sorted(lines, key=lambda l: -len(l['text'])):
+            if 60 < len(l['text']) < 200 and seen.get(l['voice'], 0) < 2: seen[l['voice']] = seen.get(l['voice'], 0) + 1; pick.append(l)
+        lines = pick
+    os.makedirs(out, exist_ok=True)
     url = f'https://{REGION}.tts.speech.microsoft.com/cognitiveservices/v1'
     for i, l in enumerate(lines):
         if only and l['voice'] not in only: continue
@@ -53,6 +61,7 @@ def main():
                 'Ocp-Apim-Subscription-Key': KEY, 'Content-Type': 'application/ssml+xml',
                 'X-Microsoft-OutputFormat': 'audio-24khz-48kbitrate-mono-mp3', 'User-Agent': 'thocon-talk'})
             if r.status_code == 200: open(f, 'wb').write(r.content); break
+            if r.status_code in (401, 403): sys.exit(f'Khóa/vùng sai ({r.status_code}): kiểm tra AZURE_KEY và AZURE_REGION')
             time.sleep(2 * (tr + 1))
         else: print('LỖI', r.status_code, r.text[:120], l['key'])
         if i % 50 == 0: print(i, '/', len(lines), flush=True)

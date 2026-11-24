@@ -19,6 +19,7 @@ function renderDrinkCardBeat(guests) {
       cardId: card.id,
       mode,
       resolved: false,
+      phase: "q",
       outcomeText: ""
     };
     persistentArchive.unlockedDrinkCards[card.id] = true;
@@ -50,12 +51,29 @@ function renderDrinkCardBeat(guests) {
     return;
   }
 
-  if (runState.drawnCardData.mode === "host_answers") {
+  const dcd = runState.drawnCardData;
+  if (!dcd.phase) dcd.phase = "q";
+  const HOST = "Thỏ Con";
+  const askerName = isDuo ? guestNames : guests[0].name;
+
+  if (dcd.mode === "host_answers") {
+    if (dcd.phase === "q") {
+      // Nhịp 1: khách đọc câu hỏi
+      setDialogue(
+        askerName,
+        `Rút Lá Bài DRINK • ${card.suit}`,
+        "🃏",
+        `${guestNames} khẽ rút một lá bài trên mặt quầy gỗ và mỉm cười nhìn Thỏ Con:\n\n"${card.question}"\n\n— Đêm nay đến lượt chủ quán trả lời trước nhé!`,
+        true
+      );
+      return;
+    }
+    // Nhịp 2: Thỏ Con đáp
     setDialogue(
-      isDuo ? guestNames : guests[0].name,
-      `Rút Lá Bài DRINK • ${card.suit}`,
-      "🃏",
-      `${guestNames} khẽ rút một lá bài trên mặt quầy gỗ và mỉm cười nhìn Thỏ Con:\n\n"${card.question}"\n\n— Đêm nay đến lượt chủ quán trả lời trước nhé!`,
+      HOST,
+      `Chủ Quán Trả Lời • ${card.suit}`,
+      "🐰",
+      `"Ừm... để mình nghĩ một chút nhé. Câu này không dễ trả lời đâu."`,
       false
     );
 
@@ -90,11 +108,23 @@ function renderDrinkCardBeat(guests) {
         ? `\n\n${DUO_CARD_STORIES[slot.duoId]}`
         : "";
 
+    if (dcd.phase === "q") {
+      // Nhịp 1: Thỏ Con đọc câu hỏi
+      setDialogue(
+        HOST,
+        `Rút Lá Bài DRINK • ${card.suit}`,
+        "🐰",
+        `Thỏ Con rút một lá bài trên quầy và nhẹ nhàng đọc:\n\n"${card.question}"`,
+        true
+      );
+      return;
+    }
+    // Nhịp 2: khách trả lời
     setDialogue(
-      isDuo ? guestNames : g1.name,
+      askerName,
       `Trả Lời Bài DRINK • ${card.suit}`,
       "🃏",
-      `Bạn rút lá bài trên quầy: "${card.question}"\n\n${specificStory}${duoFollowup}`,
+      `${specificStory}${duoFollowup}`.trim(),
       false
     );
 
@@ -180,6 +210,13 @@ function advanceDialogueStep() {
 
   const story = getStoryNight();
   const step = story.steps[runState.beatIndex];
+  const dcd = runState.drawnCardData;
+  if (step && step[0] === "card" && dcd && !dcd.resolved && dcd.phase === "q") {
+    dcd.phase = "a";
+    saveRunState();
+    renderDrinkCardBeat(getCurrentNightGuests());
+    return;
+  }
   if (step) {
     if (step[0] === "?") {
       if (!runState.pendingReply) return;

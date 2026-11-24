@@ -690,6 +690,7 @@ function renderThreeStepBrewingStation(guests, stationLabel = "") {
 }
 
 function finalizeDrinkService(guests, base, accentIds, challengeBonus, challengeResultText, hintUsed = false) {
+  if (runState && runState.brewDoneAt === runState.beatIndex && typeof ServeFX !== "undefined" && document.getElementById("serve-fx-overlay") && document.getElementById("serve-fx-overlay").style.display === "flex") return;   // đang chiếu cảnh mời nước: bỏ qua bấm lặp
   let matchScore = challengeBonus;
   const clashCount = getClashes(accentIds).length;
   guests.forEach((g) => {
@@ -777,5 +778,14 @@ function finalizeDrinkService(guests, base, accentIds, challengeBonus, challenge
   saveRunState();
   checkAndUnlockAchievements();
   syncGameHUD();
+  // cắt cảnh mời nước trước, xong mới hiện lời cảm nhận của khách (không chạy được thì hiện ngay)
+  if (typeof ServeFX !== "undefined") {
+    const at = runState.beatIndex;
+    const started = ServeFX.play(
+      { guest, baseId: base.id, drink: drinkName, quality: quality.includes("Hoàn Hảo") ? "perfect" : quality.includes("Chuẩn") ? "good" : "plain" },
+      () => { if (runState && runState.beatIndex === at && runState.brewDoneAt === at) renderCurrentBeat(); }
+    );
+    if (started) return;
+  }
   renderCurrentBeat();
 }

@@ -111,7 +111,7 @@ const RecipeFX = (function () {
       cancelAnimationFrame(raf);
       const base = DRINK_BASES.find((b) => b.id === sig.base) || { icon: "🥤", name: "Nền" };
       const acc = (sig.accents || []).map((id) => DRINK_ACCENTS.find((a) => a.id === id)).filter(Boolean);
-      st = { r: { name: sig.name, baseId: sig.base, base: { icon: base.icon, name: base.name }, accents: acc.map((a) => ({ icon: a.icon, name: a.name })), count: count || 1, total: total || 7 }, t0: performance.now(), onDone };
+      st = { r: { name: sig.name, baseId: sig.base, base: { icon: base.icon, name: base.name }, accents: acc.map((a) => ({ icon: a.icon, name: a.name })), count: count || 1, total: total || 7 }, t0: performance.now(), onDone: onDone ? (() => { const rs0 = typeof runState !== "undefined" ? runState : null; return () => { if (typeof runState === "undefined" || runState === rs0) onDone(); }; })() : null };
       clearTimeout(guard); guard = setTimeout(close, Math.min(6000, (DUR + 1.5) * 1000));
       overlay.style.display = "flex"; overlay.style.opacity = "1";
       try { audioEngine.playChime(392, 0.25, 0.03); setTimeout(() => audioEngine.playChime(523, 0.3, 0.03), 1500); setTimeout(() => audioEngine.playChime(784, 0.6, 0.04), 3400); } catch (e) { /* không có âm thanh */ }

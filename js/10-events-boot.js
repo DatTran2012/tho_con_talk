@@ -266,6 +266,7 @@ function checkAndUnlockAchievements() {
     persistentArchive.twistAnnounced = true;
     saveArchive();
     showToast("🕊️ Một cánh cửa mới vừa hiện ra trong Menu…");
+    if (typeof SceneFX !== "undefined") SceneFX.play("secret", {}, null);
   }
   const a = persistentArchive;
   const secretsCount = Object.keys(a.unlockedSecrets).length;
@@ -305,7 +306,7 @@ function checkAndUnlockAchievements() {
       a.unlockedAchievements[achId] = true;
       newlyUnlocked = true;
       const meta = ACHIEVEMENTS.find((x) => x.id === achId);
-      if (meta) showToast(`🏆 Mở khóa thành tựu: ${meta.title}!`);
+      if (meta && !(typeof SceneFX !== "undefined" && SceneFX.banner(meta.icon || "🏆", meta.title, meta.titleReward ? "Danh hiệu: " + meta.titleReward : ""))) showToast(`🏆 Mở khóa thành tựu: ${meta.title}!`);
     }
   });
 

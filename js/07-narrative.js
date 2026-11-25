@@ -25,7 +25,9 @@ function startNight(nightIdx) {
   cancelActiveBrewAnimation();
 
   if (!runState.singleRetry && nightIdx > 0 && nightIdx % 7 === 0 && !weekRecipeGoalMet(nightIdx / 7 - 1)) {
-    showWeekRecipeFailed(Math.min(4, nightIdx / 7));
+    const wk = Math.min(4, nightIdx / 7);
+    const shown = typeof SceneFX !== "undefined" && SceneFX.play("week", { ok: false, have: weekRecipeCount(), need: weekGoalFor(wk - 1), week: wk }, () => showWeekRecipeFailed(wk));
+    if (!shown) showWeekRecipeFailed(wk);
     return;
   }
   if (nightIdx >= 28) {
@@ -33,7 +35,9 @@ function startNight(nightIdx) {
     return;
   }
   if (!runState.singleRetry && nightIdx > 0 && nightIdx % 7 === 0 && runState.weekResults.length >= 7) {
-    showEpilogueModal(false);
+    const wk2 = Math.min(4, nightIdx / 7);
+    const shown2 = typeof SceneFX !== "undefined" && SceneFX.play("week", { ok: true, have: weekRecipeCount(), need: weekGoalFor(wk2 - 1), week: wk2 }, () => showEpilogueModal(false));
+    if (!shown2) showEpilogueModal(false);
     return;
   }
 
@@ -74,7 +78,23 @@ function startNight(nightIdx) {
     mainTitle: `CHƯƠNG ${story.ch} • ĐÊM ${story.n}`,
     subTitle: `${story.title} • ${activeSeason.shortLabel}`
   };
-  const launch = () => playCutscene(storyCutsceneId(story), () => renderCurrentBeat(), nightBannerMeta);
+  const launchStory = () => playCutscene(storyCutsceneId(story), () => renderCurrentBeat(), nightBannerMeta);
+  // mở quán (bản đầy đủ lần đầu, các đêm sau bản ngắn); đầu mỗi chương có thêm màn tiêu đề chương
+  const launchOpen = () => {
+    if (typeof SceneFX === "undefined") return launchStory();
+    const full = !persistentArchive.fxOpenSeen;
+    persistentArchive.fxOpenSeen = true; saveArchive();
+    const ok = SceneFX.play("open", { night: story.n, title: story.title, short: !full, guest: CHARACTERS[story.guests[0]] }, launchStory);
+    if (!ok) launchStory();
+  };
+  const launch = () => {
+    const chap = STORY_CHAPTERS[story.ch - 1];
+    if (typeof SceneFX !== "undefined" && story.n === 1 && nightIdx > 0 && chap && !runState.singleRetry) {
+      const ok = SceneFX.play("chapter", { no: chap.no, icon: chap.icon, name: chap.name, line: chap.desc }, launchOpen);
+      if (ok) return;
+    }
+    launchOpen();
+  };
   if (nightIdx === 0) playOriginSequence(launch);
   else launch();
 }
@@ -127,6 +147,21 @@ function storySpeaker(who) {
 }
 
 /* Lời thoại có thể khác nhau tùy cách bạn đã đối xử với vị khách đó ở lần gặp trước. */
+/* Lời cảm nhận cho ly Mộc Mạc: dịu, thật lòng, không khen quá lời (thay cho câu khen cố định của từng đêm) */
+const PLAIN_REFLECTIONS = {
+  vy: ["Em nhấp thử một ngụm: “Ừm… uống được, cũng dễ chịu. Chắc em cần thêm chút thời gian mới thấy hợp vị.”", "Vy cười gượng: “Hơi nhạt so với em tưởng, nhưng ấm tay là được rồi Thỏ Con.”"],
+  minh: ["Minh nhấp một ngụm rồi gật nhẹ: “Cũng ổn. Chưa đúng thứ tôi hình dung, nhưng tôi không chê.”", "Minh xoay xoay ly: “Vị bình thường thôi. Nhưng ít ra nó khiến tôi ngồi yên được một lúc.”"],
+  linh: ["Chị Linh khẽ nhấp một ngụm: “Dịu đấy em. Chưa thật trọn vị, nhưng chị thấy ấm là đủ.”", "Chị Linh mỉm cười: “Ly này giản dị quá. Cũng hay, đỡ phải nghĩ nhiều.”"],
+  tuan: ["Anh Tuấn uống một ngụm, gật gù: “Ừ, cũng được. Chưa đã lắm nhưng sưởi tay thế này là ổn rồi.”", "Anh Tuấn cười xòa: “Vị nhạt hơn anh nghĩ, mà thôi, ngồi đây đã quý rồi.”"],
+  khang: ["Anh Khang nhấp một ngụm, im lặng một lúc: “Mộc mạc. Chưa phải ly anh nhớ, nhưng không tệ.”", "Anh Khang gõ nhẹ ngón tay lên ly: “Thật thà, không màu mè. Tạm hợp lúc này.”"],
+  hoa: ["Cô Hoa nhấp một ngụm nhỏ: “Cũng dịu em ạ. Chưa thấm lắm, nhưng cô vẫn thấy ấm.”", "Cô Hoa gật đầu hiền: “Vị này hơi lạ miệng. Để cô uống chậm thêm xem sao.”"],
+  an: ["Bác An nhấp một ngụm, khẽ gật: “Tạm được. Chưa thật vừa miệng, nhưng bác thấy ấm lòng.”", "Bác An cười nhẹ: “Giản dị cũng có cái hay của nó. Bác ngồi đây thêm chút nhé.”"]
+};
+function plainReflection(gid) {
+  const pool = PLAIN_REFLECTIONS[gid] || ["Khách nhấp một ngụm, gật nhẹ: “Cũng ổn, cảm ơn em.”"];
+  return pool[((runState && runState.nightIndex) || 0) % pool.length];
+}
+
 function resolveStoryText(text, who) {
   if (typeof text === "string") return text;
   if (!text) return "";
@@ -237,7 +272,7 @@ function renderStoryStep(step, story) {
         good: [`${sn} gật đầu, nét mặt dịu hẳn xuống.`, "happy"],
         plain: [`${sn} nhấm nháp chậm rãi, nghĩ ngợi một lúc rồi mới gật nhẹ — chưa thật trọn vị, nhưng vẫn đủ ấm để mở lòng.`, "thinking"]
       }[qk];
-      setDialogue(guest.name, guest.role, guest.avatar, `[${runState.lastDrinkName} — ${lastD.quality || runState.lastBrewQuality}]\n\n${LEAD[0]}\n\n${runState.lastDrinkReflectionText}`, true, storyTimeOpts({ narr: true }));
+      setDialogue(guest.name, guest.role, guest.avatar, `[${runState.lastDrinkName} — ${lastD.quality || runState.lastBrewQuality}]\n\n${LEAD[0]}\n\n${qk === "plain" ? plainReflection(guest.id) : runState.lastDrinkReflectionText}`, true, storyTimeOpts({ narr: true }));
       // giữ biểu cảm của khách đúng như trong cảnh vừa rồi (không mấp máy miệng vì đây là phần dẫn)
       stageRenderer.speakerId = guest.id; stageRenderer.emotion = LEAD[1]; stageRenderer.talkAnimTimer = 0;
       return;

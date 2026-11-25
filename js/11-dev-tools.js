@@ -123,6 +123,7 @@ function renderDevTools() {
     btn("fxserve", "🥂 Xem thử cutscene MỜI NƯỚC (xoay: Hoàn Hảo → Chuẩn Vị → Mộc Mạc)") +
     btn("fxgift", "🏺 Xem thử cutscene ĐƯA KỶ VẬT + GHI NOTE (đổi khách mỗi lần)") +
     btn("fxrecipe", "🍹 Xem thử cutscene MỞ KHÓA CÔNG THỨC (đổi công thức mỗi lần)") +
+    btn("fxscenes", "🎬 Xem thử cutscene MỚI (mở/đóng quán, chương, cửa bí mật, tuần, cassette, cây, mèo, tổng kết, thành tựu) — bấm để đổi cảnh") +
     btn("clips", "📼 Thống kê file thoại mp3 / nhạc đã có") +
     btn("off", "⛔ Tắt chế độ dev");
   document.body.appendChild(fab);
@@ -161,6 +162,7 @@ function renderDevTools() {
     else if (k === "clips") devClipStats();
     else if (k === "fxcard") devPreviewCardFX();
     else if (k === "fxgift") devPreviewGiftFX();
+    else if (k === "fxscenes") devPreviewScenes();
     else if (k === "fxrecipe") devPreviewRecipeFX();
     else if (k === "fxserve") devPreviewServeFX();
     else if (k === "simlow" || k === "simmid" || k === "simfull") devSimulateMonthEnd(k);
@@ -230,6 +232,17 @@ function devPreviewServeFX() {
   if (typeof ServeFX === "undefined" || !ServeFX.play({ guest: g, baseId: base.id, drink: base.name, quality: q }, () => {})) showToast("🛠️ DEV: không chạy được hiệu ứng (có thể đang bật giảm chuyển động)");
 }
 
+let devSceneIdx = 0;
+function devPreviewScenes() {
+  const list = ["open", "close", "chapter", "secret", "week_ok", "week_fail", "cassette", "bloom", "cat", "month", "banner"], k = list[devSceneIdx++ % list.length];
+  const g = CHARACTERS[STANDARD_GUEST_ORDER[devSceneIdx % STANDARD_GUEST_ORDER.length]];
+  const ch = STORY_CHAPTERS[devSceneIdx % 4];
+  const D = { open: { night: 3, title: "Đêm thử", guest: g, short: false }, close: { line: "Quán đóng cửa" }, chapter: { no: ch.no, icon: ch.icon, name: ch.name, line: ch.desc }, secret: {}, week_ok: { ok: true, have: 3, need: 3 }, week_fail: { ok: false, have: 1, need: 3 }, cassette: { guestName: g.name.split(" (")[0], name: g.cassette && (g.cassette.name || g.cassette.title) }, bloom: {}, cat: {}, month: { guests: STANDARD_GUEST_ORDER.map((id) => CHARACTERS[id]), drinks: 88, endings: 33 } };
+  showToast("🛠️ DEV: cảnh " + k);
+  if (k === "banner") { if (!SceneFX.banner("🏆", "Thành tựu thử nghiệm", "Danh hiệu: Chủ Quán Thử")) showToast("🛠️ DEV: không chạy được"); return; }
+  const kind = k.startsWith("week") ? "week" : k;
+  if (!SceneFX.play(kind, D[k], null)) showToast("🛠️ DEV: không chạy được hiệu ứng (có thể đang bật giảm chuyển động)");
+}
 let devFxRecipeIdx = 0;
 function devPreviewRecipeFX() {
   const list = regularRecipes(), sig = list[devFxRecipeIdx % list.length];

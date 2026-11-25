@@ -1298,7 +1298,7 @@ class CafeStageRenderer {
           const L = ["💧 Hạt mầm uống nước, khẽ động đậy.", "🌱 Chiếc lá mới vừa hé ra.", "🌿 Cây vươn lên một chút, như đang nghe quán kể chuyện.", "🌼 Nụ hoa đầu tiên chúm chím.", "🌸 Hoa bung thêm vài cánh nữa.", "✨ Chậu hoa nở rộ — cả quán thơm lên!"];
           const W2 = ["💧 Nước thấm vào đất, tí tách.", "💧 Tưới thêm một chút nữa nhé."];
           const msg = now2 === 15 ? "🌸 Chậu hoa nở rộ rồi! Thỏ Con nói đây là chậu hoa đẹp nhất tiệm." : now2 > 15 ? "🌸 Hoa đã nở rộ, được tưới nên thơm hơn nữa." : now2 % 3 === 0 ? L[stg] : W2[now2 % 2];
-          if (now2 === 15) { persistentArchive.plantBloomed = true; saveArchive(); }
+          if (now2 === 15) { persistentArchive.plantBloomed = true; saveArchive(); if (typeof SceneFX !== "undefined") setTimeout(() => SceneFX.play("bloom", {}, null), 900); }
           showToast(`${msg} (${Math.min(now2, 15)}/15)`);
           return;
         }
@@ -1369,6 +1369,7 @@ class CafeStageRenderer {
           saveArchive();
           checkAndUnlockAchievements();
           audioEngine.playChime(659.25, 0.25, 0.04);
+          if (persistentArchive.petCatCount === 5 && typeof SceneFX !== "undefined") setTimeout(() => SceneFX.play("cat", {}, null), 900);
           showToast(`🐾 Mèo tam thể khẽ kêu 'Purr~' đầy thích thú! (Đã vuốt ${persistentArchive.petCatCount} lần)`);
           return;
         }

@@ -295,6 +295,7 @@ function completeCurrentNight() {
     guests.length > 1;
 
   const newGifts = [];
+  const newCassettes = [];
   if (earnedKeepsake) {
     guests.forEach((g) => {
       if (!persistentArchive.unlockedKeepsakes[g.id]) {
@@ -304,6 +305,7 @@ function completeCurrentNight() {
       }
       persistentArchive.postcards[g.id] = true;
       persistentArchive.unlockedCatDiary[g.id] = true;
+      if (!persistentArchive.unlockedCassettes[g.cassette.id]) newCassettes.push({ guestName: g.name.split(" (")[0], name: g.cassette.name || g.cassette.title || "Băng cassette" });
       persistentArchive.unlockedCassettes[g.cassette.id] = true;
     });
   }
@@ -364,8 +366,19 @@ function completeCurrentNight() {
   // Cuối đêm: khách đưa kỷ vật (nếu mới) + viết lời nhắn lên bảng, rồi mới sang bước kế tiếp
   const goNextWithGift = () => {
     let started = false;
-    if (typeof GiftFX !== "undefined") started = GiftFX.play({ gifts: newGifts, note: noteInfo }, goNext);
-    if (!started) goNext();
+    // sau đó: băng cassette mới (nếu có) -> cảnh đóng quán -> bước kế tiếp
+    const afterGift = () => {
+      let i = 0;
+      const step = () => {
+        if (typeof SceneFX === "undefined") return goNext();
+        if (i < newCassettes.length) { const c = newCassettes[i++]; if (SceneFX.play("cassette", c, step)) return; return step(); }
+        if (i === newCassettes.length) { i++; if (SceneFX.play("close", { line: "Quán đóng cửa" }, goNext)) return; }
+        goNext();
+      };
+      step();
+    };
+    if (typeof GiftFX !== "undefined") started = GiftFX.play({ gifts: newGifts, note: noteInfo }, afterGift);
+    if (!started) afterGift();
   };
   // Cảnh kết cục dài chỉ chiếu ở lần mở khóa đầu tiên; các đêm sau chỉ hiện dòng kết đêm (xem lại trong Thư viện)
   if (endingId && endingWasNew) {
@@ -380,6 +393,11 @@ function showEpilogueModal(isMonthComplete = false) {
   if (!runState) return;
   const completedWeeks = Math.min(4, Math.ceil(runState.nightIndex / 7));
 
+  if (isMonthComplete && !runState.monthFx && typeof SceneFX !== "undefined") {
+    runState.monthFx = true; saveRunState();
+    const gs = STANDARD_GUEST_ORDER.map((id) => CHARACTERS[id]).filter(Boolean);
+    if (SceneFX.play("month", { guests: gs, drinks: persistentArchive.totalDrinksServed || 0, endings: countUnlockedEndings() }, () => showEpilogueModal(true))) return;
+  }
   if (isMonthComplete) {
     if (!runState.monthCounted) {
       runState.monthCounted = true;

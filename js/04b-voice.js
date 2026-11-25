@@ -7,7 +7,11 @@
 const CafeVoice = (() => {
   const ttsSupported = typeof window !== "undefined" && "speechSynthesis" in window && typeof window.SpeechSynthesisUtterance === "function";
   // Có file mp3 thoại (assets/voice) thì không cần giọng của trình duyệt
-  const clipsSupported = typeof window !== "undefined" && typeof window.Audio === "function" && typeof VOICE_CLIPS !== "undefined";
+  // Đặt true để dùng lại file mp3 thu sẵn trong assets/voice; false = chỉ dùng giọng gốc của trình duyệt
+  const USE_RECORDED_CLIPS = false;
+  // Đặt true nếu muốn mỗi nhân vật có cao độ/tốc độ riêng; false = giọng trình duyệt nguyên bản, không bóp méo
+  const USE_PITCH_PROFILES = false;
+  const clipsSupported = USE_RECORDED_CLIPS && typeof window !== "undefined" && typeof window.Audio === "function" && typeof VOICE_CLIPS !== "undefined";
   const supported = ttsSupported || clipsSupported;
   const VOICE_DIR = "assets/voice/";
   let currentAudio = null;
@@ -166,8 +170,8 @@ const CafeVoice = (() => {
       if (ttsSupported) {
         const voice = pickVoice(profile.gender);
         const singleVoice = vietnameseVoices().length < 2;
-        const pitch = singleVoice ? profile.pitch : profile.gender === "m" ? Math.max(0.5, profile.pitch) : profile.pitch;
-        splitChunks(clean).forEach((chunk) => ttsJobs.push({ chunk, voice, pitch, rate: userRate * profile.rate }));
+        const pitch = !USE_PITCH_PROFILES ? 1 : singleVoice ? profile.pitch : profile.gender === "m" ? Math.max(0.5, profile.pitch) : profile.pitch;
+        splitChunks(clean).forEach((chunk) => ttsJobs.push({ chunk, voice, pitch, rate: USE_PITCH_PROFILES ? userRate * profile.rate : userRate }));
       }
       const key = voiceKey(profile.id || "narrator", clean);
       if (hasClip(key)) jobs.push({ clip: VOICE_DIR + key + ".mp3", fallback: ttsJobs });

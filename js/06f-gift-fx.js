@@ -152,7 +152,8 @@ const GiftFX = (function () {
       cancelAnimationFrame(raf);
       const segs = (info.gifts || []).slice(0, 2).map((g) => ({ kind: "gift", guest: g.guest, icon: g.icon, item: g.name, name: String(g.guest.name || "khách").split(" (")[0] }))
         .concat([{ kind: "note", ...info.note }]);
-      st = { segs, t0: performance.now(), onDone };
+      const rs0 = typeof runState !== "undefined" ? runState : null;
+      st = { segs, t0: performance.now(), onDone: onDone ? () => { if (typeof runState === "undefined" || runState === rs0) onDone(); } : null };
       arm();
       overlay.style.display = "flex"; overlay.style.opacity = "1";
       try { segs.forEach((s, i) => setTimeout(() => audioEngine.playChime(s.kind === "gift" ? 659 : 392, 0.3, 0.035), i * SEG * 1000 + 700)); } catch (e) { /* không có âm thanh */ }

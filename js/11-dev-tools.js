@@ -48,6 +48,11 @@ function devUnlockEverything() {
   a.perfectBrewsCount = Math.max(a.perfectBrewsCount || 0, 50);
   a.petCatCount = Math.max(a.petCatCount || 0, 20);
   a.clockTapCount = Math.max(a.clockTapCount || 0, 20);
+  a.plantWater = Math.max(a.plantWater || 0, 15);      // chậu cây nở rộ
+  a.plantBloomed = true;
+  a.fishFeedCount = Math.max(a.fishFeedCount || 0, 20);
+  a.bottleTaps = Math.max(a.bottleTaps || 0, 20);
+  a.stoveTaps = Math.max(a.stoveTaps || 0, 20);
   saveArchive();
   updateAllProgressBadges();
   showToast("🛠️ DEV: đã mở khóa toàn bộ nội dung (save thật được sao lưu)");
@@ -114,6 +119,10 @@ function renderDevTools() {
     btn("thanks", "🎖️ Xem trang chúc mừng (xem trước)") +
     btn("voices", "🗣️ Nghe thử 8 giọng mp3 (mỗi người một câu)") +
     btn("music", "🎵 Nghe thử các bản nhạc nền (bấm để đổi bản kế tiếp)") +
+    btn("fxcard", "🃏 Xem thử cutscene RÚT BÀI (bấm lần nữa: đổi kiểu hỏi/đáp)") +
+    btn("fxserve", "🥂 Xem thử cutscene MỜI NƯỚC (xoay: Hoàn Hảo → Chuẩn Vị → Mộc Mạc)") +
+    btn("fxgift", "🏺 Xem thử cutscene ĐƯA KỶ VẬT + GHI NOTE (đổi khách mỗi lần)") +
+    btn("fxrecipe", "🍹 Xem thử cutscene MỞ KHÓA CÔNG THỨC (đổi công thức mỗi lần)") +
     btn("clips", "📼 Thống kê file thoại mp3 / nhạc đã có") +
     btn("off", "⛔ Tắt chế độ dev");
   document.body.appendChild(fab);
@@ -150,6 +159,10 @@ function renderDevTools() {
     else if (k === "voices") devVoiceDemo();
     else if (k === "music") devMusicNext();
     else if (k === "clips") devClipStats();
+    else if (k === "fxcard") devPreviewCardFX();
+    else if (k === "fxgift") devPreviewGiftFX();
+    else if (k === "fxrecipe") devPreviewRecipeFX();
+    else if (k === "fxserve") devPreviewServeFX();
     else if (k === "simlow" || k === "simmid" || k === "simfull") devSimulateMonthEnd(k);
     else if (k === "simfresh") {
       if (!safeGetItem(DEV_BACKUP_KEY)) safeSetItem(DEV_BACKUP_KEY, JSON.stringify(persistentArchive));
@@ -198,6 +211,37 @@ function devMusicNext() {
 function devClipStats() {
   const n = typeof VOICE_CLIPS !== "undefined" ? VOICE_CLIPS.size : 0;
   showToast(`🛠️ DEV: ${n} file thoại mp3, ${DEV_MUSIC_IDS.length} bản nhạc. Câu chưa có file sẽ dùng giọng trình duyệt.`);
+}
+
+/* ---- Xem trước hai cutscene mới ---- */
+let devFxCardIdx = 0, devFxServeIdx = 0;
+function devPreviewCardFX() {
+  const cards = DRINK_CARDS.filter((c) => !c.hidden);
+  const mode = devFxCardIdx % 2 ? "host_answers" : "guest_answers";
+  const card = cards[devFxCardIdx % cards.length];
+  devFxCardIdx++;
+  if (typeof CardDrawFX === "undefined" || !CardDrawFX.play(card, mode, () => {})) showToast("🛠️ DEV: không chạy được hiệu ứng (có thể đang bật giảm chuyển động)");
+}
+function devPreviewServeFX() {
+  const qs = ["perfect", "good", "plain"], q = qs[devFxServeIdx % 3];
+  const g = CHARACTERS[STANDARD_GUEST_ORDER[devFxServeIdx % STANDARD_GUEST_ORDER.length]];
+  const base = DRINK_BASES[devFxServeIdx % DRINK_BASES.length];
+  devFxServeIdx++;
+  if (typeof ServeFX === "undefined" || !ServeFX.play({ guest: g, baseId: base.id, drink: base.name, quality: q }, () => {})) showToast("🛠️ DEV: không chạy được hiệu ứng (có thể đang bật giảm chuyển động)");
+}
+
+let devFxRecipeIdx = 0;
+function devPreviewRecipeFX() {
+  const list = regularRecipes(), sig = list[devFxRecipeIdx % list.length];
+  devFxRecipeIdx++;
+  if (typeof RecipeFX === "undefined" || !RecipeFX.play(sig, (devFxRecipeIdx % list.length) || list.length, list.length, () => {})) showToast("🛠️ DEV: không chạy được hiệu ứng (có thể đang bật giảm chuyển động)");
+}
+let devFxGiftIdx = 0;
+function devPreviewGiftFX() {
+  const g = CHARACTERS[STANDARD_GUEST_ORDER[devFxGiftIdx % STANDARD_GUEST_ORDER.length]];
+  devFxGiftIdx++;
+  const info = { gifts: [{ guest: g, icon: g.keepsake.icon, name: g.keepsake.name }], note: { nightLabel: "T1-Đ" + (1 + (devFxGiftIdx % 7)), guestName: g.name.split(" (")[0], text: "Cảm ơn Thỏ Con vì ly nước ấm và cuộc trò chuyện đêm nay!" } };
+  if (typeof GiftFX === "undefined" || !GiftFX.play(info, () => {})) showToast("🛠️ DEV: không chạy được hiệu ứng (có thể đang bật giảm chuyển động)");
 }
 
 /* ---- Mở chế độ dev trên điện thoại: chạm đèn lồng 10 lần rồi nhập mật khẩu ---- */

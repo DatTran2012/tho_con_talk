@@ -294,10 +294,12 @@ function completeCurrentNight() {
     heartVotes + mindVotes >= 1 ||
     guests.length > 1;
 
+  const newGifts = [];
   if (earnedKeepsake) {
     guests.forEach((g) => {
       if (!persistentArchive.unlockedKeepsakes[g.id]) {
         persistentArchive.unlockedKeepsakes[g.id] = true;
+        newGifts.push({ guest: g, icon: g.keepsake.icon, name: g.keepsake.name });
         showToast(`🏺 Nhận kỷ vật mới: ${g.keepsake.icon} ${g.keepsake.name}`);
       }
       persistentArchive.postcards[g.id] = true;
@@ -317,6 +319,7 @@ function completeCurrentNight() {
     text: `Cảm ơn Thỏ Con vì ly ${nightDrinkNames || "nước ấm"} và cuộc trò chuyện đêm nay!`
   });
   if (persistentArchive.stickyNotes.length > 35) persistentArchive.stickyNotes.pop();
+  const noteInfo = persistentArchive.stickyNotes[0];
 
   const nightResultObj = {
     weekNum,
@@ -358,12 +361,18 @@ function completeCurrentNight() {
       startNight(runState.nightIndex);
     }
   };
+  // Cuối đêm: khách đưa kỷ vật (nếu mới) + viết lời nhắn lên bảng, rồi mới sang bước kế tiếp
+  const goNextWithGift = () => {
+    let started = false;
+    if (typeof GiftFX !== "undefined") started = GiftFX.play({ gifts: newGifts, note: noteInfo }, goNext);
+    if (!started) goNext();
+  };
   // Cảnh kết cục dài chỉ chiếu ở lần mở khóa đầu tiên; các đêm sau chỉ hiện dòng kết đêm (xem lại trong Thư viện)
   if (endingId && endingWasNew) {
-    playCutscene(endingId, goNext);
+    playCutscene(endingId, goNextWithGift);
   } else {
     showToast(`🌙 Kết đêm: ${endingTitle}`);
-    goNext();
+    goNextWithGift();
   }
 }
 

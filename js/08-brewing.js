@@ -690,7 +690,7 @@ function renderThreeStepBrewingStation(guests, stationLabel = "") {
 }
 
 function finalizeDrinkService(guests, base, accentIds, challengeBonus, challengeResultText, hintUsed = false) {
-  if (runState && runState.brewDoneAt === runState.beatIndex && typeof ServeFX !== "undefined" && document.getElementById("serve-fx-overlay") && document.getElementById("serve-fx-overlay").style.display === "flex") return;   // đang chiếu cảnh mời nước: bỏ qua bấm lặp
+  if (runState && runState.brewDoneAt === runState.beatIndex && ["serve-fx-overlay", "recipe-fx-overlay"].some((id) => { const o = document.getElementById(id); return o && o.style.display === "flex"; })) return;   // đang chiếu cảnh mời nước/công thức: bỏ qua bấm lặp
   let matchScore = challengeBonus;
   const clashCount = getClashes(accentIds).length;
   guests.forEach((g) => {
@@ -712,10 +712,12 @@ function finalizeDrinkService(guests, base, accentIds, challengeBonus, challenge
   );
 
   let drinkName = "";
+  let newSigForFX = null;
   if (matchedSignature) {
     drinkName = `✨ ${matchedSignature.name}`;
     const isNewSig = !persistentArchive.unlockedSignatures[matchedSignature.id];
     persistentArchive.unlockedSignatures[matchedSignature.id] = true;
+    if (isNewSig) newSigForFX = matchedSignature;
     if (!Array.isArray(runState.weekSigs)) runState.weekSigs = [];
     const countedBefore = runState.weekSigs.includes(matchedSignature.id);
     if (!countedBefore) runState.weekSigs.push(matchedSignature.id);
@@ -778,14 +780,20 @@ function finalizeDrinkService(guests, base, accentIds, challengeBonus, challenge
   saveRunState();
   checkAndUnlockAchievements();
   syncGameHUD();
-  // cắt cảnh mời nước trước, xong mới hiện lời cảm nhận của khách (không chạy được thì hiện ngay)
+  // cắt cảnh mời nước trước; nếu vừa mở khóa công thức mới thì chiếu tiếp cảnh công thức; xong mới hiện lời cảm nhận của khách
+  const at = runState.beatIndex;
+  const showBeat = () => { if (runState && runState.beatIndex === at && runState.brewDoneAt === at) renderCurrentBeat(); };
+  const afterServe = () => {
+    if (newSigForFX && typeof RecipeFX !== "undefined" && RecipeFX.play(newSigForFX, recipesDiscoveredCount(), regularRecipes().length, showBeat)) return;
+    showBeat();
+  };
   if (typeof ServeFX !== "undefined") {
-    const at = runState.beatIndex;
     const started = ServeFX.play(
       { guest, baseId: base.id, drink: drinkName, quality: quality.includes("Hoàn Hảo") ? "perfect" : quality.includes("Chuẩn") ? "good" : "plain" },
-      () => { if (runState && runState.beatIndex === at && runState.brewDoneAt === at) renderCurrentBeat(); }
+      afterServe
     );
     if (started) return;
   }
+  if (newSigForFX && typeof RecipeFX !== "undefined" && RecipeFX.play(newSigForFX, recipesDiscoveredCount(), regularRecipes().length, showBeat)) return;
   renderCurrentBeat();
 }

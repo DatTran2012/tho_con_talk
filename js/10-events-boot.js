@@ -90,7 +90,7 @@ const TWIST_BEATS = [
   { speaker: "Anh Khang (38 tuổi)", role: "Nghệ Nhân Đồ Da", avatar: "🧵", text: "Thẻ da anh khâu cho em dùng để đánh dấu trang đang đọc dở. Em chưa đọc xong đâu. Còn nhiều trang phía trước." },
   { speaker: "Cô Hoa (44 tuổi)", role: "Người Mẹ", avatar: "🧶", text: "Cô đan thêm cho cháu một chiếc mũ len. Những buổi sáng ở viện sẽ lạnh, nhưng cháu không đi một mình." },
   { speaker: "Bác An (68 tuổi)", role: "Cựu Giáo Viên", avatar: "👓", text: "Bác chấm bài cả đời. Bài của cháu hôm nay bác cho mười điểm, vì cháu dám nói ra." },
-  { speaker: "Thỏ Con", role: "Lá Bài Thứ 17", avatar: "🃏", text: "Vy lật lá bài trắng cuối hộp DRINK: \"Điều bạn cần nghe nhất lúc này là gì?\"", options: [
+  { fx: "tw_card", speaker: "Thỏ Con", role: "Lá Bài Thứ 17", avatar: "🃏", text: "Vy lật lá bài trắng cuối hộp DRINK: \"Điều bạn cần nghe nhất lúc này là gì?\"", options: [
     { label: "❤️ \"Rằng Thỏ Con không phải một mình.\"",
       replies: [{ speaker: "Bảy Vị Khách", role: "Cùng Nhau", avatar: "🤝", text: "Không một mình. Không bao giờ nữa." }] },
     { label: "✨ \"Rằng ở lại điều trị là một lựa chọn xứng đáng, và Thỏ Con xứng đáng được chăm sóc.\"",
@@ -100,9 +100,22 @@ const TWIST_BEATS = [
   ] }
 ];
 
+/* Chiếu một cảnh động của cánh cửa thứ hai rồi chạy bước kế tiếp (nếu không chiếu được thì chạy luôn) */
+function twistFx(kind, next) {
+  let called = false;
+  const go = () => { if (!called) { called = true; next(); } };
+  let ok = false;
+  try {
+    const av = (typeof STANDARD_GUEST_ORDER !== "undefined" ? STANDARD_GUEST_ORDER : []).map((id) => CHARACTERS[id] && CHARACTERS[id].avatar).filter(Boolean);
+    ok = typeof SceneFX !== "undefined" && SceneFX.play(kind, { avatars: av }, go);
+  } catch (e) { ok = false; }
+  if (!ok) go();
+}
+
 function runTwistScene(onDone) {
   twistStageMode = "all";
   const queue = [...TWIST_BEATS];
+  const fxSeen = new Set();
   let idx = 0;
   const area = document.getElementById("dialogue-action-area");
   const makeBtn = (label, cls, onClick) => {
@@ -123,6 +136,7 @@ function runTwistScene(onDone) {
       return;
     }
     const b = queue[idx];
+    if (b.fx && !fxSeen.has(b)) { fxSeen.add(b); twistFx(b.fx, step); return; }
     setDialogue(b.speaker, b.role, b.avatar, b.text, false);
     document.getElementById("stage-guest-label").textContent = "🐰 Thỏ Con & 7 vị khách";
     if (b.options) {
@@ -200,7 +214,17 @@ function startTwistEnding() {
   document.getElementById("dialogue-action-area").innerHTML = "";
   setDialogue("Thỏ Con", "Chủ Quán Nửa Đêm", "🐰", "Quầy gỗ vắng lặng. Ngọn đèn vàng vẫn sáng, như mọi đêm.", false);
   playCutsceneChain(["twist_01", "twist_02", "twist_03", "twist_04"], () =>
-    runTwistScene(() => playCutsceneChain(["twist_05", "twist_06", "twist_07", "secret_card_17"], finishTwistEnding))
+    twistFx("tw_book", () =>
+      runTwistScene(() =>
+        twistFx("tw_drink", () =>
+          playCutscene("twist_05", () =>
+            twistFx("tw_birds", () =>
+              playCutsceneChain(["twist_06", "twist_07", "secret_card_17"], finishTwistEnding)
+            )
+          )
+        )
+      )
+    )
   );
 }
 

@@ -1281,6 +1281,11 @@ class CafeStageRenderer {
     for (let i = this.hitboxes.length - 1; i >= 0; i--) {
       const box = this.hitboxes[i];
       if (x >= box.x && x <= box.x + box.w && y >= box.y && y <= box.y + box.h) {
+        // cận cảnh đồ vật (lần đầu + mỗi 10 lần): chiếu xong mới chạy hành động mặc định bên dưới
+        if (!this._fxBypass && typeof SceneFX !== "undefined" && SceneFX.touch(box, () => {
+          this._fxBypass = true;
+          try { this.handleTap(clientX, clientY); } finally { this._fxBypass = false; }
+        })) return;
         if (box.id === "lantern") {
           if (typeof devLanternTap === "function") devLanternTap();
           return;

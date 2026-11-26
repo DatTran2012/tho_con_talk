@@ -124,6 +124,7 @@ function renderDevTools() {
     btn("fxgift", "🏺 Xem thử cutscene ĐƯA KỶ VẬT + GHI NOTE (đổi khách mỗi lần)") +
     btn("fxrecipe", "🍹 Xem thử cutscene MỞ KHÓA CÔNG THỨC (đổi công thức mỗi lần)") +
     btn("fxscenes", "🎬 Xem thử cutscene MỚI (mở/đóng quán, chương, cửa bí mật, tuần, cassette, cây, mèo, tổng kết, thành tựu) — bấm để đổi cảnh") +
+    btn("fxobj", "🧸 Xem thử cận cảnh ĐỒ VẬT (chai, hồ cá, bếp, tủ, cây, ly, đồng hồ, radio, sách, cửa sổ, Thỏ Con, khách, đèn lồng) — bấm để đổi") +
     btn("clips", "📼 Thống kê file thoại mp3 / nhạc đã có") +
     btn("off", "⛔ Tắt chế độ dev");
   document.body.appendChild(fab);
@@ -162,6 +163,7 @@ function renderDevTools() {
     else if (k === "clips") devClipStats();
     else if (k === "fxcard") devPreviewCardFX();
     else if (k === "fxgift") devPreviewGiftFX();
+    else if (k === "fxobj") devPreviewObjects();
     else if (k === "fxscenes") devPreviewScenes();
     else if (k === "fxrecipe") devPreviewRecipeFX();
     else if (k === "fxserve") devPreviewServeFX();
@@ -234,14 +236,25 @@ function devPreviewServeFX() {
 
 let devSceneIdx = 0;
 function devPreviewScenes() {
-  const list = ["open", "close", "chapter", "secret", "week_ok", "week_fail", "cassette", "bloom", "cat", "month", "banner"], k = list[devSceneIdx++ % list.length];
+  const list = ["open", "close", "chapter", "secret", "week_ok", "week_fail", "cassette", "bloom", "cat", "month", "tw_book", "tw_card", "tw_drink", "tw_birds", "banner"], k = list[devSceneIdx++ % list.length];
   const g = CHARACTERS[STANDARD_GUEST_ORDER[devSceneIdx % STANDARD_GUEST_ORDER.length]];
   const ch = STORY_CHAPTERS[devSceneIdx % 4];
-  const D = { open: { night: 3, title: "Đêm thử", guest: g, short: false }, close: { line: "Quán đóng cửa" }, chapter: { no: ch.no, icon: ch.icon, name: ch.name, line: ch.desc }, secret: {}, week_ok: { ok: true, have: 3, need: 3 }, week_fail: { ok: false, have: 1, need: 3 }, cassette: { guestName: g.name.split(" (")[0], name: g.cassette && (g.cassette.name || g.cassette.title) }, bloom: {}, cat: {}, month: { guests: STANDARD_GUEST_ORDER.map((id) => CHARACTERS[id]), drinks: 88, endings: 33 } };
+  const D = { open: { night: 3, title: "Đêm thử", guest: g, short: false }, close: { line: "Quán đóng cửa" }, chapter: { no: ch.no, icon: ch.icon, name: ch.name, line: ch.desc }, secret: {}, week_ok: { ok: true, have: 3, need: 3 }, week_fail: { ok: false, have: 1, need: 3 }, cassette: { guestName: g.name.split(" (")[0], name: g.cassette && (g.cassette.name || g.cassette.title) }, bloom: {}, cat: {}, month: { guests: STANDARD_GUEST_ORDER.map((id) => CHARACTERS[id]), drinks: 88, endings: 33 }, tw_book: {}, tw_card: {}, tw_drink: {}, tw_birds: {} };
   showToast("🛠️ DEV: cảnh " + k);
   if (k === "banner") { if (!SceneFX.banner("🏆", "Thành tựu thử nghiệm", "Danh hiệu: Chủ Quán Thử")) showToast("🛠️ DEV: không chạy được"); return; }
   const kind = k.startsWith("week") ? "week" : k;
   if (!SceneFX.play(kind, D[k], null)) showToast("🛠️ DEV: không chạy được hiệu ứng (có thể đang bật giảm chuyển động)");
+}
+let devObjIdx = 0;
+function devPreviewObjects() {
+  const ids = ["bottle", "fishtank", "stove", "keepsakes", "plant", "cup", "cat", "clock", "radio", "shelf", "window", "bunny", "guest", "lantern"], id = ids[devObjIdx++ % ids.length];
+  const box = { id, idx: devObjIdx % 5, guest: CHARACTERS[STANDARD_GUEST_ORDER[devObjIdx % STANDARD_GUEST_ORDER.length]] };
+  showToast("🛠️ DEV: cận cảnh " + id);
+  if (id === "lantern") { if (!SceneFX.play("obj_lantern", {}, null)) showToast("🛠️ DEV: không chạy được"); return; }
+  const a = persistentArchive.objTaps || {}, keep = a[id]; persistentArchive.objTaps = a; a[id] = 0;   // ép chiếu như lần đầu
+  const ok = SceneFX.touch(box, null);
+  if (keep !== undefined) a[id] = keep; else delete a[id];
+  if (!ok) showToast("🛠️ DEV: không chạy được hiệu ứng (có thể đang bật giảm chuyển động)");
 }
 let devFxRecipeIdx = 0;
 function devPreviewRecipeFX() {

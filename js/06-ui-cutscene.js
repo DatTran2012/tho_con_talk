@@ -284,6 +284,8 @@ function syncGameHUD() {
   document.getElementById("hud-trust-val").textContent = runState.trust;
   document.getElementById("hud-clarity-val").textContent = runState.clarity;
   document.getElementById("hud-bond-val").textContent = runState.bond;
+  const silentEl = document.getElementById("hud-silent-val");
+  if (silentEl) silentEl.textContent = (runState.monthlyStanceCounts && runState.monthlyStanceCounts.silent) || 0;
 }
 
 let activeCutsceneCallback = null;

@@ -49,6 +49,7 @@ vì chúng dùng chung biến toàn cục.
 - **Ly hỏng:** hỏng ly bắt buộc pha lại; hết 3 lượt vẫn phải mời nhưng chỉ là Mộc Mạc.
 - **Hộp Thư Khuya (radio):** đêm 1–7 radio đọc một lá thư giấu tên của từng vị khách; vài đêm sau, người viết lỡ miệng nhắc lại. Đêm 28 radio đọc lá thư cuối của "một người gác đêm". Dữ liệu ở `STORY_EXTRAS` (`start:true`) trong `js/data/09-story-index.js`.
 - **Chuyện đời thường:** mỗi khách có một đoạn vừa buồn cười vừa nặng (giá cả, AI, hàng xóm, thuốc men...) chèn vào chương 2–3.
+- **Chỗ thở:** hầu hết các đêm có một chi tiết vặt vui vui (Bánh Quy, radio lạc sóng, chú vịt cao su...) đặt trước mốc cuối đêm, để chuyện nặng có chỗ lắng xuống (`STORY_EXTRAS`, mục "CHỖ THỞ").
 - **Đêm lắng nghe (đêm 16, cô Hoa):** bước `brew` có cờ `{ quiet: true }` → không minigame, chỉ rót một tách chậm; đổi lại cô Hoa nói luôn "lời thật" của chương 3.
 - **Kết "Khoảng Lặng" bỏ ngỏ:** 7 kết thuộc nhánh im lặng không khép trọn, để lại một câu hỏi (thư chưa gửi, bộ chén đũa thứ hai...).
 - **Lời thật:** pha một ly hoàn hảo cho khách thì họ nói thêm một điều ly thường không nghe được (mỗi khách 1 lời/chương, 28 lời).

@@ -170,6 +170,80 @@ const STORY_EXTRAS = [
     ["an", "Môn kiên nhẫn. Điểm chuẩn năm nào cũng cao hơn năm trước."]
   ] },
 
+
+  /* —— CHỖ THỞ: mỗi đêm một chi tiết vặt vui vui đặt trước mốc cuối, để chuyện nặng có chỗ lắng xuống —— */
+  { night: 1, beforeLastAt: true, steps: [
+    ["sys", "Bánh Quy nhảy lên quầy, ngồi đúng lên dòng ‘Hết đá’ trong sổ ghi đơn. Thỏ Con đành sửa thành ‘Hết đá, còn mèo’."]
+  ] },
+  { night: 2, beforeLastAt: true, steps: [
+    ["sys", "Chú vịt cao su lăn khỏi bàn, rơi vào ly đá. Nó nổi lềnh bềnh, trông bình thản hơn hẳn chủ của nó."]
+  ] },
+  { night: 3, beforeLastAt: true, steps: [
+    ["sys", "Radio lạc sóng giữa bản tin, chen vào một bài cải lương."],
+    ["linh", "Ít ra bài này không do máy viết. (gật gù) Mà hát nhỏ lại đi, nó giành lời của chị."]
+  ] },
+  { night: 4, beforeLastAt: true, steps: [
+    ["tuan", "Anh đi bảy cây số mà mưa chui vào tận… ba lô. Giờ cái hộp cơm của anh gần thành canh."]
+  ] },
+  { night: 5, beforeLastAt: true, steps: [
+    ["khang", "Mà sao trà quán có mùi sáp ong thế nhỉ?"],
+    ["host", "(chỉ vào tay áo anh) Mùi từ đó đó anh."]
+  ] },
+  { night: 6, beforeLastAt: true, steps: [
+    ["hoa", "Cô nướng dư hộp bánh gừng, cháu nhận giúp cô, đem về cũng không ai ăn."],
+    ["sys", "Bánh Quy nghe thấy chữ ‘bánh’, lập tức xuất hiện, ngồi nghiêm chỉnh như học trò ngoan."]
+  ] },
+  { night: 7, beforeLastAt: true, steps: [
+    ["an", "Mấy cái tên ly nước trên bảng viết theo vần gì mà vui thế hả cháu?"],
+    ["host", "Vần của cô chủ quán ạ."]
+  ] },
+  { night: 8, beforeLastAt: true, steps: [
+    ["sys", "Chiếc máy ghi âm của Vy bấm nhầm, thu luôn tiếng bác An ho khẽ. Hai người nghe lại và cùng bật cười: bản ghi đầu tiên có thêm nhạc nền."]
+  ] },
+  { night: 9, beforeLastAt: true, steps: [
+    ["sys", "Điện thoại Minh sáng lên tin nhắn của mẹ: ‘Con ăn cơm chưa?’ Anh nhìn nó như nhìn một lỗi hệ thống mà chưa ai viết tài liệu sửa."]
+  ] },
+  { night: 14, beforeLastAt: true, steps: [
+    ["sys", "Trong bóng tối, ai đó quơ tay chạm vào chuông gió, nó kêu một tiếng. Cả quán cùng hét lên, rồi cùng bật cười trong ánh nến."]
+  ] },
+  { night: 17, beforeLastAt: true, steps: [
+    ["sys", "Ba người nhường nhau bát cháo đầy cho tới lúc cháo nguội. Cuối cùng bát đầy thuộc về Bánh Quy, vì nó không biết nhường."]
+  ] },
+  { night: 19, beforeLastAt: true, steps: [
+    ["sys", "Bánh Quy bước qua bàn phím máy tính của Minh, gõ ra một dòng ‘jjjjjjj’."],
+    ["minh", "Đây là bản nháp tốt nhất tôi thấy trong tuần. Không lỗi logic nào."]
+  ] },
+  { night: 20, beforeLastAt: true, steps: [
+    ["hoa", "Dòng chi phí này anh ghi ‘khác’ ba năm nay mà chưa bao giờ ghi khác cái gì."],
+    ["khang", "(cười trừ) Khác… là khác thôi cô."]
+  ] },
+  { night: 21, beforeLastAt: true, steps: [
+    ["sys", "Ba chiếc đèn lồng giấy treo lệch nhau. Cả ba người cùng chỉnh, mỗi người một hướng, và cuối cùng chúng lại lệch đúng như ban đầu."]
+  ] },
+  { night: 22, beforeLastAt: true, steps: [
+    ["vy", "Em tính nhẩm rồi: nếu họ trả lương gấp ba, em sẽ mua cho chị cái ấm mới. Chị đừng nhìn cái ấm cũ như thế, nó nghe được đó."]
+  ] },
+  { night: 23, beforeLastAt: true, steps: [
+    ["minh", "Tôi đã viết ba bản đề xuất. Bản một có chín trang, bản hai có một trang, bản ba chỉ có một câu. Chú vịt thích bản thứ ba."]
+  ] },
+  { night: 24, beforeLastAt: true, steps: [
+    ["an", "Bác tập đọc ba trang này từ chiều, tập tới nỗi con mèo hàng xóm cũng thuộc."]
+  ] },
+  { night: 25, beforeLastAt: true, steps: [
+    ["hoa", "Cô tính lại giá ví ba lần, lần nào ra số cũng khác. Cô nghĩ không phải cô sai, chắc là con số sợ cô."]
+  ] },
+  { night: 26, beforeLastAt: true, steps: [
+    ["tuan", "Anh tập nói ‘Dạ em nhận việc’ trước gương ba lần, lần nào nhìn lên cũng thấy mình nghiêm mặt như đọc điếu văn."]
+  ] },
+  { night: 27, beforeLastAt: true, steps: [
+    ["khang", "Anh viết xong thư thì thấy ghi nhầm nghề: anh viết ‘thợ may’."],
+    ["an", "Cứ để vậy. Một năm nữa biết đâu anh đổi nghề thật, bác đọc lại sẽ thấy vui."]
+  ] },
+  { night: 28, beforeLastAt: true, steps: [
+    ["sys", "Bánh Quy chọn đúng lúc ấy để làm đổ ly nước cuối cùng. Không ai nỡ mắng."],
+    ["minh", "Tôi ghi vào sổ: sự cố hợp lý nhất của đêm nay."]
+  ] },
+
   /* —— khách phản ứng khác đi —— */
   { night: 19, after: "Tôi tình cờ đọc được", steps: [
     ["linh", "(đặt cây bút đỏ xuống) Đọc trộm thì chị bỏ qua. Nhưng cái máy của anh đang dạy người ta rằng viết chậm là có lỗi."],

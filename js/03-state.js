@@ -25,7 +25,7 @@ function createDefaultArchive() {
     },
     selectedLofiChannel: "seasonal_auto",
     rainVolume: 0.45,
-    voiceEnabled: true,
+    voiceEnabled: false,
     voiceV2: true,
     autoAdvance: true,
     voiceRate: 0.95,
@@ -48,6 +48,9 @@ function createDefaultArchive() {
     clockTapCount: 0,
     twistEndingSeen: false,
     twistAnnounced: false,
+    twistEndings: {},
+    truthsHeard: {},
+    endingDrinks: {},
     thanksSeen: false
   };
 }
@@ -74,7 +77,7 @@ function sanitizeArchive(rawObj) {
     selectedSeasonTheme: validSeason,
     rainVolume: Math.min(1, Math.max(0, Number(rawObj.rainVolume) || 0.45)),
     // Save cũ: bật giọng đọc một lần, sau đó giữ đúng lựa chọn của người chơi
-    voiceEnabled: rawObj.voiceV2 ? Boolean(rawObj.voiceEnabled) : true,
+    voiceEnabled: rawObj.voiceV2 ? Boolean(rawObj.voiceEnabled) : false,
     voiceV2: true,
     autoAdvance: rawObj.autoAdvance === undefined ? true : Boolean(rawObj.autoAdvance),
     voiceRate: Math.min(2.5, Math.max(0.6, Number(rawObj.voiceRate) || 0.95)),
@@ -105,6 +108,9 @@ function sanitizeArchive(rawObj) {
     clockTapCount: Math.max(0, Number(rawObj.clockTapCount) || 0),
     twistEndingSeen: Boolean(rawObj.twistEndingSeen),
     twistAnnounced: Boolean(rawObj.twistAnnounced),
+    twistEndings: safeObj(rawObj.twistEndings, {}),
+    truthsHeard: safeObj(rawObj.truthsHeard, {}),
+    endingDrinks: safeObj(rawObj.endingDrinks, {}),
     thanksSeen: Boolean(rawObj.thanksSeen)
   };
 }
@@ -241,7 +247,6 @@ let twistStageMode = null; // null | "alone" | "all"
 function getStageVisibleGuests() {
   if (twistStageMode === "alone") return [];
   if (twistStageMode === "all") return STANDARD_GUEST_ORDER.map((id) => CHARACTERS[id]);
-  const slot = getCurrentNightSlot();
   const guests = getCurrentNightGuests();
   if (runState && Array.isArray(runState.presentGuests)) {
     return runState.presentGuests.map((id) => CHARACTERS[id]).filter(Boolean);
@@ -250,7 +255,7 @@ function getStageVisibleGuests() {
 }
 
 /* ---- Helper đếm tiến độ sưu tầm (dùng chung cho HUD, bí mật, thành tựu) ---- */
-const TOTAL_ENDINGS = 33;
+const TOTAL_ENDINGS = 21; // 7 vị khách × 3 nhánh, mở ở Chương 4
 
 /* Đếm số mục đã mở nhưng chỉ tính những mục còn nằm trong danh mục (tránh vượt tổng khi save cũ có id lạ) */
 function countUnlockedIn(list, map) {
@@ -320,8 +325,12 @@ function openBookshelf() {
   openModal("modal-history");
 }
 
+function validEndingIds() {
+  return Object.keys(SOLO_ENDINGS_DATA).flatMap((g) => ["heart", "mind", "silent"].map((b) => `${g}_${b}`));
+}
 function countUnlockedEndings(archive = persistentArchive) {
-  return Object.keys(archive.unlockedEndings).length;
+  // chỉ đếm các kết cục còn hiệu lực (save cũ có thể còn kết cục song khách đã bỏ)
+  return validEndingIds().filter((id) => archive.unlockedEndings[id]).length;
 }
 
 function getDiscoveredEggs(archive = persistentArchive) {

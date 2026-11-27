@@ -10,7 +10,7 @@ const STORY_CH4 = [
   /* ========== ĐÊM 22 — VY ========== */
   {
     ch: 4, n: 1, t0: "21:00", icon: "🎙️", title: "Lời Mời Từ Tòa Soạn Lớn",
-    guests: ["vy"], end: null,
+    guests: ["vy"], end: "solo:vy",
     close: "Vy chọn kể chuyện bằng giọng của mình thay vì giọng của một cỗ máy.",
     intro: [
       "Tuần thứ tư. Cuộc suy thoái vẫn chưa hết, giá cả vẫn đắt đỏ, nhưng người ta bắt đầu nói về chuyện sau này: sau mùa mưa, mình sẽ làm gì?",
@@ -50,7 +50,7 @@ const STORY_CH4 = [
   /* ========== ĐÊM 23 — MINH ========== */
   {
     ch: 4, n: 2, t0: "01:30", icon: "🧭", title: "La Bàn Trong Dòng Mã",
-    guests: ["minh"], end: null,
+    guests: ["minh"], end: "solo:minh",
     close: "Minh chọn con đường vừa giữ nghề, vừa giữ lương tâm.",
     intro: [
       "Đêm thứ hai của tuần thứ tư. Công ty của Minh thông báo giai đoạn hai của kế hoạch tự động hóa. Có một lời đề nghị: lên chức, tăng lương, đổi lại là ký vào bản kế hoạch cắt giảm lớn hơn.",
@@ -88,7 +88,7 @@ const STORY_CH4 = [
   /* ========== ĐÊM 24 — CHỊ LINH & BÁC AN ========== */
   {
     ch: 4, n: 3, t0: "19:00", icon: "📖", title: "Buổi Đọc Chậm Đầu Tiên",
-    guests: ["linh", "an"], end: null,
+    guests: ["linh", "an"], end: "solo:linh+an",
     close: "Cuốn sổ đỏ được đọc lên thành tiếng giữa quán, và lần đầu tiên có người khóc vì một trang chữ viết tay.",
     intro: [
       "Đêm thứ ba của tuần thứ tư. Cuốn tản văn của chị Linh vừa in xong một trăm bản, bìa vải bố do anh Khang ép nóng. Giá giấy đã tăng thêm hai lần kể từ khi chị gửi bản thảo, nhưng sách vẫn ra được.",
@@ -133,7 +133,7 @@ const STORY_CH4 = [
   /* ========== ĐÊM 25 — ANH KHANG & CÔ HOA ========== */
   {
     ch: 4, n: 4, t0: "22:00", icon: "👜", title: "Lô Ví Mang Tên Cô Hoa",
-    guests: ["khang", "hoa"], end: null,
+    guests: ["khang", "hoa"], end: "solo:khang+hoa",
     close: "Xưởng da giữ được cả mười hai người thợ, và cô Hoa tìm ra việc mình muốn làm đến cuối đời.",
     intro: [
       "Đêm thứ tư của tuần thứ tư. Lô ví đầu tiên theo bảng giá mới đã bán hết sạch trong ba ngày. Có người đặt hàng từ tận nước ngoài.",
@@ -177,7 +177,7 @@ const STORY_CH4 = [
   /* ========== ĐÊM 26 — ANH TUẤN ========== */
   {
     ch: 4, n: 5, t0: "02:00", icon: "🧒", title: "Tờ Giấy Siêu Nhân Lớn Lên",
-    guests: ["tuan"], end: null,
+    guests: ["tuan"], end: "solo:tuan",
     close: "Anh Tuấn nhìn thấy tương lai của hai đứa nhỏ, và cả của chính mình.",
     intro: [
       "Đêm thứ năm của tuần thứ tư. Giá sữa, giá học phí, giá xăng đều tăng, nhưng ở đầu hẻm, một tấm biển vẫn treo đó: ‘Trạm Bảo Trì Xe Điện — Tuyển Thợ Lành Nghề’.",

@@ -9,7 +9,7 @@ const STORY_CH2 = [
   /* ========== ĐÊM 8 — VY & BÁC AN ========== */
   {
     ch: 2, n: 1, t0: "21:30", icon: "🎙️", title: "Chiếc Máy Ghi Âm Gặp Cuốn Sách Cũ",
-    guests: ["vy", "an"], end: "duo:vy_an",
+    guests: ["vy", "an"], end: null,
     intro: [
       "Tuần thứ hai của Tháng Mưa. Giá gạo lại nhích thêm, ba trung tâm thương mại mới mọc lên, và trên mạng ngập những bản tin viết bằng máy, đọc trơn tru mà chẳng ai nhớ nổi một chữ.",
       "Lần này Thỏ Con mở cửa sớm hơn. Chín giờ rưỡi tối, đèn lồng đã sáng. Ai đó trong con hẻm hình như vừa nhắc đến tên quán."
@@ -69,7 +69,7 @@ const STORY_CH2 = [
   /* ========== ĐÊM 9 — MINH & CÔ HOA ========== */
   {
     ch: 2, n: 2, t0: "22:00", icon: "🧮", title: "Hai Thế Hệ Một Màn Hình",
-    guests: ["minh", "hoa"], end: "duo:minh_hoa",
+    guests: ["minh", "hoa"], end: null,
     intro: [
       "Tối thứ hai của tuần thứ hai. Bản tin giá cả đọc lên: xăng lên, điện lên, gạo lên. Người ta bảo suy thoái chưa chạm đáy. Trong các tòa nhà văn phòng, thêm một phần mềm mới vừa được bật.",
       "Thỏ Con đặt hai chiếc chén sứ cạnh nhau trên quầy. Một chén có hoa cúc, một chén có hạt dẻ rang."
@@ -127,7 +127,7 @@ const STORY_CH2 = [
   /* ========== ĐÊM 10 — LINH & KHANG ========== */
   {
     ch: 2, n: 3, t0: "23:00", icon: "📘", title: "Bìa Da Cho Trang Sách Đỏ",
-    guests: ["linh", "khang"], end: "duo:linh_khang",
+    guests: ["linh", "khang"], end: null,
     intro: [
       "Đêm thứ ba của tuần thứ hai. Nhà xuất bản độc lập đầu phố thông báo tăng giá giấy ba lần trong sáu tháng. Giá da thuộc cũng chưa dừng lại.",
       "Thỏ Con lấy ra hai tấm lót ly, một bằng vải, một bằng da sáp ong do ai đó từng làm tặng. Đêm nay có vẻ sẽ cần cả hai."
@@ -183,7 +183,7 @@ const STORY_CH2 = [
   /* ========== ĐÊM 11 — ANH TUẤN & MINH ========== */
   {
     ch: 2, n: 4, t0: "01:00", icon: "📱", title: "Thuật Toán Gặp Người Cầm Lái",
-    guests: ["tuan", "minh"], end: "duo:tuan_minh",
+    guests: ["tuan", "minh"], end: null,
     intro: [
       "Đêm thứ tư của tuần thứ hai. Ứng dụng giao hàng vừa thay đổi cách tính điểm, tài xế bị trừ điểm nếu từ chối đơn trong vùng ngập. Cùng lúc ấy, một kỹ sư ở tòa nhà kính cuối phố đang rà một đoạn mã tính điểm tương tự.",
       "Thỏ Con đặt một chiếc mũ bảo hiểm cũ lên giá cạnh cửa. Chủ nhân của nó chắc sắp ghé."
@@ -240,7 +240,7 @@ const STORY_CH2 = [
   /* ========== ĐÊM 12 — ANH TUẤN & CÔ HOA ========== */
   {
     ch: 2, n: 5, t0: "20:30", icon: "🍲", title: "Bữa Cơm Giá Gạo Tăng",
-    guests: ["hoa", "tuan"], end: "duo:tuan_hoa",
+    guests: ["hoa", "tuan"], end: null,
     intro: [
       "Đêm thứ năm của tuần thứ hai, và là buổi tối sớm nhất từ khi quán mở. Giá gạo lại lên, giá dầu ăn cũng vậy. Ở chợ cuối phố, người ta đếm từng quả trứng.",
       "Thỏ Con bày ra một nồi cháo nhỏ trên bếp than, để dành cho những ai chưa kịp ăn tối."
@@ -297,7 +297,7 @@ const STORY_CH2 = [
   /* ========== ĐÊM 13 — CHỊ LINH & BÁC AN ========== */
   {
     ch: 2, n: 6, t0: "22:30", icon: "✒️", title: "Cuộc Đối Thoại Giữa Hai Cây Bút",
-    guests: ["linh", "an"], end: "duo:linh_an",
+    guests: ["linh", "an"], end: null,
     intro: [
       "Đêm thứ sáu của tuần thứ hai. Hiệu sách cũ đã đóng cửa, ngay chỗ ấy người ta đã dựng xong biển quảng cáo điện tử của một trung tâm thương mại mới, chiếu sáng cả con phố. Cuốn sách cuối cùng của hiệu cũ đã được đóng thùng.",
       "Thỏ Con kê hai chiếc ghế cạnh kệ sách ở góc quán. Kệ giờ đã có sáu cuốn, tất cả đều do bác An mang tới."

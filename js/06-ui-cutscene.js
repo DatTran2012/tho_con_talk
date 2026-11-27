@@ -186,7 +186,6 @@ function setDialogue(speakerName, speakerRole, avatar, text, canAdvance = true, 
 
   // Giọng đọc: chỉ đọc lời thoại của nhân vật, mỗi người một giọng
   currentVoiceItems = view.speech.map((s) => ({ text: s.text, speaker: s.speaker }));
-  const spokenText = view.speech.map((s) => s.text).join(" ");
   let onVoiceDone = null;
   const spoke = currentVoiceItems.length > 0 && CafeVoice.isOn();
   if (canAdvance) {
@@ -313,7 +312,18 @@ function playCutscene(cutsceneId, onDone = null, nightMeta = null) {
   }
   document.getElementById("cs-player-title").textContent = cs.title;
   if (Array.isArray(cs.pages) && cs.pages.length > 0) {
-    activeCutscenePages = { pages: cs.pages, idx: 0, location: cs.location };
+    let pages = cs.pages;
+    const ed = persistentArchive.endingDrinks && persistentArchive.endingDrinks[cs.id];
+    if (ed && ed.name && pages.length >= 2) {
+      const q = /Hoàn Hảo/.test(ed.quality) ? "perfect" : /Chuẩn/.test(ed.quality) ? "good" : "plain";
+      const line = {
+        perfect: `Và ly ${ed.name} đêm ấy — đúng thứ ${ed.who} cần — là điều ${ed.who} nhớ lâu nhất. Không phải lời khuyên nào, mà là hơi ấm giữ trong lòng bàn tay đến tận lúc bước ra khỏi quán.`,
+        good: `Ly ${ed.name} đêm ấy không rực rỡ, nhưng đủ ấm. ${ed.who} nhớ mình đã cầm nó rất lâu trước khi dám nói điều thật lòng.`,
+        plain: `Ly ${ed.name} đêm ấy mộc mạc thôi, hơi nhạt, hơi lệch vị — vậy mà ${ed.who} vẫn uống hết, và vẫn nhớ. Có những lúc người ta cần một ly nước được pha bằng sự chịu ngồi lại, hơn là một ly pha cho đúng.`
+      }[q];
+      pages = [pages[0], { icon: "🍹", text: line }, ...pages.slice(1)];
+    }
+    activeCutscenePages = { pages, idx: 0, location: cs.location };
     renderCutscenePage();
   } else {
     activeCutscenePages = null;

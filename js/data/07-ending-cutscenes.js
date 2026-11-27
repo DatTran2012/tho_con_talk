@@ -3,67 +3,40 @@
 /* ---- CUTSCENE NGẮN CHO TỪNG KẾT CỤC (3 trang: khoảnh khắc ra về → hậu truyện → bản tin radio) ---- */
 const SOLO_ENDING_SCENES = {
   vy: {
-    heart: "Sáng hôm sau, Vy không nộp thêm hồ sơ nào nữa. Cô đeo máy ghi âm, đi bộ ra bến xe buýt đầu tiên, ngồi xuống cạnh một bác tài gác đêm và hỏi: \"Bác kể cháu nghe một đêm làm việc của bác được không ạ?\"",
-    mind: "Trong phòng trọ, Vy mở bảng dữ liệu và gạch đầu dòng kế hoạch cho kênh phóng sự độc lập: tên kênh, mười nhân vật đầu tiên, lịch đăng mỗi tuần. Tối đó cô đăng tập đầu tiên, và con số lượt xem nhỏ xíu khiến cô cười đến rưng rưng.",
-    silent: "Vy bước ra hẻm mà chưa vội viết gì. Cô bật máy ghi âm chỉ để thu tiếng mưa tạnh dần trên mái tôn, rồi lặng lẽ nghe lại chính tiếng ấy suốt quãng đường về."
+    heart: "Sáng hôm sau, Vy bấm gửi lá thư trả lời tòa soạn. Rồi cô đeo máy ghi âm, đi bộ ra bến xe buýt đầu tiên, ngồi xuống cạnh một bác tài gác đêm và hỏi: \"Bác kể cháu nghe một đêm làm việc của bác được không ạ?\"",
+    mind: "Trong phòng trọ, Vy mở bảng kế hoạch cho chuyên mục riêng: tên chuyên mục, mười nhân vật đầu tiên, lịch đăng mỗi tháng. Cô gửi bản đề xuất cho tòa soạn, và dòng chữ \"mỗi tháng một nhân vật\" khiến cô cười đến rưng rưng.",
+    silent: "Vy ngồi lại bên cửa sổ khi mọi người đã đi. Bức thư trả lời nằm trong điện thoại, chưa gửi. Cô nhìn nút gửi một lúc lâu, rồi úp màn hình xuống bàn.",
   },
   minh: {
-    heart: "Trên chuyến xe buýt sớm, Minh mở máy phác thảo giao diện một ứng dụng nhỏ: nơi các quán ăn đăng suất cơm dư mỗi tối. Lần đầu sau nhiều tháng, anh quên kiểm tra email.",
-    mind: "Minh vào văn phòng sớm hơn mọi ngày và viết lên bảng trắng một dòng chữ to: \"Công cụ phải nâng đỡ con người trước.\" Rồi anh bắt đầu vẽ lại cả sơ đồ hệ thống.",
-    silent: "Minh tháo kính, lau thật chậm bằng vạt áo rồi đeo lại. Anh bước ra phố trong im lặng, đôi vai đã hạ xuống một nấc, và điện thoại nằm yên trong túi suốt cả đoạn đường."
+    heart: "Trên chuyến xe buýt sớm, Minh soạn một email ngắn gửi ban giám đốc: \"Tôi xin không ký.\" Anh bấm gửi, rồi lần đầu sau nhiều tháng, anh quên kiểm tra hộp thư.",
+    mind: "Minh vào văn phòng sớm hơn mọi ngày, đặt bản đề xuất đào tạo lại lên bàn ban giám đốc và viết lên bảng trắng một dòng chữ to: \"Công cụ phải nâng đỡ con người trước.\"",
+    silent: "Minh đặt chiếc vịt cao su lên bàn phím, bản đề xuất nằm bên cạnh. Con trỏ nhấp nháy ở dòng cuối cùng. Anh không gõ thêm, cũng không xóa.",
   },
   linh: {
-    heart: "Trên chuyến xe điện đầu ngày, chị Linh mở cuốn sổ bìa đỏ, viết dòng đầu cho chương mới: \"Có những người thức khuya chỉ để giữ cho thành phố bớt lạnh.\" Ngòi bút lần này không còn run.",
-    mind: "Chị Linh soạn một email dài gửi nhà xuất bản độc lập, đính kèm ba chương bản thảo. Trước khi bấm gửi, chị khẽ đọc to lời giới thiệu như đọc cho một người bạn nghe.",
-    silent: "Chị Linh khép cuốn sổ, ôm nó vào lòng rồi đi chậm dọc con hẻm. Chị không viết gì cả, chỉ để từng bước chân tự tìm lại nhịp của câu văn."
+    heart: "Sáng hôm sau, chị Linh mở cuốn sổ bìa đỏ, viết dòng đầu cho cuốn thứ hai: \"Có những người thức khuya chỉ để giữ cho thành phố bớt lạnh.\" Ngòi bút lần này không còn run.",
+    mind: "Trong góc quán mượn làm phòng thu, bác An ngồi trước chiếc micro nhỏ, chị Linh ngồi bên bấm nghỉ mỗi khi giọng bác nghẹn. Bản thu đầu tiên xong, chị gửi tập tin về quê cho mẹ.",
+    silent: "Chị Linh để cây bút đỏ cạnh cuốn sổ mới. Trang đầu còn trắng. Chị cầm bút xanh lên, rồi lại đặt xuống.",
   },
   tuan: {
-    heart: "Anh Tuấn chạy nốt chuyến cuối rồi ghé mua hai phần xôi nóng. Về tới đầu ngõ, hai đứa nhỏ đã đứng chờ, reo to: \"Bố về rồi!\", và cả đêm mệt nhọc tan đi trong một cái ôm.",
-    mind: "Giao ca xong, anh Tuấn không về nhà ngay. Anh lau tay, cầm xấp hồ sơ, đi thẳng tới xưởng bảo trì xe điện và gõ cửa phòng tuyển dụng.",
-    silent: "Anh Tuấn ngồi thêm một lúc bên ấm nước nguội dần rồi gật đầu với chính mình. Anh đội mũ, bước ra đường, và tiếng động cơ lần này nghe êm hơn hẳn."
+    heart: "Anh Tuấn chạy nốt chuyến cuối rồi ghé mua hai phần xôi nóng. Về tới đầu ngõ, hai đứa nhỏ đã đứng chờ, reo to: \"Bố về rồi!\", và tờ giấy siêu nhân bước lên tường bếp.",
+    mind: "Anh Tuấn mở tờ bảng chi tiêu, gạch dòng \"chạy đêm\" sau ba tháng, rồi đi thẳng tới xưởng bảo trì xe điện và bắt tay trưởng xưởng.",
+    silent: "Anh Tuấn gấp tờ giấy siêu nhân làm tư, nhét vào túi áo. Ngoài cửa, chiếc xe vẫn đỗ đó, đèn pha chưa bật.",
   },
   khang: {
     heart: "Về tới xưởng, anh Khang bật đèn trước khi các anh em đến. Anh trải một tấm da sáp ong lên bàn, đặt từng mũi kim, và khi mười hai người thợ bước vào, mùi sáp ong đã thơm khắp gian xưởng.",
-    mind: "Anh Khang cầm phấn, viết lên bảng đen của xưởng một lịch mới: thứ Hai đến thứ Sáu chế tác, cuối tuần mở cửa đón khách trải nghiệm. Các anh em đọc xong, ai cũng gật đầu.",
-    silent: "Anh Khang ngồi bên bàn gỗ, mân mê chiếc thẻ da nhỏ trong tay mà không nói gì. Ánh sáng đầu ngày chạm lên đôi bàn tay chai sần, và anh thấy lòng yên."
+    mind: "Anh Khang cầm phấn, viết lên bảng đen của xưởng: \"Thứ Bảy: Da và sổ sách. Ba buổi, mười chỗ.\" Cô Hoa đứng cạnh chỉnh lại nét chữ, các anh em đọc xong, ai cũng gật đầu.",
+    silent: "Anh Khang mân mê chiếc thẻ da nhỏ mà không nói gì. Mũi chỉ cuối cùng còn dở trên bàn gỗ, ánh sáng đầu ngày chạm vào đôi bàn tay chai sần.",
   },
   hoa: {
-    heart: "Cô Hoa đi chợ sớm, mua đúng món con trai thích. Khi cậu bước ra khỏi phòng với mái tóc rối, cô chỉ hỏi: \"Hôm nay con ăn có ngon không?\", và hai mẹ con cùng bật cười.",
-    mind: "Tối hôm đó, cô Hoa ngồi cạnh con trai, mở chiếc bảng tính mới. Cậu chỉ từng ô, từng công thức, còn cô ghi chép cẩn thận như một học trò chăm chỉ.",
-    silent: "Cô Hoa quấn chiếc khăn len lên vai, ngồi lặng bên cửa sổ nhìn trời sáng dần. Lần đầu sau nhiều tuần, cô ngủ một giấc thật sâu."
+    heart: "Cô Hoa đi chợ sớm, mua nhiều hơn mọi lần. Cô xách một nồi canh lớn tới xưởng, trong chiếc ví mới có tiền chợ và một mẩu giấy: \"Cho mười hai người thợ và một người con trai.\"",
+    mind: "Tối hôm đó, cô Hoa soạn giáo án ba buổi trên bảng tính: cột nào dành cho tiền da, cột nào cho tiền công. Cô ghi cẩn thận như một học trò chăm chỉ.",
+    silent: "Cô Hoa quấn chiếc khăn len lên vai, ngồi bên cửa sổ nhìn trời sáng dần. Trên bàn bếp, hai bộ chén đũa vẫn đặt cạnh nhau.",
   },
   an: {
-    heart: "Bác An đứng trước một buổi giao lưu thơ đông kín người. Bác cất giọng đọc, những gương mặt trẻ lặng đi, rồi tiếng vỗ tay vang lên.",
+    heart: "Bác An đứng trước một buổi đọc chậm đông kín người. Bác cất giọng, nghẹn ở câu đầu, rồi đọc tiếp. Những gương mặt trẻ lặng đi, và tiếng vỗ tay vang lên.",
     mind: "Bác An bê chiếc thùng sách đầu tiên tới quán, xếp lên kệ gỗ bên cửa sổ. Trên gáy mỗi cuốn, bác dán một nhãn mực tím: \"Mượn miễn phí, trả lúc nào cũng được.\"",
-    silent: "Bác An ngồi bên cửa sổ quán thêm một lúc, nhẩm lại một bài thơ cũ. Giọng đọc rất khẽ, chỉ đủ cho chú mèo tam thể nghe."
-  }
-};
-
-const DUO_ENDING_SCENES = {
-  vy_an: {
-    heart: "Chiều hôm sau, Vy tới hiệu sách cũ trước giờ đóng cửa. Bác An pha trà, lật từng lá thư của học trò xưa, còn Vy bật máy ghi âm, nghe say sưa cho tới khi nắng tắt.",
-    mind: "Hai người trải tấm bản đồ khu phố lên bàn: mỗi chấm đỏ là một người cần được ghi lại. Vy đánh số, bác An đặt tên, và \"Ký Ức Hẻm Nhỏ\" bắt đầu từ chiếc bàn ấy."
+    silent: "Bác An ngồi bên cửa sổ, nhẩm lại một bài thơ cũ. Trong túi áo có một lá thư chưa dán tem. Bác chạm vào nó, rồi lại thôi.",
   },
-  minh_hoa: {
-    heart: "Cuối tuần, Minh mua vé xe về quê thăm mẹ. Cùng lúc đó, cô Hoa gõ cửa phòng con trai, mang theo đĩa trái cây, và lần này cậu mở cửa.",
-    mind: "Cô Hoa ngồi trước máy tính, Minh chỉ cho cô vài phím tắt. Cô ghi vào sổ từng bước, rồi cả hai hẹn nhau mở một lớp nhỏ cho các cô chú cùng tuổi."
-  },
-  linh_khang: {
-    heart: "Anh Khang cắt một tấm da mềm, chị Linh chọn trang giấy đầu tiên. Hai món thủ công đặt cạnh nhau trên bàn gỗ, và một cuốn sổ bọc da sáp ong dần thành hình.",
-    mind: "Hai người ngồi vạch kế hoạch cho bộ sưu tập: ngày ra mắt, số lượng giới hạn, câu chuyện của từng người thợ. Mỗi dòng viết xong, anh Khang lại gõ nhẹ lên bàn như đóng một mũi chỉ."
-  },
-  tuan_minh: {
-    heart: "Hôm sau, Minh ngồi sau xe anh Tuấn trong một chuyến giao hàng ngắn, nhìn qua vai anh những con đường ngập mưa. Hai người không nói nhiều, nhưng Minh hiểu nhiều hơn cả ngàn dòng báo cáo.",
-    mind: "Minh mở màn hình, nhập vào hệ thống một dòng mới: \"Điều chỉnh thời gian khi mưa ngập.\" Anh Tuấn đứng sau lưng, gật gù: \"Đấy, đúng chỗ đó!\""
-  },
-  tuan_hoa: {
-    heart: "Anh Tuấn và cô Hoa chia tay nhau ở đầu ngõ, mỗi người một hướng về nhà. Cả hai cùng ngoái lại vẫy tay, như hai người hàng xóm quen nhau từ lâu.",
-    mind: "Anh Tuấn đưa cô Hoa tờ thông tin về lớp bổ túc kỹ thuật, cô Hoa ghi lại địa chỉ một khóa học số. Hai người đổi số điện thoại, hẹn nhắn nhau khi có kết quả."
-  },
-  linh_an: {
-    heart: "Bác An viết lên trang đầu một cuốn sổ trắng: \"Tặng cô học trò của cuộc đời.\" Chị Linh đón lấy, không nói được lời nào, chỉ cúi đầu thật sâu.",
-    mind: "Hai người chọn ra mười cuốn sách đầu tiên cho câu lạc bộ đọc chậm, mỗi cuốn kẹp một tờ giấy câu hỏi. Chị Linh viết, bác An đọc lại, và tờ nào cũng có một nét mực tím."
-  }
 };
 
 function buildEndingPages(icon, scene, summary, radioNews) {
@@ -88,7 +61,14 @@ const TWIST_CUTSCENES = [
   { id: "twist_06", icon: "🕊️🎗️", location: "LỜI TRI ÂN • GỬI NHỮNG NGƯỜI ĐANG CHIẾN ĐẤU", title: "Gửi Những Người Đã Và Đang Đi Qua Ung Thư",
     caption: "Trò chơi này xin gửi tới những người đã và đang chiến đấu với ung thư, đặc biệt là những ai từng có lúc kiệt sức, tuyệt vọng, tưởng mình chỉ là gánh nặng. Nỗi sợ ấy là thật, và bạn không có lỗi khi cảm thấy như vậy.\n\nBạn xứng đáng được nâng đỡ. Nếu bạn đang nặng lòng, hãy nói với một người bạn tin tưởng, với bác sĩ hoặc chuyên viên tâm lý, hoặc gọi đường dây hỗ trợ khủng hoảng tại nơi bạn sống. Xin đừng giữ một mình.\n\nVà xin cúi đầu tri ân những người đã không thể ở lại tới sáng: ngọn đèn này cũng được thắp lên vì các bạn." },
   { id: "twist_07", icon: "🏮🐰🌅", location: "05:30 • NGỌN ĐÈN VẪN SÁNG", title: "Ai Cũng Có Thể Đến — Kể Cả Người Gác Đèn",
-    caption: "Mưa tạnh. Tia nắng đầu tiên chạm vào ô cửa, rọi lên quầy gỗ nơi tám con người ngồi cạnh nhau. Thỏ Con vẫn còn một chặng đường điều trị dài phía trước, nhưng không còn đi một mình.\n\nHóa ra dòng chữ dưới đáy ly năm nào cũng là lời gửi cho chính người giữ đèn: \"Giữ ngọn đèn này sáng không phải vì có ai đến — mà vì ai cũng có thể đến.\" Kể cả bạn." }
+    caption: "Mưa tạnh. Tia nắng đầu tiên chạm vào ô cửa, rọi lên quầy gỗ nơi tám con người ngồi cạnh nhau. Thỏ Con vẫn còn một chặng đường điều trị dài phía trước, nhưng không còn đi một mình.\n\nHóa ra dòng chữ dưới đáy ly năm nào cũng là lời gửi cho chính người giữ đèn: \"Giữ ngọn đèn này sáng không phải vì có ai đến — mà vì ai cũng có thể đến.\" Kể cả bạn." },
+  /* Ba cách Thỏ Con kết thúc Cánh Cửa Thứ Hai (tùy lời bạn đã chọn trong cảnh bảy người) */
+  { id: "twist_end_heart", icon: "🪑🤍🐰", location: "05:45 • TÁM CHIẾC GHẾ", title: "Tám Chiếc Ghế Quanh Quầy",
+    caption: "Thỏ Con không giấu nữa. Có đêm cô khóc ngay trên vai anh Tuấn, có đêm cô cười đến ngộp thở vì chuyện chú vịt cao su của Minh. Không ai nói được câu nào thật sáng suốt. Họ chỉ ở đó.\n\nTừ hôm ấy, quán kê thêm chiếc ghế thứ tám cạnh bếp than, chiếc ghế của người gác đèn. Tối nào cũng có ai đó ngồi vào chiếc ghế bên cạnh, để Thỏ Con biết mình không phải người duy nhất được phép yếu đuối.\n\nNhững buổi sáng ở viện vẫn dài. Nhưng mỗi lần cô bước ra, luôn có một bàn tay đang chờ ngoài cửa." },
+  { id: "twist_end_mind", icon: "📅🖋️🐰", location: "05:45 • TẤM LỊCH TRÊN TƯỜNG", title: "Tấm Lịch Trên Tường",
+    caption: "Thỏ Con trải tờ giấy hẹn lên quầy. Bảy người cùng đọc, cùng ghi. Chị Linh kẻ bảng bằng bút đỏ. Minh cài nhắc lịch. Anh Tuấn nhận cung đường mỗi sáng, cô Hoa nhận phần cháo nóng, anh Khang nhận chiếc áo ấm, bác An nhận những buổi chiều đọc sách bên giường, còn Vy nhận việc ghi lại để sau này Thỏ Con đọc lại và biết mình đã đi qua như thế nào.\n\nTấm lịch được dán lên tường quán, ô nào cũng có một cái tên. Ô cuối cùng để trống, ghi: “Ngày Thỏ Con khỏe lại. Chưa biết là khi nào, cứ để trống.”\n\nThỏ Con nhìn nó thật lâu: “Hóa ra đi điều trị cũng có thể là một kế hoạch, không chỉ là một bản án.”" },
+  { id: "twist_end_silent", icon: "🌙🧣🐰", location: "05:45 • GIẤC NGỦ ĐẦU TIÊN", title: "Giấc Ngủ Đầu Tiên",
+    caption: "Thỏ Con không nói gì. Cô đặt tờ giấy hẹn lên quầy rồi để im lặng nói thay. Không ai hỏi, không ai khuyên. Cô Hoa khoác chiếc khăn len lên vai cô. Anh Khang kéo chiếc ghế gần bếp than lại. Bác An đọc rất khẽ một bài thơ.\n\nLần đầu sau nhiều tháng, Thỏ Con ngủ gục ngay trên quầy, ly nước vẫn còn ấm bên tay. Bảy người ngồi canh đèn thay cô, không ai dám bật radio, cho đến khi mặt trời lên hẳn.\n\nKhi Thỏ Con tỉnh dậy, nắng đã rọi đầy quán. Trên quầy là bảy ly nước đã nguội và bảy mẩu giấy nhỏ: “Khi nào em muốn nói, tụi anh chị vẫn ở đây.”" }
 ];
 
 const CUTSCENE_CATALOG = [
@@ -114,29 +94,6 @@ const CUTSCENE_CATALOG = [
         branches[bKey].radioNews
       )
     }));
-  }),
-
-  ...Object.values(DUO_PAIRINGS).flatMap((duo) => {
-    const g1 = CHARACTERS[duo.guests[0]];
-    const g2 = CHARACTERS[duo.guests[1]];
-    return [
-      {
-        id: `duo_${duo.id}_heart`,
-        icon: `${g1.avatar}🤝${g2.avatar}`,
-        location: `GIAO THOA TRÁI TIM • ${g1.name.split(" (")[0].toUpperCase()} & ${g2.name.split(" (")[0].toUpperCase()}`,
-        title: duo.endings.heart.title,
-        caption: duo.endings.heart.summary,
-        pages: buildEndingPages(`${g1.avatar}🤝${g2.avatar}`, DUO_ENDING_SCENES[duo.id].heart, duo.endings.heart.summary, duo.endings.heart.radioNews)
-      },
-      {
-        id: `duo_${duo.id}_mind`,
-        icon: `${g1.avatar}🚀${g2.avatar}`,
-        location: `LIÊN MINH SÁNG TẠO • ${g1.name.split(" (")[0].toUpperCase()} & ${g2.name.split(" (")[0].toUpperCase()}`,
-        title: duo.endings.mind.title,
-        caption: duo.endings.mind.summary,
-        pages: buildEndingPages(`${g1.avatar}🚀${g2.avatar}`, DUO_ENDING_SCENES[duo.id].mind, duo.endings.mind.summary, duo.endings.mind.radioNews)
-      }
-    ];
   }),
 
   {

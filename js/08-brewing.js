@@ -45,6 +45,7 @@ function getScaledBrewTuning() {
 /* Trạng thái minigame mới (để bot kiểm thử đọc được mà không lộ ra giao diện) */
 let currentMemorySeq = [];
 let currentTripleState = null;
+let brewExhaustedFail = false; // ly hỏng và đã hết lượt thử: chỉ được ở mức Mộc Mạc
 
 function getClashes(accentIds) {
   return CLASH_PAIRS.filter(([a, b]) => accentIds.includes(a) && accentIds.includes(b));
@@ -255,6 +256,7 @@ function renderThreeStepBrewingStation(guests, stationLabel = "") {
 
     const challengeType = selectedBase.challengeType;
     let challengeFinished = false;
+    let challengeReady = false; // chỉ true khi ly KHÔNG hỏng (hoặc đã hết lượt thử): mới được mời khách
 
     wrap.innerHTML = `
       <div class="flex items-center justify-between text-xs border-b border-stone-800 pb-2">
@@ -310,12 +312,14 @@ function renderThreeStepBrewingStation(guests, stationLabel = "") {
         text = `${labelText} (pha lại nên chỉ đạt Chuẩn Vị)`;
       }
       if (rawBonus === 0) text = `${labelText} Hết lượt thử, ly chỉ đạt mức Mộc Mạc.`;
+      brewExhaustedFail = rawBonus === 0;
       challengeBonus = bonus;
       challengeResultText = text;
       const tone = bonus === 2 ? "emerald" : bonus === 1 ? "amber" : "rose";
       statusPill.textContent = text;
       statusPill.className = `text-[11px] font-mono-code text-${tone}-300 font-bold`;
       body.className = `space-y-2.5 p-2.5 rounded-xl bg-${tone}-500/10 border border-${tone}-400/40 transition-all`;
+      challengeReady = true;
       unlockServeButton();
       audioEngine.playChime(bonus === 2 ? 659.25 : bonus === 1 ? 523.25 : 261.6, 0.3, 0.05);
     };
@@ -672,13 +676,13 @@ function renderThreeStepBrewingStation(guests, stationLabel = "") {
 
     btnServeFinal.addEventListener("click", (e) => {
       e.stopPropagation();
-      if (!challengeFinished) {
+      if (!challengeFinished || !challengeReady) {
         body.classList.add("border-amber-400", "ring-2", "ring-amber-400/40");
         setTimeout(() => {
-          if (!challengeFinished) body.classList.remove("border-amber-400", "ring-2", "ring-amber-400/40");
+          if (!challengeFinished || !challengeReady) body.classList.remove("border-amber-400", "ring-2", "ring-amber-400/40");
         }, 600);
         audioEngine.playChime(240, 0.2, 0.04);
-        showToast("⚠️ Bạn cần hoàn thành thao tác pha chế ở trên trước khi mời khách!");
+        showToast(challengeFinished ? "💥 Ly này đã hỏng, hãy bấm “Pha Lại Ly Này” trước khi mời khách!" : "⚠️ Bạn cần hoàn thành thao tác pha chế ở trên trước khi mời khách!");
         return;
       }
       cancelActiveBrewAnimation();
@@ -745,6 +749,13 @@ function finalizeDrinkService(guests, base, accentIds, challengeBonus, challenge
     runState.trust += 1;
   }
 
+  if (brewExhaustedFail) {
+    // ly hỏng hết lượt: không được tính điểm tin cậy/rõ ràng hay ly hoàn hảo, dù nguyên liệu hợp khách
+    if (quality === "🌟 Hoàn Hảo") { runState.trust -= 1; runState.clarity = Math.max(0, runState.clarity - 1); persistentArchive.perfectBrewsCount = Math.max(0, (persistentArchive.perfectBrewsCount || 1) - 1); }
+    else if (quality === "✨ Chuẩn Vị") runState.trust -= 1;
+    quality = "☕ Mộc Mạc";
+  }
+  brewExhaustedFail = false;
   if (hintUsed && quality === "🌟 Hoàn Hảo") {
     // Hỏi thẳng khách là đi đường tắt: không thể đạt Hoàn Hảo
     quality = "✨ Chuẩn Vị";

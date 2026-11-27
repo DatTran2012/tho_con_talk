@@ -60,7 +60,6 @@ const GiftFX = (function () {
     ctx.fillStyle = "rgba(253,230,138,.12)"; ctx.fillRect(kx - 26, ky - 30, 52, 62);
     ctx.fillStyle = "#c08a4e"; ctx.fillRect(kx - 30, ky - 2, 60, 2);
     ctx.font = "bold 9px 'Inter',sans-serif"; ctx.fillStyle = "rgba(253,230,200,.8)"; ctx.textAlign = "center"; ctx.fillText("Tủ Kỷ Vật", kx, ky + 50); ctx.textAlign = "start";
-    const rxs = hold || T > 1.25 ? "surprised" : "neutral";
     try {
       stageRenderer.drawBunnyBarista(ctx, W * 0.24, cy + 4, sc, false, false, T, T > 1.9 ? "happy" : T > 1.0 ? "surprised" : "neutral", false);
       stageRenderer.drawPersonPortrait(ctx, W * 0.74, cy + 4, sc, { hairColor: g.hairColor, outfitColor: g.outfitColor, accessory: g.accessory, isTalking: false, listening: false, emotion: T > 1.4 ? "happy" : "shy", timeSec: T, seed: 1.5 });
@@ -125,12 +124,14 @@ const GiftFX = (function () {
     if (T > st.segs.length * SEG) { close(); return; }
     raf = requestAnimationFrame(frame);
   }
+  let vid = 0;
   function close() {
     if (!overlay || !st) return;
     cancelAnimationFrame(raf); clearTimeout(guard);
-    const cb = st.onDone; st = null;
+    const cb = st.onDone, myVid = vid; st = null;
     overlay.style.opacity = "0";
     if (cb) { try { cb(); } catch (e) { /* bỏ qua */ } }
+    try { CafeVoice.release("gift", myVid); } catch (e) { /* bỏ qua */ }
     setTimeout(() => { if (overlay && !st) overlay.style.display = "none"; }, 480);
   }
   function arm() {
@@ -155,7 +156,7 @@ const GiftFX = (function () {
       const rs0 = typeof runState !== "undefined" ? runState : null;
       st = { segs, t0: performance.now(), onDone: onDone ? () => { if (typeof runState === "undefined" || runState === rs0) onDone(); } : null };
       arm();
-      overlay.style.display = "flex"; overlay.style.opacity = "1";
+      overlay.style.display = "flex"; overlay.style.opacity = "1"; try { vid = CafeVoice.hold("gift"); } catch (e) { /* bỏ qua */ }
       try { segs.forEach((s, i) => setTimeout(() => audioEngine.playChime(s.kind === "gift" ? 659 : 392, 0.3, 0.035), i * SEG * 1000 + 700)); } catch (e) { /* không có âm thanh */ }
       raf = requestAnimationFrame(frame);
       return true;

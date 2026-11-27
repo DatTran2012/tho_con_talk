@@ -21,10 +21,6 @@ function devUnlockEverything() {
   const all = (list, map, f = (x) => x.id) => list.forEach((x) => (map[f(x)] = true));
 
   Object.keys(SOLO_ENDINGS_DATA).forEach((g) => Object.keys(SOLO_ENDINGS_DATA[g]).forEach((p) => (a.unlockedEndings[`${g}_${p}`] = true)));
-  ALL_DUO_KEYS.forEach((dk) => {
-    a.unlockedEndings[`duo_${dk}_heart`] = true;
-    a.unlockedEndings[`duo_${dk}_mind`] = true;
-  });
   all(CUTSCENE_CATALOG, a.unlockedCutscenes);
   all(DRINK_CARDS, a.unlockedDrinkCards);
   all(SIGNATURE_RECIPES, a.unlockedSignatures);
@@ -46,6 +42,8 @@ function devUnlockEverything() {
   a.playthroughCount = Math.max(a.playthroughCount || 0, 3);
   a.totalDrinksServed = Math.max(a.totalDrinksServed || 0, 100);
   a.perfectBrewsCount = Math.max(a.perfectBrewsCount || 0, 50);
+  a.truthsHeard = {};
+  STANDARD_GUEST_ORDER.forEach((g) => [1, 2, 3, 4].forEach((c) => (a.truthsHeard[`${g}_${c}`] = true)));
   a.petCatCount = Math.max(a.petCatCount || 0, 20);
   a.clockTapCount = Math.max(a.clockTapCount || 0, 20);
   a.plantWater = Math.max(a.plantWater || 0, 15);      // chậu cây nở rộ
@@ -78,6 +76,8 @@ function devRestoreBackup() {
 
 function devSetMode(on) {
   safeSetItem(DEV_FLAG_KEY, on ? "1" : "0");
+  if (!on) { try { CafeVoice.stop(); } catch (e) { /* bỏ qua */ } }
+  try { renderVoiceControls(); } catch (e) { /* bỏ qua */ }
   renderDevTools();
 }
 
@@ -100,7 +100,7 @@ function renderDevTools() {
   panel.style.cssText = "max-height:72vh;overflow-y:auto;position:fixed;left:8px;bottom:46px;z-index:99999;width:min(260px,86vw);padding:10px;border-radius:14px;background:#1c1917;color:#e7e5e4;border:1px solid #7c3aed;font:12px sans-serif;display:none";
   const btn = (id, label) => `<button type="button" data-dev="${id}" style="display:block;width:100%;margin-top:6px;padding:8px;border-radius:10px;background:#292524;border:1px solid #57534e;color:#e7e5e4;font-size:12px;cursor:pointer;text-align:left">${label}</button>`;
   panel.innerHTML = `<div style="font-weight:700;color:#c4b5fd">🛠️ Chế độ DEV (nội bộ)</div>` +
-    btn("unlock", "🔓 Mở khóa TẤT CẢ (33 kết, bí mật, cutscene…)") +
+    btn("unlock", "🔓 Mở khóa TẤT CẢ (21 kết, bí mật, cutscene…)") +
     btn("restore", "♻️ Khôi phục save thật") +
     btn("secret", "🌟 Đặt sẵn điều kiện cho kết bí mật (giữ twist chưa xem)") +
     btn("story", "📖 Đọc toàn bộ hội thoại 28 đêm") +
@@ -125,6 +125,10 @@ function renderDevTools() {
     btn("fxrecipe", "🍹 Xem thử cutscene MỞ KHÓA CÔNG THỨC (đổi công thức mỗi lần)") +
     btn("fxscenes", "🎬 Xem thử cutscene MỚI (mở/đóng quán, chương, cửa bí mật, tuần, cassette, cây, mèo, tổng kết, thành tựu) — bấm để đổi cảnh") +
     btn("fxobj", "🧸 Xem thử cận cảnh ĐỒ VẬT (chai, hồ cá, bếp, tủ, cây, ly, đồng hồ, radio, sách, cửa sổ, Thỏ Con, khách, đèn lồng) — bấm để đổi") +
+    btn("twdrink", "🍵 Xem thử LY CUỐI Cánh Cửa Thứ Hai (xoay: mật ong → chanh → hoa cúc)") +
+    btn("twplay", "🚪 Chơi THẲNG Cánh Cửa Thứ Hai từ đầu (bỏ qua điều kiện mở khóa; thử chọn nguyên liệu + 3 kết)") +
+    btn("enddrink", "🍹 Xem thử trang LY NƯỚC trong cảnh kết (xoay khách × Hoàn Hảo/Chuẩn Vị/Mộc Mạc)") +
+    btn("voicehold", "🔇 Thử giữ giọng: đọc một câu thoại NGAY LÚC đang chiếu cảnh (phải đọc sau khi cảnh xong)") +
     btn("clips", "📼 Thống kê file thoại mp3 / nhạc đã có") +
     btn("off", "⛔ Tắt chế độ dev");
   document.body.appendChild(fab);
@@ -167,6 +171,10 @@ function renderDevTools() {
     else if (k === "fxscenes") devPreviewScenes();
     else if (k === "fxrecipe") devPreviewRecipeFX();
     else if (k === "fxserve") devPreviewServeFX();
+    else if (k === "twdrink") devPreviewTwistDrink();
+    else if (k === "twplay") devPlayTwist();
+    else if (k === "enddrink") devPreviewEndingDrink();
+    else if (k === "voicehold") devTestVoiceHold();
     else if (k === "simlow" || k === "simmid" || k === "simfull") devSimulateMonthEnd(k);
     else if (k === "simfresh") {
       if (!safeGetItem(DEV_BACKUP_KEY)) safeSetItem(DEV_BACKUP_KEY, JSON.stringify(persistentArchive));
@@ -234,15 +242,44 @@ function devPreviewServeFX() {
   if (typeof ServeFX === "undefined" || !ServeFX.play({ guest: g, baseId: base.id, drink: base.name, quality: q }, () => {})) showToast("🛠️ DEV: không chạy được hiệu ứng (có thể đang bật giảm chuyển động)");
 }
 
+let devTwDrinkIdx = 0;
+function devPreviewTwistDrink() {
+  const opts = [["heart", "🍯"], ["mind", "🍋"], ["silent", "🌼"]], [variant, ing] = opts[devTwDrinkIdx++ % 3];
+  showToast("🛠️ DEV: ly cuối — " + ing + " (" + variant + ")");
+  twistFx2("tw_drink", { ing, variant }, () => showToast("🛠️ DEV: hết cảnh ly cuối"));
+}
+function devPlayTwist() {
+  window.__devForceTwist = true;
+  const pn = document.getElementById("dev-panel"); if (pn) pn.style.display = "none";
+  startTwistEnding();
+  setTimeout(() => { window.__devForceTwist = false; }, 500);
+}
+let devEndDrinkIdx = 0;
+function devPreviewEndingDrink() {
+  const gids = STANDARD_GUEST_ORDER, quals = ["🌟 Hoàn Hảo", "✨ Chuẩn Vị", "☕ Mộc Mạc"];
+  const i = devEndDrinkIdx++, gid = gids[i % gids.length], q = quals[Math.floor(i / gids.length) % 3];
+  const id = gid + "_heart", who = CHARACTERS[gid].name.split(" (")[0];
+  persistentArchive.endingDrinks = { ...(persistentArchive.endingDrinks || {}), [id]: { name: "Trà Gừng Mật Ong", quality: q, who } };
+  showToast("🛠️ DEV: kết " + id + " — " + q + " (bấm Tiếp để sang trang 2 = trang ly nước)");
+  playCutscene(id, null);
+  delete persistentArchive.endingDrinks[id];
+}
+function devTestVoiceHold() {
+  if (!persistentArchive.voiceEnabled) { showToast("🛠️ DEV: hãy bật giọng đọc trước khi thử"); return; }
+  const ok = SceneFX.play("chapter", { no: 1, icon: "🌙", name: "Thử giữ giọng", line: "Câu thoại sẽ chỉ được đọc SAU khi cảnh này kết thúc" }, null);
+  CafeVoice.speak("Đây là câu thoại được gọi lúc cảnh đang chiếu. Nếu nghe câu này sau khi cảnh đã tắt thì giữ giọng hoạt động đúng.", "Thỏ Con");
+  showToast(ok ? "🛠️ DEV: đã gọi giọng đọc trong lúc chiếu cảnh" : "🛠️ DEV: không chiếu được cảnh");
+}
 let devSceneIdx = 0;
 function devPreviewScenes() {
-  const list = ["open", "close", "chapter", "secret", "week_ok", "week_fail", "cassette", "bloom", "cat", "month", "tw_book", "tw_card", "tw_drink", "tw_birds", "banner"], k = list[devSceneIdx++ % list.length];
+  const list = ["open", "close", "chapter", "secret", "week_ok", "week_fail", "cassette", "bloom", "cat", "month", "tw_book", "tw_card", "tw_drink", "tw_birds", "tw_final_heart", "tw_final_mind", "tw_final_silent", "banner"], k = list[devSceneIdx++ % list.length];
   const g = CHARACTERS[STANDARD_GUEST_ORDER[devSceneIdx % STANDARD_GUEST_ORDER.length]];
   const ch = STORY_CHAPTERS[devSceneIdx % 4];
   const D = { open: { night: 3, title: "Đêm thử", guest: g, short: false }, close: { line: "Quán đóng cửa" }, chapter: { no: ch.no, icon: ch.icon, name: ch.name, line: ch.desc }, secret: {}, week_ok: { ok: true, have: 3, need: 3 }, week_fail: { ok: false, have: 1, need: 3 }, cassette: { guestName: g.name.split(" (")[0], name: g.cassette && (g.cassette.name || g.cassette.title) }, bloom: {}, cat: {}, month: { guests: STANDARD_GUEST_ORDER.map((id) => CHARACTERS[id]), drinks: 88, endings: 33 }, tw_book: {}, tw_card: {}, tw_drink: {}, tw_birds: {} };
+  D.tw_final_heart = { variant: "heart" }; D.tw_final_mind = { variant: "mind" }; D.tw_final_silent = { variant: "silent" };
   showToast("🛠️ DEV: cảnh " + k);
   if (k === "banner") { if (!SceneFX.banner("🏆", "Thành tựu thử nghiệm", "Danh hiệu: Chủ Quán Thử")) showToast("🛠️ DEV: không chạy được"); return; }
-  const kind = k.startsWith("week") ? "week" : k;
+  const kind = k.startsWith("week") ? "week" : k.startsWith("tw_final") ? "tw_final" : k;
   if (!SceneFX.play(kind, D[k], null)) showToast("🛠️ DEV: không chạy được hiệu ứng (có thể đang bật giảm chuyển động)");
 }
 let devObjIdx = 0;

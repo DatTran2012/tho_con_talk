@@ -12,7 +12,10 @@ const CafeVoice = (() => {
   // Đặt true nếu muốn mỗi nhân vật có cao độ/tốc độ riêng; false = giọng trình duyệt nguyên bản, không bóp méo
   const USE_PITCH_PROFILES = false;
   const clipsSupported = USE_RECORDED_CLIPS && typeof window !== "undefined" && typeof window.Audio === "function" && typeof VOICE_CLIPS !== "undefined";
-  const supported = ttsSupported || clipsSupported;
+  // Bản phát hành: tắt hẳn giọng đọc (ẩn nút, không đọc thoại). Đặt false để mở lại cho mọi người chơi.
+  const VOICE_DEV_ONLY = true;
+  const voiceAllowed = () => !VOICE_DEV_ONLY || (typeof isDevMode === "function" && isDevMode());
+  const baseSupported = ttsSupported || clipsSupported;
   const VOICE_DIR = "assets/voice/";
   let currentAudio = null;
 
@@ -155,9 +158,33 @@ const CafeVoice = (() => {
 
   /* Đọc lần lượt nhiều đoạn, mỗi đoạn một nhân vật. Ưu tiên file mp3 đã thu sẵn (assets/voice);
      câu nào chưa có file thì dùng giọng của trình duyệt. */
+  /* Giữ giọng: khi một cảnh hiệu ứng toàn màn hình đang chiếu, lời thoại không được đọc đè lên.
+     Lời gọi speak (không force) trong lúc giữ sẽ được nhớ và đọc ngay khi cảnh kết thúc. */
+  const holds = new Map(); // khoá -> mã lần giữ
+  let held = null;
+  let holdSeq = 0;
+  const isSupported = () => baseSupported && voiceAllowed();
+  function hold(key) {
+    const id = ++holdSeq;
+    holds.set(key, id);
+    held = null;
+    stop();
+    setTimeout(() => release(key, id), 9000); // chốt an toàn
+    return id;
+  }
+  function release(key, id) {
+    if (!holds.has(key) || (id != null && holds.get(key) !== id)) return;
+    holds.delete(key);
+    if (holds.size === 0 && held) {
+      const h = held; held = null;
+      speakMany(h.items, false, h.onDone);
+    }
+  }
+
   function speakMany(items, force = false, onDone = null) {
-    if (!supported) return false;
+    if (!isSupported()) return false;
     if (!force && !persistentArchive.voiceEnabled) return false;
+    if (!force && holds.size) { held = { items, onDone }; return true; }
     stop();
     const token = speakToken;
     const userRate = Math.min(2.5, Math.max(0.6, Number(persistentArchive.voiceRate) || 0.95));
@@ -267,7 +294,7 @@ const CafeVoice = (() => {
     true
   );
 
-  return { supported, isOn: () => supported && Boolean(persistentArchive.voiceEnabled), speak, speakMany, profileFor, guessGender, pickVoice, stop, vietnameseVoices, loadVoices, cleanText, splitChunks, voiceKey };
+  return { devOnly: VOICE_DEV_ONLY, get supported() { return isSupported(); }, isOn: () => isSupported() && Boolean(persistentArchive.voiceEnabled), speak, speakMany, hold, release, profileFor, guessGender, pickVoice, stop, vietnameseVoices, loadVoices, cleanText, splitChunks, voiceKey };
 })();
 
 window.addEventListener("pagehide", () => CafeVoice.stop());

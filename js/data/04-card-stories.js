@@ -138,12 +138,3 @@ const GUEST_CARD_STORIES = {
     dc_16: "Bác An thở nhẹ thanh thản: 'Bác cần buông bỏ nỗi nuối tiếc quá khứ để vui vẻ đón nhận những cách lan tỏa tri thức mới mẻ của hôm nay.'"
   }
 };
-
-const DUO_CARD_STORIES = {
-  vy_an: "Vy mở to mắt lắng nghe câu trả lời của bác An, rồi hào hứng tiếp lời: 'Nghe bác kể về những trang giáo án mực tím, cháu chợt nhận ra điều cháu tìm kiếm bấy lâu không phải một tin tức giật gân, mà là những ký ức sống động như thế này!' Bác An mỉm cười hiền hậu: 'Và nhìn nhiệt huyết của cháu, bác cũng thấy văn chương giấy mực vẫn đang tiếp tục sống trong thế hệ trẻ.'",
-  minh_hoa: "Minh lắng nghe tâm sự của cô Hoa mà khẽ sững người: 'Cô nói giống hệt mẹ cháu ở nhà... Hóa ra sự im lặng của người lớn không phải là xa cách, mà là vì sợ làm phiền con cái.' Cô Hoa mỉm cười dịu dàng: 'Còn cô nghe cháu chia sẻ mới hiểu các cháu thức khuya trước màn hình cũng mang nhiều trăn trở đến vậy.'",
-  linh_khang: "Chị Linh khẽ chạm tay lên cuốn sổ đỏ sau khi nghe anh Khang trải lòng: 'Cách anh giữ từng mũi chỉ sáp ong giống hệt cách em muốn giữ từng câu chữ viết tay — chậm rãi nhưng có linh hồn.' Anh Khang gật đầu tâm đắc: 'Có người thấu hiểu giá trị của sự kiên nhẫn như em, người làm nghề như anh thấy ấm lòng vô cùng.'",
-  tuan_minh: "Anh Tuấn bật cười sảng khoái sau câu trả lời của Minh: 'Hóa ra anh em kỹ sư ngồi phòng máy cũng trăn trở vì người chạy xe ngoài đường chứ không hề vô tâm!' Minh gật đầu chân thành: 'Nhờ nghe anh kể chuyện chạy ca đêm, em mới thấy mỗi dòng code mình viết đều gắn liền với mồ hôi và sự an toàn của người thật.'",
-  tuan_hoa: "Cô Hoa gật gù đồng cảm với chia sẻ của anh Tuấn: 'Làm cha làm mẹ ai cũng giống nhau cả, cứ thấy con cái yên ổn là bao nhiêu vất vả ngoài kia đều tan biến hết.' Anh Tuấn mỉm cười hiền: 'Nghe chị nói mà anh thấy vững tâm hơn hẳn, đúng là chỉ người trong cuộc mới hiểu hết lòng nhau.'",
-  linh_an: "Bác An khẽ vỗ tay tán thưởng câu trả lời của chị Linh: 'Cháu giữ được tình yêu với chữ nghĩa trong trẻo như thế giữa thời buổi vội vã này thật đáng quý!' Chị Linh mỉm cười rạng rỡ: 'Được một người thầy cả đời gắn bó với văn chương khích lệ, cháu thấy mọi kiên trì của mình đều xứng đáng.'"
-};

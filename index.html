@@ -178,7 +178,7 @@
         <div class="p-3.5 rounded-2xl bg-stone-900/90 border border-stone-800 grid grid-cols-2 gap-2 font-mono-code text-[11px]">
           <div class="p-2 rounded-xl bg-stone-950/80 flex items-center justify-between">
             <span class="text-stone-400">📚 Kết cục</span>
-            <strong id="rules-endings-stat" class="text-emerald-300">0/33</strong>
+            <strong id="rules-endings-stat" class="text-emerald-300">0/21</strong>
           </div>
           <div class="p-2 rounded-xl bg-stone-950/80 flex items-center justify-between">
             <span class="text-stone-400">🏺 Kỷ vật</span>
@@ -252,7 +252,7 @@
         </div>
         <button type="button" id="btn-quick-save" class="min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/40 text-xs text-emerald-200 cursor-pointer" title="Lưu game">💾<span class="hidden sm:inline"> Lưu</span></button>
         <button type="button" id="btn-quick-auto" class="min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer" title="Tự động chuyển thoại">⏩</button>
-        <button type="button" id="btn-quick-voice" class="min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer" title="Bật/tắt giọng đọc">🗣️</button>
+        <button type="button" id="btn-quick-voice" class="hidden min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer" title="Bật/tắt giọng đọc">🗣️</button>
         <button type="button" id="btn-quick-log" class="min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-200 cursor-pointer" title="Nhật ký thoại">📜</button>
         <button type="button" id="btn-open-drawer" class="min-h-[34px] px-2 sm:px-3 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-xs font-semibold text-amber-200 cursor-pointer">☰ Menu</button>
       </div>
@@ -323,9 +323,9 @@
         <button type="button" id="btn-open-thanks" class="hidden w-full min-h-[36px] mt-1 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-xs text-amber-200 cursor-pointer">🎖️ Xem Trang Chúc Mừng</button>
       </div>
 
-      <div class="p-3 rounded-2xl bg-stone-900/70 border border-stone-800 space-y-2">
+      <div id="voice-section" class="hidden p-3 rounded-2xl bg-stone-900/70 border border-stone-800 space-y-2">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-semibold text-amber-200">🗣️ Giọng Đọc</span>
+          <span class="text-xs font-semibold text-amber-200">🗣️ Giọng Đọc <span class="text-[10px] text-stone-500">(chỉ dành cho DEV)</span></span>
           <button type="button" id="btn-toggle-voice" class="px-2.5 py-1 rounded-xl bg-stone-950 border border-stone-700 text-[11px] text-stone-300 cursor-pointer">Tắt</button>
         </div>
         <div class="flex items-center justify-between gap-2">
@@ -370,7 +370,7 @@
           <span>🏺 7 Kỷ Vật</span><span id="mobile-keepsakes-badge" class="font-mono-code text-[11px] text-teal-300">0/7</span>
         </button>
         <button type="button" data-drawer-action="endings" class="min-h-[44px] px-3 py-2 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-stone-700 text-xs text-stone-200 flex items-center justify-between cursor-pointer">
-          <span>📚 33 Kết Cục</span><span id="mobile-endings-badge" class="font-mono-code text-[11px] text-emerald-300">0/33</span>
+          <span>📚 21 Kết Cục</span><span id="mobile-endings-badge" class="font-mono-code text-[11px] text-emerald-300">0/21</span>
         </button>
         <button type="button" data-drawer-action="dossiers" class="min-h-[44px] px-3 py-2 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 border border-purple-400/35 text-xs text-purple-200 flex items-center justify-between cursor-pointer">
           <span>📖 Hồ Sơ Khách</span><span id="mobile-dossiers-badge" class="font-mono-code text-[11px]">0/24</span>
@@ -521,7 +521,7 @@
       <p class="text-[11px] font-mono-code text-amber-300/90">TIỆM NƯỚC NỬA ĐÊM • 100%</p>
       <p class="font-serif-story text-sm sm:text-base text-stone-200 leading-relaxed">
         Cảm ơn bạn đã ở lại đến tận cùng — qua từng đêm mưa, từng ly nước, từng câu chuyện được lắng nghe.
-        Bạn đã mở trọn 33 cái kết, giữ gìn mọi bí mật của quán, và cùng Thỏ Con thắp ngọn đèn ấy sáng suốt đêm dài.
+        Bạn đã mở trọn 21 cái kết, giữ gìn mọi bí mật của quán, và cùng Thỏ Con thắp ngọn đèn ấy sáng suốt đêm dài.
       </p>
       <div id="thanks-stats" class="grid grid-cols-2 gap-2 text-xs text-stone-300"></div>
       <p class="font-serif-story italic text-sm text-amber-200/95 leading-relaxed">
@@ -610,8 +610,8 @@
     <div class="max-w-3xl w-full cafe-panel rounded-3xl p-4 sm:p-6 max-h-[90dvh] flex flex-col">
       <div class="flex items-center justify-between pb-3 border-b border-stone-800 gap-2">
         <div>
-          <h3 class="font-serif-story text-base sm:text-xl font-bold text-emerald-200">📚 33 Kết Cục Dẫn Dắt Bởi Cuộc Trò Chuyện</h3>
-          <p class="text-[11px] text-stone-400">Gồm 12 kết cục giao thoa song khách (6 cặp × 2 ngã rẽ) và 21 nhánh truyện riêng của 7 vị khách</p>
+          <h3 class="font-serif-story text-base sm:text-xl font-bold text-emerald-200">📚 21 Kết Cục Dẫn Dắt Bởi Cuộc Trò Chuyện</h3>
+          <p class="text-[11px] text-stone-400">Mỗi vị khách có 3 kết cục (tim, trí, lặng), mở ở Chương 4 khi họ chọn đường đi tương lai của mình</p>
         </div>
         <button type="button" data-close-modal="modal-endings-gallery" class="w-9 h-9 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 flex items-center justify-center cursor-pointer">✕</button>
       </div>
@@ -782,7 +782,6 @@
   <script src="js/data/02-characters.js"></script>
   <script src="js/data/03-endings.js"></script>
   <script src="js/data/04-card-stories.js"></script>
-  <script src="js/data/05-duo-pairings.js"></script>
   <script src="js/data/06-dossiers-secrets.js"></script>
   <script src="js/data/07-ending-cutscenes.js"></script>
   <script src="js/data/08-achievements-world.js"></script>

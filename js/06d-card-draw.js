@@ -110,12 +110,14 @@ const CardDrawFX = (function () {
     if (T > DUR) { close(); return; }
     raf = requestAnimationFrame(frame);
   }
+  let vid = 0;
   function close() {
     if (!overlay || !st) return;
     cancelAnimationFrame(raf); clearTimeout(guard);
-    const cb = st.onDone; st = null;
+    const cb = st.onDone, myVid = vid; st = null;
     overlay.style.opacity = "0";
     if (cb) { try { cb(); } catch (e) { /* bỏ qua */ } }
+    try { CafeVoice.release("card", myVid); } catch (e) { /* bỏ qua */ }
     setTimeout(() => { if (overlay && !st) overlay.style.display = "none"; }, 480);
   }
   function play(card, mode, onDone) {
@@ -128,7 +130,7 @@ const CardDrawFX = (function () {
       cancelAnimationFrame(raf);
       st = { card, mode, t0: performance.now(), onDone };
       clearTimeout(guard); guard = setTimeout(close, (DUR + 1.5) * 1000);   // chốt an toàn nếu tab bị ẩn khiến khung hình không chạy
-      overlay.style.display = "flex"; overlay.style.opacity = "1";
+      overlay.style.display = "flex"; overlay.style.opacity = "1"; try { vid = CafeVoice.hold("card"); } catch (e) { /* bỏ qua */ }
       try { audioEngine.playChime(392, 0.25, 0.03); setTimeout(() => audioEngine.playChime(587, 0.3, 0.03), 1700); setTimeout(() => audioEngine.playChime(784, 0.5, 0.04), 2300); } catch (e) { /* không sao */ }
       raf = requestAnimationFrame(frame);
       return true;

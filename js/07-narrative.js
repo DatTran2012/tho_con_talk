@@ -272,7 +272,20 @@ function renderStoryStep(step, story) {
         good: [`${sn} gật đầu, nét mặt dịu hẳn xuống.`, "happy"],
         plain: [`${sn} nhấm nháp chậm rãi, nghĩ ngợi một lúc rồi mới gật nhẹ — chưa thật trọn vị, nhưng vẫn đủ ấm để mở lòng.`, "thinking"]
       }[qk];
-      setDialogue(guest.name, guest.role, guest.avatar, `[${runState.lastDrinkName} — ${lastD.quality || runState.lastBrewQuality}]\n\n${LEAD[0]}\n\n${qk === "plain" ? plainReflection(guest.id) : runState.lastDrinkReflectionText}`, true, storyTimeOpts({ narr: true }));
+      // ly hoàn hảo mở thêm "lời thật" của khách (mỗi chương một lời, nghe một lần)
+      let truthLine = "";
+      if (qk === "perfect" || runState.quietBrewAt === runState.beatIndex) {
+        const chIdx = Math.min(3, Math.floor(runState.nightIndex / 7));
+        const key = `${guest.id}_${chIdx + 1}`;
+        const t = GUEST_TRUTHS[guest.id] && GUEST_TRUTHS[guest.id][chIdx];
+        if (t && !(persistentArchive.truthsHeard || {})[key]) {
+          persistentArchive.truthsHeard = { ...(persistentArchive.truthsHeard || {}), [key]: true };
+          saveArchive();
+          truthLine = `\n\n💬 “${t}”`;
+          showToast(`💬 ${sn} nói thêm một lời thật (${Object.keys(persistentArchive.truthsHeard).length}/28)`);
+        }
+      }
+      setDialogue(guest.name, guest.role, guest.avatar, `[${runState.lastDrinkName} — ${lastD.quality || runState.lastBrewQuality}]\n\n${LEAD[0]}\n\n${qk === "plain" ? plainReflection(guest.id) : runState.lastDrinkReflectionText}${truthLine}`, true, storyTimeOpts({ narr: true }));
       // giữ biểu cảm của khách đúng như trong cảnh vừa rồi (không mấp máy miệng vì đây là phần dẫn)
       stageRenderer.speakerId = guest.id; stageRenderer.emotion = LEAD[1]; stageRenderer.talkAnimTimer = 0;
       return;
@@ -280,6 +293,25 @@ function renderStoryStep(step, story) {
     runState.currentBrewReflection = resolveStoryText(step[3], gid);
     setDialogue(guest.name, guest.role, guest.avatar, resolveStoryText(step[2], gid), false, storyTimeOpts());
     const short = guest.name.split(" (")[0];
+    if (step[4] && step[4].quiet) {
+      // ĐÊM LẮNG NGHE: không minigame, không chấm điểm. Chỉ rót một tách thật chậm; đổi lại khách nói thêm lời thật.
+      actionArea.innerHTML = "";
+      const qb = document.createElement("button");
+      qb.type = "button";
+      qb.id = "btn-quiet-brew";
+      qb.className = "w-full min-h-[48px] px-4 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 text-amber-100 font-semibold text-sm cursor-pointer transition-all";
+      qb.textContent = "🫖 Rót một tách thật chậm — đêm nay chỉ lắng nghe";
+      qb.addEventListener("click", (e) => {
+        e.stopPropagation();
+        qb.disabled = true;
+        const base = DRINK_BASES.find((b) => guest.preferredBases.includes(b.id)) || DRINK_BASES[0];
+        const acc = (guest.preferredAccents || []).slice(0, 1);
+        runState.quietBrewAt = runState.beatIndex;
+        finalizeDrinkService([guest], base, acc, 1, "Đêm lắng nghe: không thử thách, chỉ một tách nước rót thật chậm.");
+      });
+      actionArea.appendChild(qb);
+      return;
+    }
     renderThreeStepBrewingStation([guest], guests.length > 1 ? `Ly riêng dành cho ${short}` : "");
     return;
   }

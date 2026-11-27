@@ -114,12 +114,14 @@ const ServeFX = (function () {
     if (T > DUR) { close(); return; }
     raf = requestAnimationFrame(frame);
   }
+  let vid = 0;
   function close() {
     if (!overlay || !st) return;
     cancelAnimationFrame(raf); clearTimeout(guard);
-    const cb = st.onDone; st = null;
+    const cb = st.onDone, myVid = vid; st = null;
     overlay.style.opacity = "0";
     if (cb) { try { cb(); } catch (e) { /* bỏ qua */ } }
+    try { CafeVoice.release("serve", myVid); } catch (e) { /* bỏ qua */ }
     setTimeout(() => { if (overlay && !st) overlay.style.display = "none"; }, 480);
   }
   /* info: {guest, baseId, quality ("perfect"|"good"|"plain"), drink} */
@@ -133,7 +135,7 @@ const ServeFX = (function () {
       cancelAnimationFrame(raf);
       st = { guest: info.guest, baseId: info.baseId, q: MOOD[info.quality] ? info.quality : "good", drink: info.drink || "", name: String(info.guest.name || "khách").split(" (")[0], t0: performance.now(), onDone };
       clearTimeout(guard); guard = setTimeout(close, Math.min(6000, (DUR + 1.5) * 1000));
-      overlay.style.display = "flex"; overlay.style.opacity = "1";
+      overlay.style.display = "flex"; overlay.style.opacity = "1"; try { vid = CafeVoice.hold("serve"); } catch (e) { /* bỏ qua */ }
       try { audioEngine.playChime(330, 0.2, 0.03); setTimeout(() => audioEngine.playChime(494, 0.25, 0.03), 1900); if (st.q !== "plain") setTimeout(() => audioEngine.playChime(784, 0.5, 0.04), 3500); } catch (e) { /* không có âm thanh */ }
       raf = requestAnimationFrame(frame);
       return true;

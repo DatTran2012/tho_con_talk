@@ -1075,7 +1075,7 @@ class CafeStageRenderer {
       ctx.fillStyle = "#4a2c17"; ctx.fillRect(cx0 + 2, cy0 + 4 + (ch - 6) / 3, cw - 4, 1.5); ctx.fillRect(cx0 + 2, cy0 + 4 + 2 * (ch - 6) / 3, cw - 4, 1.5); // ngăn
       ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "7px sans-serif";
       STANDARD_GUEST_ORDER.forEach((gid, i) => {
-        const row = i < 3 ? 0 : i < 5 ? 1 : 2, col = i < 3 ? i : i < 5 ? i - 3 : i - 5, perRow = row === 0 ? 3 : 2;
+        const row = i < 3 ? 0 : i < 5 ? 1 : 2, col = i < 3 ? i : i < 5 ? i - 3 : i - 5;
         const ix = cx0 + 2 + (cw - 4) * (col + 0.5) / (row === 0 ? 3 : 2.0 + (row === 2 ? 0 : 0)), iy = cy0 + 4 + (ch - 6) * (row + 0.5) / 3 - 1;
         if (got[i]) { ctx.globalAlpha = 1; ctx.fillText(CHARACTERS[gid].keepsake.icon, ix, iy); }
         else { ctx.globalAlpha = 0.35; ctx.fillStyle = "#a8a29e"; ctx.beginPath(); ctx.arc(ix, iy, 2, 0, 7); ctx.fill(); }

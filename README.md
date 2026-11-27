@@ -7,10 +7,10 @@ index.html            khung HTML + các màn hình/modal
 css/styles.css        toàn bộ CSS tuỳ chỉnh
 assets/icons/         icon trang web (SVG + PNG), manifest.webmanifest cho "Thêm vào màn hình chính"
 js/01-core.js         polyfill, hằng số, lớp lưu trữ localStorage
-js/data/              dữ liệu: đồ uống, nhân vật, kết cục, bài, cặp đôi, bí mật, cutscene, thành tựu
+js/data/              dữ liệu: đồ uống, nhân vật, kết cục, bài, bí mật, cutscene, thành tựu
 js/03-state.js        archive lưu vĩnh viễn + lịch 28 đêm
 js/04-audio.js        âm thanh Web Audio
-js/04b-voice.js      giọng đọc (Web Speech API), bật/tắt trong Menu
+js/04b-voice.js      giọng đọc (Web Speech API) — **bản phát hành đang tắt hẳn**, chỉ hiện khi bật chế độ DEV (đổi `VOICE_DEV_ONLY` ở đầu file để mở lại cho mọi người)
 js/04c-dialogue-format.js  tách lời thoại ngôi thứ nhất khỏi phần dẫn chuyện
 js/05-stage.js        sân khấu canvas
 js/06-ui-cutscene.js  chuyển màn, gõ chữ, HUD, trình chiếu cutscene
@@ -34,3 +34,22 @@ vì chúng dùng chung biến toàn cục.
 `css/tailwind.css` được build từ `index.html` + `js/**/*.js`. Nếu thêm class Tailwind mới, build lại:
 
     cd tools && npm i tailwindcss@3.4.17 && npx tailwindcss -c tailwind.config.js -i tailwind.input.css -o ../css/tailwind.css --minify
+
+
+## Kết cục và Cánh Cửa Thứ Hai (cập nhật)
+- **21 kết cục** (7 vị khách × 3 nhánh tim/trí/lặng), mở ở **Chương 4** khi từng khách chọn đường đi tương lai:
+  đêm 22 Vy, 23 Minh, 24 Linh + bác An, 25 Khang + cô Hoa, 26 Tuấn. Các đêm có hai khách mở cả hai kết cục cùng lúc.
+  Dữ liệu: `js/data/03-endings.js`, cảnh chữ: `js/data/07-ending-cutscenes.js`. Kết cục song khách cũ đã bỏ.
+- **Cánh Cửa Thứ Hai** mở ngay sau khi hoàn thành 28 đêm (không cần đủ kết cục/bí mật; đó là phần sưu tầm).
+- **3 kết cuối của Thỏ Con** (Tám Chiếc Ghế / Tấm Lịch Trên Tường / Giấc Ngủ Đầu Tiên) tùy đa số trong 3 lựa chọn (hai lựa chọn trong cảnh bảy người + nguyên liệu ly cuối 🍯/🍋/🌼; nếu cả ba khác nhau thì nguyên liệu ly cuối quyết định) trong cảnh bảy người.
+  Cảnh động: `SceneFX` các kind `tw_book`, `tw_card`, `tw_drink`, `tw_birds`, `tw_final` (xem thử trong bảng DEV).
+- Hạt giống báo trước và hai cảnh khách phản ứng khác đi nằm trong `STORY_EXTRAS` ở `js/data/09-story-index.js`.
+- **Ly nước trong cảnh kết:** cảnh kết mở khóa có thêm một trang nhắc ly nước bạn đã pha cho vị khách đó (lưu ở `endingDrinks`, xem lại được trong Thư viện).
+- **Giữ giọng:** `CafeVoice.hold/release` — cảnh hiệu ứng toàn màn hình tạm dừng giọng đọc, câu thoại gọi trong lúc chiếu sẽ được đọc sau.
+- **Ly hỏng:** hỏng ly bắt buộc pha lại; hết 3 lượt vẫn phải mời nhưng chỉ là Mộc Mạc.
+- **Hộp Thư Khuya (radio):** đêm 1–7 radio đọc một lá thư giấu tên của từng vị khách; vài đêm sau, người viết lỡ miệng nhắc lại. Đêm 28 radio đọc lá thư cuối của "một người gác đêm". Dữ liệu ở `STORY_EXTRAS` (`start:true`) trong `js/data/09-story-index.js`.
+- **Chuyện đời thường:** mỗi khách có một đoạn vừa buồn cười vừa nặng (giá cả, AI, hàng xóm, thuốc men...) chèn vào chương 2–3.
+- **Đêm lắng nghe (đêm 16, cô Hoa):** bước `brew` có cờ `{ quiet: true }` → không minigame, chỉ rót một tách chậm; đổi lại cô Hoa nói luôn "lời thật" của chương 3.
+- **Kết "Khoảng Lặng" bỏ ngỏ:** 7 kết thuộc nhánh im lặng không khép trọn, để lại một câu hỏi (thư chưa gửi, bộ chén đũa thứ hai...).
+- **Lời thật:** pha một ly hoàn hảo cho khách thì họ nói thêm một điều ly thường không nghe được (mỗi khách 1 lời/chương, 28 lời).
+  Dữ liệu `GUEST_TRUTHS` trong `js/data/09-story-index.js`; xem lại ở Sổ Tay (sơ đồ nhánh).

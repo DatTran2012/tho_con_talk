@@ -99,14 +99,9 @@ function renderDrinkCardBeat(guests) {
     });
   } else {
     const g1 = guests[0];
-    const slot = getCurrentNightSlot();
     const specificStory =
       (GUEST_CARD_STORIES[g1.id] && GUEST_CARD_STORIES[g1.id][card.id]) ||
       GUEST_DRINK_CARD_REACTIONS[g1.id];
-    const duoFollowup =
-      isDuo && slot.duoId && DUO_CARD_STORIES[slot.duoId]
-        ? `\n\n${DUO_CARD_STORIES[slot.duoId]}`
-        : "";
 
     if (dcd.phase === "q") {
       // Nhịp 1: Thỏ Con đọc câu hỏi
@@ -124,7 +119,7 @@ function renderDrinkCardBeat(guests) {
       askerName,
       `Trả Lời Bài DRINK • ${card.suit}`,
       "🃏",
-      `${specificStory}${duoFollowup}`.trim(),
+      `${specificStory}`.trim(),
       false
     );
 
@@ -244,6 +239,7 @@ function completeCurrentNight() {
   let radioNews = "";
   let pathTag = "";
   let branchUsed = "heart";
+  let extraEndingIds = [];
 
   // Ba nhánh: tim / trí / lặng — dựa trên các lựa chọn trong đêm
   let soloBranch = "heart";
@@ -252,31 +248,24 @@ function completeCurrentNight() {
   else if (mindVotes > heartVotes) soloBranch = "mind";
 
   const endSpec = story.end || "";
-  if (endSpec.startsWith("duo:")) {
-    const duo = DUO_PAIRINGS[endSpec.slice(4)];
-    const branch = mindVotes > heartVotes ? "mind" : "heart";
-    branchUsed = branch;
-    endingId = `duo_${duo.id}_${branch}`;
-    endingTitle = duo.endings[branch].title;
-    endingSummary = duo.endings[branch].summary;
-    radioNews = duo.endings[branch].radioNews;
-    pathTag = branch === "mind"
-      ? `${ENDING_PATH_LABELS.duo_mind.icon} ${ENDING_PATH_LABELS.duo_mind.name}`
-      : `${ENDING_PATH_LABELS.duo.icon} ${ENDING_PATH_LABELS.duo.name}`;
-  } else if (endSpec.startsWith("solo:")) {
-    const g = CHARACTERS[endSpec.slice(5)];
+  if (endSpec.startsWith("solo:")) {
+    // "solo:linh+an": đêm có hai khách thì cả hai cùng mở kết cục theo nhánh của đêm đó
+    const ids = endSpec.slice(5).split("+").filter((id) => CHARACTERS[id] && SOLO_ENDINGS_DATA[id]);
+    const g = CHARACTERS[ids[0]];
     branchUsed = soloBranch;
     endingId = `${g.id}_${soloBranch}`;
-    const ed = SOLO_ENDINGS_DATA[g.id][soloBranch];
-    endingTitle = ed.title;
-    endingSummary = ed.summary;
-    radioNews = ed.radioNews;
+    const eds = ids.map((id) => SOLO_ENDINGS_DATA[id][soloBranch]);
+    endingTitle = eds.map((e) => e.title).join(" • ");
+    endingSummary = eds.map((e) => e.summary).join(" ");
+    radioNews = eds[0].radioNews;
     pathTag = `${ENDING_PATH_LABELS[soloBranch].icon} ${ENDING_PATH_LABELS[soloBranch].name}`;
+    extraEndingIds = ids.slice(1).map((id) => `${id}_${soloBranch}`);
   } else {
+    // đêm không gắn kết cục riêng: vẫn ghi lại cách bạn đã đồng hành
     endingTitle = story.title;
     endingSummary = story.close || "Một đêm nữa khép lại bằng tiếng mưa và ánh đèn vàng.";
     radioNews = "Đài FM Nửa Đêm: những người lạ trong con hẻm nhỏ vừa trở thành người thân của nhau.";
-    pathTag = "🌙 Đêm Đoàn Tụ";
+    pathTag = story.ch === 4 && story.n === 7 ? "🌙 Đêm Đoàn Tụ" : `${ENDING_PATH_LABELS[soloBranch].icon} ${ENDING_PATH_LABELS[soloBranch].name}`;
     branchUsed = soloBranch;
   }
   // Ghi nhớ cách bạn đã đối xử với từng vị khách để các chương sau nhắc lại
@@ -284,9 +273,16 @@ function completeCurrentNight() {
   guests.forEach((g) => {
     runState.guestPath[g.id] = branchUsed;
   });
+  // Nhớ lại cách bạn đã đồng hành với từng người ở Chương 4 để Cánh Cửa Thứ Hai nhắc lại (đêm 28 là buổi họp mặt chung nên không tính)
+  if (story.ch === 4 && story.n < 7) {
+    persistentArchive.ch4Path = { ...(persistentArchive.ch4Path || {}) };
+    guests.forEach((g) => { persistentArchive.ch4Path[g.id] = /mind/.test(branchUsed) ? "mind" : /silent/.test(branchUsed) ? "silent" : "heart"; });
+  }
   const endingWasNew = endingId ? !persistentArchive.unlockedEndings[endingId] : false;
+  const newExtraEndings = extraEndingIds.filter((id) => !persistentArchive.unlockedEndings[id]);
 
   if (endingId) persistentArchive.unlockedEndings[endingId] = true;
+  extraEndingIds.forEach((id) => (persistentArchive.unlockedEndings[id] = true));
   runState.previousNightRadioNews = radioNews;
 
   const earnedKeepsake =
@@ -381,8 +377,21 @@ function completeCurrentNight() {
     if (!started) afterGift();
   };
   // Cảnh kết cục dài chỉ chiếu ở lần mở khóa đầu tiên; các đêm sau chỉ hiện dòng kết đêm (xem lại trong Thư viện)
-  if (endingId && endingWasNew) {
-    playCutscene(endingId, goNextWithGift);
+  if (endingId && (endingWasNew || newExtraEndings.length)) {
+    const chain = [...(endingWasNew ? [endingId] : []), ...newExtraEndings];
+    // nhớ ly nước bạn đã pha cho từng vị khách để cảnh kết nhắc lại (cả khi xem lại trong Thư viện)
+    try {
+      persistentArchive.endingDrinks = { ...(persistentArchive.endingDrinks || {}) };
+      chain.forEach((cid) => {
+        const gid = String(cid).split("_")[0];
+        const g = guests.find((x) => x.id === gid);
+        const dr = (runState.nightDrinks || []).filter((d) => d.guestId === gid).pop() || (runState.nightDrinks || []).slice(-1)[0];
+        if (g && dr && dr.name) persistentArchive.endingDrinks[cid] = { name: dr.name, quality: dr.quality || "", who: g.name.split(" (")[0] };
+      });
+      saveArchive();
+    } catch (e) { /* bỏ qua */ }
+    const playChain = (i) => (i >= chain.length ? goNextWithGift() : playCutscene(chain[i], () => playChain(i + 1)));
+    playChain(0);
   } else {
     showToast(`🌙 Kết đêm: ${endingTitle}`);
     goNextWithGift();

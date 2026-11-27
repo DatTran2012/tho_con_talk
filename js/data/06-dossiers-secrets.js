@@ -68,7 +68,6 @@ const CHARACTER_DOSSIERS = [
   }
 ];
 
-const ALL_DUO_KEYS = Object.keys(DUO_PAIRINGS);
 const STANDARD_GUEST_ORDER = ["vy", "minh", "linh", "tuan", "khang", "hoa", "an"];
 
 /* ---- KỆ SÁCH CỦA QUÁN: mỗi khách để lại một cuốn khi họ bước vào quán lần đầu ---- */
@@ -110,9 +109,9 @@ const SECRET_VAULT = [
   },
   {
     id: "secret_endings", icon: "📖🕯️", title: "Trang Cuối Sổ Tay Thỏ Con",
-    hint: "Mở khóa toàn bộ 33 kết cục câu chuyện.",
+    hint: "Mở khóa toàn bộ 21 kết cục câu chuyện.",
     reward: "🎼 Mở khóa kênh nhạc «Khúc Ca Của Người Gác Đêm»",
-    story: "Ba mươi ba ngã rẽ đã khép lại. Ở trang cuối cuốn sổ tay, Thỏ Con viết: “Gửi những người đã ngồi trước quầy gỗ này — tôi không cứu ai cả. Tôi chỉ giữ cho đèn sáng, còn các bạn tự tìm thấy đường về. Cảm ơn vì đã cho một người lạc hướng năm nào có lý do để ở lại.”"
+    story: "Hai mươi mốt ngã rẽ đã khép lại. Ở trang cuối cuốn sổ tay, Thỏ Con viết: “Gửi những người đã ngồi trước quầy gỗ này — tôi không cứu ai cả. Tôi chỉ giữ cho đèn sáng, còn các bạn tự tìm thấy đường về. Cảm ơn vì đã cho một người lạc hướng năm nào có lý do để ở lại.”"
   },
   {
     id: "secret_cat", icon: "🐱🔔", title: "Tên Thật Của Mèo Tam Thể",

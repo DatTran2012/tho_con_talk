@@ -56,13 +56,17 @@ function startSecretNight8Reunion() {
 /* Các bí mật chỉ mở SAU đêm bí mật cuối cùng (không tính vào điều kiện mở cánh cửa) */
 const POST_TWIST_SECRETS = ["secret_card_17", "secret_signature", "secret_master"];
 
+/* Mốc đầu của hồ sơ khách: đã gặp họ ở Chương 1 hoặc đã mở kết cục của họ */
+function guestMetOrEnded(gid, a = persistentArchive) {
+  const idx = STANDARD_GUEST_ORDER.indexOf(gid);
+  return ["heart", "mind", "silent"].some((b) => a.unlockedEndings[`${gid}_${b}`]) || (idx >= 0 && Boolean(a.unlockedCutscenes[`story_1_${idx + 1}`]));
+}
+
+/* Cánh Cửa Thứ Hai mở ngay sau khi bạn đi trọn Tháng Mưa một lượt (28 đêm).
+   Các kết cục, bí mật… là phần sưu tầm thêm, không còn là điều kiện bắt buộc. */
 function isTwistUnlocked() {
   const a = persistentArchive;
-  return (
-    SHIFT_MODES.every((m) => a.completedModes[m.id]) &&
-    SECRET_VAULT.filter((s) => !POST_TWIST_SECRETS.includes(s.id)).every((s) => a.unlockedSecrets && a.unlockedSecrets[s.id]) &&
-    countUnlockedEndings(a) >= TOTAL_ENDINGS
-  );
+  return SHIFT_MODES.every((m) => a.completedModes[m.id]);
 }
 
 function playCutsceneChain(ids, done) {
@@ -73,47 +77,105 @@ function playCutsceneChain(ids, done) {
   playCutscene(ids[0], () => playCutsceneChain(ids.slice(1), done));
 }
 
+/* Lời nhắc lại Chương 4: mỗi vị khách nhớ cách bạn đã đồng hành với họ (tim / trí / lặng) */
+const TWIST_ECHO = {
+  vy: { heart: "Cái đêm chị nói đúng điều em cần nghe về tòa soạn, em mới dám chọn. Bây giờ em muốn làm vậy với chị.", mind: "Cái đêm chị chỉ cho em lối đi riêng, em nhận ra chị lúc nào cũng nghĩ cho người khác trước.", silent: "Cái đêm chị lặng lẽ rót trà cho em, em nghe được câu trả lời của lòng mình. Giờ em xin được lặng lẽ ngồi cạnh chị." },
+  minh: { heart: "Có lần bạn nói một câu làm tôi bớt cô độc trước những dòng mã. Hôm nay tôi trả lại.", mind: "Bạn từng đưa tôi một chiếc la bàn khi tôi lạc. Lần này tôi muốn làm la bàn cho bạn.", silent: "Bạn từng im lặng đúng lúc tôi cần im lặng. Tôi cũng đang học cách đó." },
+  linh: { heart: "Buổi đọc chậm hôm ấy, chị khóc vì một trang chữ, và em ở ngay đó. Giờ chị ở đây.", mind: "Em từng chỉ cho chị cách cho cuốn sổ cất tiếng. Giờ chị xin đọc một trang cho em.", silent: "Em im lặng ở buổi đọc chậm, và chị nghe được tiếng của chính mình. Giờ chị cũng im lặng nghe em." },
+  tuan: { heart: "Em từng nói hai đứa nhỏ sẽ tự hào về anh. Anh tin em. Giờ em cũng tin bọn anh một lần nhé.", mind: "Em chỉ cho anh cách đi từng bước một khi chuyện lớn quá. Giờ anh làm đúng như vậy cho em.", silent: "Hôm anh kể chuyện hai đứa nhỏ, em chỉ lắng nghe mà anh thấy nhẹ cả người. Anh cũng sẽ lắng nghe em." },
+  khang: { heart: "Có câu em nói đã làm anh giữ lại cái xưởng. Giờ đến lượt anh giữ em.", mind: "Em từng ngồi tính cùng anh từng con số của xưởng. Lần này mình tính cùng nhau chuyện của em.", silent: "Em từng ngồi im bên anh lúc anh nghĩ về xưởng. Anh sẽ ngồi im bên em." },
+  hoa: { heart: "Có lời cháu nói làm cô thấy mình còn có ích. Cô muốn làm điều đó cho cháu.", mind: "Cháu đã giúp cô thấy một con đường khi cô tưởng hết lối. Cô xin được đi cùng cháu một đoạn.", silent: "Cháu từng lặng lẽ ngồi nghe cô, thế mà cô nhẹ cả lòng. Cô cũng ngồi nghe cháu." },
+  an: { heart: "Cháu từng nói với bác một lời mà bác nhớ mãi. Hôm nay bác nghe cháu.", mind: "Cháu từng chỉ cho bác cách viết lại phần cuối bài thơ. Bác nghĩ cháu cũng viết được phần cuối của riêng mình.", silent: "Cháu im lặng ngồi cạnh bác những đêm bác chưa kể được. Bác hiểu sự im lặng ấy." }
+};
+function twistEcho(gid) {
+  const p = persistentArchive && persistentArchive.ch4Path && persistentArchive.ch4Path[gid];
+  const e = TWIST_ECHO[gid];
+  return e && p && e[p] ? e[p] + " " : "";
+}
+
 const TWIST_BEATS = [
   { speaker: "Bình Minh Hẻm Nhỏ", role: "05:05 • Cánh Cửa Thứ Hai", avatar: "🌅", text: "Không ai rời quán. Vy, Minh, chị Linh, anh Tuấn, anh Khang, cô Hoa và bác An kéo ghế ngồi quanh quầy gỗ. Tối nay không ai gọi nước. Tối nay, họ đến để nghe." },
-  { speaker: "Vy (22 tuổi)", role: "Phóng Viên Trẻ", avatar: "🎓", text: "Em tắt máy ghi âm rồi. Bao nhiêu đêm Thỏ Con nghe em kể, giờ đến lượt em ngồi nghe. Thỏ Con muốn bắt đầu từ đâu cũng được ạ." },
+  { echo: "vy", speaker: "Vy (22 tuổi)", role: "Phóng Viên Trẻ", avatar: "🎓", text: "Em tắt máy ghi âm rồi. Bao nhiêu đêm Thỏ Con nghe em kể, giờ đến lượt em ngồi nghe. Thỏ Con muốn bắt đầu từ đâu cũng được ạ." },
   { speaker: "Thỏ Con", role: "Người Gác Đèn", avatar: "🐰", text: "Tờ giấy trên quầy là thật. Bạn sẽ mở lời thế nào?", options: [
-    { label: "❤️ \"Thỏ Con đã sợ lắm. Có đêm, Thỏ Con đã nghĩ biến mất đi thì mọi người sẽ nhẹ nhõm hơn.\"",
+    { path: "heart", label: "❤️ \"Thỏ Con đã sợ lắm. Có đêm, Thỏ Con đã nghĩ biến mất đi thì mọi người sẽ nhẹ nhõm hơn.\"",
       replies: [{ speaker: "Cô Hoa (44 tuổi)", role: "Người Mẹ", avatar: "🧶", text: "Cảm ơn cháu đã dám nói ra. Nỗi sợ đó không làm cháu yếu đuối, và cháu chưa bao giờ là gánh nặng của ai." }] },
-    { label: "✨ \"Thỏ Con muốn kể từ đầu: từ cuộc gọi chẩn đoán, đến những buổi sáng ở bệnh viện.\"",
+    { path: "mind", label: "✨ \"Thỏ Con muốn kể từ đầu: từ cuộc gọi chẩn đoán, đến những buổi sáng ở bệnh viện.\"",
       replies: [{ speaker: "Bác An (68 tuổi)", role: "Cựu Giáo Viên", avatar: "👓", text: "Bác nghe từng chữ. Gọi tên được nỗi đau là một nửa của việc đi qua nó đấy cháu." }] },
-    { label: "🤫 Lặng lẽ đặt tờ giấy hẹn khám lên quầy, chưa nói được lời nào.",
+    { path: "silent", label: "🤫 Lặng lẽ đặt tờ giấy hẹn khám lên quầy, chưa nói được lời nào.",
       replies: [{ speaker: "Anh Khang (38 tuổi)", role: "Nghệ Nhân Đồ Da", avatar: "🧵", text: "Không cần nói gì cả. Anh ngồi đây được rồi." }] }
   ] },
-  { speaker: "Minh (27 tuổi)", role: "Kỹ Sư AI", avatar: "💻", text: "Tôi chỉ biết debug code, nhưng có một điều tôi học được: khi hệ thống quá tải, việc đầu tiên là báo cho người khác biết, đừng im lặng chịu đựng một mình." },
-  { speaker: "Chị Linh (31 tuổi)", role: "Biên Tập Viên", avatar: "🖋️", text: "Chị vừa viết thêm một chương vào cuốn sổ bìa đỏ. Nhân vật chính của chương đó ở lại." },
-  { speaker: "Anh Tuấn (35 tuổi)", role: "Tài Xế & Thợ Cơ Khí", avatar: "🚚", text: "Xe hỏng thì mình sửa, người mệt thì mình chở nhau. Sáng mai anh chở em tới viện, đừng đi một mình nữa nhé." },
-  { speaker: "Anh Khang (38 tuổi)", role: "Nghệ Nhân Đồ Da", avatar: "🧵", text: "Thẻ da anh khâu cho em dùng để đánh dấu trang đang đọc dở. Em chưa đọc xong đâu. Còn nhiều trang phía trước." },
-  { speaker: "Cô Hoa (44 tuổi)", role: "Người Mẹ", avatar: "🧶", text: "Cô đan thêm cho cháu một chiếc mũ len. Những buổi sáng ở viện sẽ lạnh, nhưng cháu không đi một mình." },
-  { speaker: "Bác An (68 tuổi)", role: "Cựu Giáo Viên", avatar: "👓", text: "Bác chấm bài cả đời. Bài của cháu hôm nay bác cho mười điểm, vì cháu dám nói ra." },
+  { speaker: "Vy (22 tuổi)", role: "Phóng Viên Trẻ", avatar: "🎓", text: "Em nhớ ra hết rồi. Tờ giấy gấp tư Bánh Quy kéo ra khỏi túi tạp dề đêm đầu tiên. Bàn tay run khi rót nước. Những tiếng ho chị cố nén. Tụi em thấy cả, chỉ là tụi em chờ chị tự kể." },
+  { echo: "minh", speaker: "Minh (27 tuổi)", role: "Kỹ Sư AI", avatar: "💻", text: "Tôi chỉ biết debug code, nhưng có một điều tôi học được: khi hệ thống quá tải, việc đầu tiên là báo cho người khác biết, đừng im lặng chịu đựng một mình." },
+  { echo: "linh", speaker: "Chị Linh (31 tuổi)", role: "Biên Tập Viên", avatar: "🖋️", text: "Chị vừa viết thêm một chương vào cuốn sổ bìa đỏ. Nhân vật chính của chương đó ở lại." },
+  { echo: "tuan", speaker: "Anh Tuấn (35 tuổi)", role: "Tài Xế & Thợ Cơ Khí", avatar: "🚚", text: "Xe hỏng thì mình sửa, người mệt thì mình chở nhau. Sáng mai anh chở em tới viện, đừng đi một mình nữa nhé." },
+  { echo: "khang", speaker: "Anh Khang (38 tuổi)", role: "Nghệ Nhân Đồ Da", avatar: "🧵", text: "Thẻ da anh khâu cho em dùng để đánh dấu trang đang đọc dở. Em chưa đọc xong đâu. Còn nhiều trang phía trước." },
+  { echo: "hoa", speaker: "Cô Hoa (44 tuổi)", role: "Người Mẹ", avatar: "🧶", text: "Cô đan thêm cho cháu một chiếc mũ len. Những buổi sáng ở viện sẽ lạnh, nhưng cháu không đi một mình." },
+  { echo: "an", speaker: "Bác An (68 tuổi)", role: "Cựu Giáo Viên", avatar: "👓", text: "Bác chấm bài cả đời. Bài của cháu hôm nay bác cho mười điểm, vì cháu dám nói ra." },
   { fx: "tw_card", speaker: "Thỏ Con", role: "Lá Bài Thứ 17", avatar: "🃏", text: "Vy lật lá bài trắng cuối hộp DRINK: \"Điều bạn cần nghe nhất lúc này là gì?\"", options: [
-    { label: "❤️ \"Rằng Thỏ Con không phải một mình.\"",
+    { path: "heart", label: "❤️ \"Rằng Thỏ Con không phải một mình.\"",
       replies: [{ speaker: "Bảy Vị Khách", role: "Cùng Nhau", avatar: "🤝", text: "Không một mình. Không bao giờ nữa." }] },
-    { label: "✨ \"Rằng ở lại điều trị là một lựa chọn xứng đáng, và Thỏ Con xứng đáng được chăm sóc.\"",
+    { path: "mind", label: "✨ \"Rằng ở lại điều trị là một lựa chọn xứng đáng, và Thỏ Con xứng đáng được chăm sóc.\"",
       replies: [{ speaker: "Bảy Vị Khách", role: "Cùng Nhau", avatar: "🤝", text: "Xứng đáng. Và bọn mình sẽ cùng đi với bạn." }] },
-    { label: "🤫 \"Chỉ cần ai đó nắm tay Thỏ Con một lúc thôi.\"",
+    { path: "silent", label: "🤫 \"Chỉ cần ai đó nắm tay Thỏ Con một lúc thôi.\"",
       replies: [{ speaker: "Bảy Vị Khách", role: "Cùng Nhau", avatar: "🤝", text: "Bảy bàn tay đặt lên bàn tay Thỏ Con. Và họ ở lại đó đến khi trời sáng hẳn." }] }
+  ] },
+  { fxPick: true, speaker: "Thỏ Con", role: "Ly Thứ Bảy", avatar: "🍵", text: "Bảy người khách đã đứng sau quầy, mỗi người thả một nguyên liệu vào ly. Còn một chỗ trống ở cuối. Bạn muốn thêm gì vào ly nước của Thỏ Con?", options: [
+    { path: "heart", ing: "🍯", label: "🍯 Một thìa mật ong — vị ngọt để được phép yếu đuối.",
+      replies: [{ speaker: "Cô Hoa (44 tuổi)", role: "Người Mẹ", avatar: "🧶", text: "Ngọt một chút cũng không sao đâu cháu. Có những ngày mình cần được dỗ." }] },
+    { path: "mind", ing: "🍋", label: "🍋 Một lát chanh — vị chua tỉnh táo để nhìn thẳng sự thật.",
+      replies: [{ speaker: "Minh (27 tuổi)", role: "Kỹ Sư AI", avatar: "💻", text: "Chua, nhưng tỉnh. Mình cần cả những lúc rõ ràng như vậy." }] },
+    { path: "silent", ing: "🌼", label: "🌼 Vài cánh hoa cúc — chỉ cần một chén nước lặng để nghỉ.",
+      replies: [{ speaker: "Bác An (68 tuổi)", role: "Cựu Giáo Viên", avatar: "👓", text: "Lặng cũng là một cách chữa lành. Cứ nghỉ đi cháu, bác ngồi đây." }] }
   ] }
 ];
 
+/* Kết cuối của Thỏ Con: hai lựa chọn trùng nhau thì theo đó, khác nhau thì lời chọn sau cùng quyết định */
+let twistPicks = [];
+const TWIST_ENDING_INFO = {
+  heart: { title: "Tám Chiếc Ghế Quanh Quầy", icon: "🪑", scene: "tw_final", cs: "twist_end_heart" },
+  mind: { title: "Tấm Lịch Trên Tường", icon: "📅", scene: "tw_final", cs: "twist_end_mind" },
+  silent: { title: "Giấc Ngủ Đầu Tiên", icon: "🌙", scene: "tw_final", cs: "twist_end_silent" }
+};
+let twistDrinkIng = "";
+function twistEndingKind() {
+  // đa số trong các lựa chọn quyết định; nếu mỗi lựa chọn một khác thì lựa chọn sau cùng (nguyên liệu ly cuối) quyết định
+  const p = twistPicks.filter(Boolean);
+  if (!p.length) return "heart";
+  const cnt = {};
+  p.forEach((x) => (cnt[x] = (cnt[x] || 0) + 1));
+  const top = Object.keys(cnt).find((k) => cnt[k] >= 2);
+  return top || p[p.length - 1];
+}
+function playTwistFinal(kind, next) {
+  const info = TWIST_ENDING_INFO[kind] || TWIST_ENDING_INFO.heart;
+  const done = () => {
+    const a = persistentArchive;
+    a.twistEndings = { ...(a.twistEndings || {}), [kind]: true };
+    saveArchive();
+    const n = Object.keys(a.twistEndings).length;
+    showToast(`${info.icon} Kết cuối của Thỏ Con: ${info.title} (${n}/3)`);
+    next();
+  };
+  twistFx2(info.scene, { variant: kind }, () => playCutscene(info.cs, done));
+}
+
 /* Chiếu một cảnh động của cánh cửa thứ hai rồi chạy bước kế tiếp (nếu không chiếu được thì chạy luôn) */
-function twistFx(kind, next) {
+function twistFx(kind, next) { twistFx2(kind, {}, next); }
+function twistFx2(kind, extra, next) {
   let called = false;
   const go = () => { if (!called) { called = true; next(); } };
   let ok = false;
   try {
     const av = (typeof STANDARD_GUEST_ORDER !== "undefined" ? STANDARD_GUEST_ORDER : []).map((id) => CHARACTERS[id] && CHARACTERS[id].avatar).filter(Boolean);
-    ok = typeof SceneFX !== "undefined" && SceneFX.play(kind, { avatars: av }, go);
+    ok = typeof SceneFX !== "undefined" && SceneFX.play(kind, { avatars: av, ...extra }, go);
   } catch (e) { ok = false; }
   if (!ok) go();
 }
 
 function runTwistScene(onDone) {
   twistStageMode = "all";
+  twistPicks = [];
+  twistDrinkIng = "";
   const queue = [...TWIST_BEATS];
   const fxSeen = new Set();
   let idx = 0;
@@ -137,7 +199,7 @@ function runTwistScene(onDone) {
     }
     const b = queue[idx];
     if (b.fx && !fxSeen.has(b)) { fxSeen.add(b); twistFx(b.fx, step); return; }
-    setDialogue(b.speaker, b.role, b.avatar, b.text, false);
+    setDialogue(b.speaker, b.role, b.avatar, (b.echo ? twistEcho(b.echo) : "") + b.text, false);
     document.getElementById("stage-guest-label").textContent = "🐰 Thỏ Con & 7 vị khách";
     if (b.options) {
       b.options.forEach((o) =>
@@ -145,6 +207,8 @@ function runTwistScene(onDone) {
           o.label,
           "w-full text-left p-3 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-400/35 text-xs sm:text-sm text-stone-100 transition-all cursor-pointer",
           () => {
+            if (o.path) twistPicks.push(o.path);
+            if (b.fxPick && o.ing) twistDrinkIng = o.ing;
             queue.splice(idx + 1, 0, ...o.replies);
             idx++;
             step();
@@ -203,7 +267,7 @@ function finishTwistEnding() {
 }
 
 function startTwistEnding() {
-  if (!isTwistUnlocked()) {
+  if (!isTwistUnlocked() && !window.__devForceTwist) {
     showToast("🔒 Cánh cửa này vẫn chưa mở…");
     return;
   }
@@ -216,10 +280,10 @@ function startTwistEnding() {
   playCutsceneChain(["twist_01", "twist_02", "twist_03", "twist_04"], () =>
     twistFx("tw_book", () =>
       runTwistScene(() =>
-        twistFx("tw_drink", () =>
+        twistFx2("tw_drink", { ing: twistDrinkIng, variant: twistEndingKind() }, () =>
           playCutscene("twist_05", () =>
             twistFx("tw_birds", () =>
-              playCutsceneChain(["twist_06", "twist_07", "secret_card_17"], finishTwistEnding)
+              playCutsceneChain(["twist_06", "twist_07"], () => playTwistFinal(twistEndingKind(), () => playCutscene("secret_card_17", finishTwistEnding)))
             )
           )
         )
@@ -299,21 +363,20 @@ function checkAndUnlockAchievements() {
   const cardsCount = countUnlockedIn(DRINK_CARDS, a.unlockedDrinkCards);
   const sigCount = countUnlockedIn(SIGNATURE_RECIPES, a.unlockedSignatures);
   const eggsCount = Object.keys(a.discoveredEasterEggs).length;
-  const uniqueDuoPairsUnlocked = ALL_DUO_KEYS.filter(
-    (dk) => a.unlockedEndings[`duo_${dk}_heart`] || a.unlockedEndings[`duo_${dk}_mind`]
-  ).length;
+  // Đêm Song Khách = 6 đêm đầu của Chương 2 (mỗi đêm hai vị khách gặp nhau)
+  const duoNightsPlayed = [1, 2, 3, 4, 5, 6].filter((n) => a.unlockedCutscenes[`story_2_${n}`]).length;
 
   const conditions = {
     ach_first_drink: a.totalDrinksServed >= 1,
-    ach_duo_first: uniqueDuoPairsUnlocked >= 1,
-    ach_duo_all: uniqueDuoPairsUnlocked >= ALL_DUO_KEYS.length,
+    ach_duo_first: duoNightsPlayed >= 1,
+    ach_duo_all: duoNightsPlayed >= 6,
     ach_signature_1: sigCount >= 1,
     ach_signature_all: recipesDiscoveredCount(a) >= regularRecipes().length,
     ach_keepsake_1: keepsakesCount >= 1,
     ach_keepsake_all: keepsakesCount >= 7,
     ach_bookshelf_all: Object.keys(SHELF_BOOKS).every((g) => a.shelfBooks && a.shelfBooks[g]),
     ach_endings_7: endingsCount >= 7,
-    ach_endings_18: endingsCount >= 18,
+    ach_endings_18: endingsCount >= 14,
     ach_endings_27: endingsCount >= TOTAL_ENDINGS,
     ach_cards_8: cardsCount >= 8,
     ach_cards_16: cardsCount >= 16,
@@ -371,12 +434,12 @@ function manualSave() {
 const RESTART_CONFIRM_TEXT =
   "Bắt đầu lại từ Ca 1 như một game mới?\n\nToàn bộ kết cục, bí mật, thành tựu, cutscene, công thức và tiến độ sẽ bị XÓA. (Chỉ giữ cài đặt âm thanh & giọng đọc.) Không thể hoàn tác.";
 
-/* Xóa sạch tiến trình như game mới, chỉ giữ cài đặt người dùng (âm thanh, giọng đọc, tự đổi mùa) */
+/* Xóa sạch tiến trình như game mới, chỉ giữ cài đặt người dùng (âm thanh, tự đổi mùa) */
 function wipeProgressKeepSettings() {
   cancelActiveBrewAnimation();
   const old = persistentArchive;
   const fresh = createDefaultArchive();
-  ["voiceEnabled", "voiceV2", "autoAdvance", "voiceRate", "voiceFemale", "voiceMale", "rainVolume", "selectedLofiChannel", "autoCycleSeasons", "autoCycleCafe", "autoCycleV2"].forEach((k) => {
+  ["voiceV2", "autoAdvance", "voiceRate", "voiceFemale", "voiceMale", "rainVolume", "selectedLofiChannel", "autoCycleSeasons", "autoCycleCafe", "autoCycleV2"].forEach((k) => {
     if (old[k] !== undefined) fresh[k] = old[k];
   });
   persistentArchive = fresh;
@@ -514,18 +577,18 @@ function renderRulesScreenControls() {
   STORY_CHAPTERS.forEach((c) => {
     const unlocked = c.no <= reached;
     const card = document.createElement("div");
-    card.className = `p-3 rounded-2xl text-left border ${unlocked ? "bg-amber-500/10 border-amber-400/50 text-amber-100" : "bg-stone-950/60 border-stone-800/80 text-stone-500 opacity-80"}`;
+    card.className = `chapter-card p-3 rounded-2xl text-left border ${unlocked ? "bg-amber-500/10 border-amber-400/50 text-amber-100" : "bg-stone-950/60 border-stone-800/80 text-stone-500 opacity-80"}`;
     const nights = STORY_NIGHTS.filter((n) => n.ch === c.no);
     const detail = unlocked
-      ? `<p class="text-[11px] text-stone-300 mt-1 leading-relaxed">${escapeHtml(c.desc)}</p>
-         <ul class="mt-1.5 space-y-0.5 text-[10.5px] text-stone-400">${nights
-           .map((n) => `<li>${n.n}. ${escapeHtml(n.title)} <span class="text-stone-500">• ${n.guests.length > 3 ? "cả quán" : n.guests.map((g) => CHARACTERS[g].name.split(" (")[0]).join(" & ")}</span></li>`)
+      ? `<p class="chapter-desc text-stone-300">${escapeHtml(c.desc)}</p>
+         <ul class="chapter-nights">${nights
+           .map((n) => `<li><span class="n-no">${n.n}</span><span class="n-title">${escapeHtml(n.title)}</span><span class="n-who">${n.guests.length > 3 ? "cả quán" : n.guests.map((g) => CHARACTERS[g].name.split(" (")[0]).join(" & ")}</span></li>`)
            .join("")}</ul>`
-      : `<p class="text-[11px] text-stone-500 mt-1 leading-relaxed">Hoàn thành Chương ${c.no - 1} để mở khóa.</p>`;
+      : `<p class="chapter-desc text-stone-500">Hoàn thành Chương ${c.no - 1} để mở khóa.</p>`;
     card.innerHTML = `
-      <div class="flex items-center justify-between font-bold text-xs">
+      <div class="chapter-head flex items-center justify-between">
         <span>${c.icon} Chương ${c.no}: ${unlocked ? escapeHtml(c.name) : "???"}</span>
-        <span class="text-[10px] font-mono-code ${unlocked ? "text-emerald-300" : "text-stone-500"}">${unlocked ? (c.no === reached && !persistentArchive.completedModes.standard ? "Đang chơi" : "Đã mở") : "🔒 Khóa"}</span>
+        <span class="chapter-badge text-[10px] font-mono-code ${unlocked ? "text-emerald-300" : "text-stone-500"}">${unlocked ? (c.no === reached && !persistentArchive.completedModes.standard ? "Đang chơi" : "Đã mở") : "🔒 Khóa"}</span>
       </div>${detail}`;
     modeBox.appendChild(card);
   });
@@ -629,6 +692,9 @@ function renderVoiceControls() {
   renderAutoControls();
   const btn = document.getElementById("btn-toggle-voice");
   if (!btn) return;
+  const voiceAllowedNow = typeof isDevMode === "function" && isDevMode() || !CafeVoice.devOnly;
+  const vsec = document.getElementById("voice-section");
+  if (vsec) vsec.classList.toggle("hidden", !voiceAllowedNow);
   const on = Boolean(persistentArchive.voiceEnabled) && CafeVoice.supported;
   const replay = document.getElementById("btn-voice-replay");
   if (replay) replay.classList.toggle("hidden", !on);
@@ -639,6 +705,7 @@ function renderVoiceControls() {
       ? "min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/50 text-xs text-emerald-200 cursor-pointer"
       : "min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer";
   }
+  if (quick) quick.classList.toggle("hidden", !voiceAllowedNow);
   btn.textContent = on ? "Bật" : "Tắt";
   btn.className = on
     ? "px-2.5 py-1 rounded-xl bg-emerald-500/20 border border-emerald-400/50 text-[11px] text-emerald-200 cursor-pointer"
@@ -724,7 +791,7 @@ function updateAllProgressBadges() {
       if (countUnlockedEndings(a) >= 5) unlockedLoreTiers += 1;
       if (countUnlockedEndings(a) >= 15) unlockedLoreTiers += 1;
     } else {
-      const hasEnd = ["heart", "mind", "silent"].some((b) => a.unlockedEndings[`${d.id}_${b}`]);
+      const hasEnd = guestMetOrEnded(d.id, a);
       if (hasEnd) unlockedLoreTiers += 1;
       if (a.unlockedKeepsakes[d.id]) unlockedLoreTiers += 1;
       if (a.postcards[d.id]) unlockedLoreTiers += 1;
@@ -892,39 +959,9 @@ function openEndingsGalleryModal() {
   const grid = document.getElementById("endings-gallery-grid");
   grid.innerHTML = "";
 
-  const duoHeader = document.createElement("div");
-  duoHeader.className = "font-bold text-xs text-amber-300";
-  duoHeader.textContent = "👥 12 Kết Cục Giao Thoa Song Khách (6 Cặp × 2 Ngã Rẽ)";
-  grid.appendChild(duoHeader);
-
-  Object.values(DUO_PAIRINGS).forEach((duo) => {
-    const g1 = CHARACTERS[duo.guests[0]].name.split(" (")[0];
-    const g2 = CHARACTERS[duo.guests[1]].name.split(" (")[0];
-    const box = document.createElement("div");
-    box.className = "p-3 rounded-2xl bg-stone-900/90 border border-stone-800 space-y-2 text-xs";
-    box.innerHTML = `<div class="font-bold text-amber-200">${g1} &amp; ${g2}</div>`;
-
-    ["heart", "mind"].forEach((branch) => {
-      const eid = `duo_${duo.id}_${branch}`;
-      const unlocked = Boolean(persistentArchive.unlockedEndings[eid]);
-      const ed = duo.endings[branch];
-      const row = document.createElement("div");
-      row.className = `p-2 rounded-xl border ${unlocked ? "bg-emerald-500/10 border-emerald-400/35" : "bg-stone-950 border-stone-800 text-stone-500"}`;
-      row.innerHTML = `
-        <div class="font-semibold ${unlocked ? "text-emerald-200" : ""}">
-          ${branch === "heart" ? "🤝 Giao Thoa Trái Tim:" : "🚀 Liên Minh Sáng Tạo:"} ${unlocked ? ed.title : "🔒 Chưa mở khóa"}
-        </div>
-        ${unlocked ? `<p class="text-[11px] text-stone-300 mt-1">${ed.summary}</p>` : ""}
-      `;
-      if (unlocked) row.appendChild(makeEndingReplayBtn(eid));
-      box.appendChild(row);
-    });
-    grid.appendChild(box);
-  });
-
   const soloHeader = document.createElement("div");
   soloHeader.className = "font-bold text-xs text-emerald-300 pt-2";
-  soloHeader.textContent = "👤 21 Kết Cục Cá Nhân (7 Vị Khách × 3 Nhánh Đối Thoại)";
+  soloHeader.textContent = "👤 21 Kết Cục Chương 4 (7 Vị Khách × 3 Nhánh Đối Thoại)";
   grid.appendChild(soloHeader);
 
   STANDARD_GUEST_ORDER.forEach((gid) => {
@@ -965,7 +1002,7 @@ function openDossiersModal() {
       t2 = countUnlockedEndings() >= 5;
       t3 = countUnlockedEndings() >= 15;
     } else {
-      t1 = ["heart", "mind", "silent"].some((b) => persistentArchive.unlockedEndings[`${d.id}_${b}`]);
+      t1 = guestMetOrEnded(d.id);
       t2 = Boolean(persistentArchive.unlockedKeepsakes[d.id]);
       t3 = Boolean(persistentArchive.postcards[d.id]);
     }
@@ -1016,6 +1053,12 @@ function openFlowchartModal() {
         <div class="p-2 rounded-xl border ${sDone ? "bg-amber-500/15 border-amber-400/40 text-amber-200" : "bg-stone-950 border-stone-800 text-stone-500"}">🤫 Tĩnh Lặng: ${sDone ? "Đã mở" : "Khóa"}</div>
       </div>
     `;
+    const heard = [0, 1, 2, 3].filter((i) => (persistentArchive.truthsHeard || {})[`${gid}_${i + 1}`]);
+    const truths = document.createElement("div");
+    truths.className = "pt-1 space-y-1";
+    truths.innerHTML = `<div class="text-[11px] font-mono-code text-violet-300">💬 Lời thật đã nghe: ${heard.length}/4 (pha ly hoàn hảo để nghe thêm)</div>` +
+      heard.map((i) => `<p class="font-serif-story italic text-stone-300 text-[11px]">Chương ${i + 1}: “${escapeHtml(GUEST_TRUTHS[gid][i])}”</p>`).join("");
+    card.appendChild(truths);
     grid.appendChild(card);
   });
   openModal("modal-flowchart");
@@ -1145,10 +1188,10 @@ function openSecretsModal() {
   const door = document.createElement("div");
   door.className = "p-3.5 rounded-2xl border text-xs space-y-1 bg-rose-500/10 border-rose-400/35";
   door.innerHTML = isTwistUnlocked()
-    ? `<div class="font-bold text-rose-200">🕊️ Cánh cửa cuối cùng đã mở</div><p class="text-stone-300">Hãy mở Menu và chọn «🕊️ Cánh Cửa Thứ Hai».</p>`
+    ? `<div class="font-bold text-rose-200">🕊️ Cánh cửa cuối cùng đã mở</div><p class="text-stone-300">Hãy mở Menu và chọn «🕊️ Cánh Cửa Thứ Hai». Kết cuối của Thỏ Con có 3 cách: ${Object.keys(persistentArchive.twistEndings || {}).length}/3 đã mở.</p>`
     : `<div class="font-bold text-rose-200">🕊️ Còn một cánh cửa cuối cùng…</div>
-       <p class="text-stone-300">Nó chỉ mở khi bạn đã đi trọn bốn chương của Tháng Mưa (Gặp Gỡ → Trở Lại → Hiện Tại → Tương Lai), mở đủ 33 kết cục và mở hết mọi bí mật ở trên.</p>
-       <div class="text-[11px] font-mono-code text-amber-300">Tháng Mưa đã hoàn thành: ${doneModes}/1 • Kết cục: ${Math.min(TOTAL_ENDINGS, countUnlockedEndings())}/${TOTAL_ENDINGS} • Bí mật: ${unlockedCount}/${SECRET_VAULT.length}</div>`;
+       <p class="text-stone-300">Nó sẽ mở khi bạn đã đi trọn bốn chương của Tháng Mưa (Gặp Gỡ → Trở Lại → Hiện Tại → Tương Lai) đến bình minh đêm thứ 28.</p>
+       <div class="text-[11px] font-mono-code text-amber-300">Tháng Mưa đã hoàn thành: ${doneModes}/1</div>`;
   grid.appendChild(door);
   openModal("modal-secrets");
 }
@@ -1461,7 +1504,7 @@ function bindAllUIEvents() {
   bindVoiceControls();
   bindNightHistoryEvents();
   const replayBtn = document.getElementById("btn-voice-replay");
-  if (replayBtn && CafeVoice.supported) {
+  if (replayBtn) {
     replayBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       if (currentVoiceItems.length) CafeVoice.speakMany(currentVoiceItems, true);
@@ -1706,6 +1749,8 @@ function bootCafeApp() {
   if (isAppBooted) return;
   isAppBooted = true;
   try {
+    // Giọng đọc luôn tắt mỗi lần vào game (chỉ có thể bật tay trong chế độ DEV, và chỉ cho phiên đó)
+    persistentArchive.voiceEnabled = false;
     bindAllUIEvents();
     updateAllProgressBadges();
     checkAndUnlockAchievements();

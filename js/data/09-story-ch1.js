@@ -9,7 +9,7 @@ const STORY_CH1 = [
   /* ========== ĐÊM 1 — VY ========== */
   {
     ch: 1, n: 1, t0: "00:00", icon: "🪧", title: "Tấm Biển Gỗ Lật Mặt MỞ CỬA",
-    guests: ["vy"], end: "solo:vy",
+    guests: ["vy"], end: null,
     intro: [
       "Mùa mưa năm nay kéo dài hơn mọi người nhớ. Giá điện tăng bậc, giá gạo nhích lên từng tuần, và cứ vài ngày lại có thêm một công ty thông báo “tối ưu nhân sự”. Cuối con hẻm nhỏ, tấm biển gỗ của Tiệm Nước Nửa Đêm lại được lật sang mặt MỞ CỬA.",
       "Đây là đêm đầu tiên của Tháng Mưa. Thỏ Con lau quầy, thắp đèn lồng, đặt ấm nước lên bếp than rồi ngồi chờ xem ai sẽ là người đầu tiên tìm tới ánh đèn vàng này."
@@ -53,7 +53,7 @@ const STORY_CH1 = [
   /* ========== ĐÊM 2 — MINH ========== */
   {
     ch: 1, n: 2, t0: "00:00", icon: "🌃", title: "Ánh Sáng Xanh Của Màn Hình",
-    guests: ["minh"], end: "solo:minh",
+    guests: ["minh"], end: null,
     intro: [
       "Đêm thứ hai. Đài FM Nửa Đêm đọc bản tin: thêm ba công ty công nghệ công bố kế hoạch giảm nhân sự, giá điện tháng này lại nhích lên một bậc. Trong tòa nhà kính sáng đèn cuối phố, một văn phòng vẫn chưa tắt.",
       "Tiệm Nước Nửa Đêm lặng như một chiếc hộp nhạc đang chờ được vặn dây cót. Thỏ Con lau lại chiếc ghế gỗ trong góc yên tĩnh nhất, như thể đã đoán trước có người sẽ cần đến."
@@ -97,7 +97,7 @@ const STORY_CH1 = [
   /* ========== ĐÊM 3 — LINH ========== */
   {
     ch: 1, n: 3, t0: "00:00", icon: "📕", title: "Cuốn Sổ Bìa Đỏ Sờn Gáy",
-    guests: ["linh"], end: "solo:linh",
+    guests: ["linh"], end: null,
     intro: [
       "Đêm thứ ba, gió đổi hướng, mang theo mùi ẩm của những trang sách cũ trong hiệu sách cuối phố. Tin tức sáng nay: một nhà xuất bản lâu đời vừa tuyên bố ngừng in sách mới để chuyển sang nội dung tạo tự động.",
       "Thỏ Con đặt một lọ hoa nhài nhỏ lên quầy. Mùi hương thoang thoảng gợi nhớ những buổi chiều đọc sách ở đâu đó rất xa."
@@ -142,7 +142,7 @@ const STORY_CH1 = [
   /* ========== ĐÊM 4 — TUẤN ========== */
   {
     ch: 1, n: 4, t0: "00:00", icon: "🚚", title: "Chuyến Hàng Đêm Cuối",
-    guests: ["tuan"], end: "solo:tuan",
+    guests: ["tuan"], end: null,
     intro: [
       "Đêm thứ tư. Giá xăng vừa tăng lần thứ ba trong hai tháng, những chiếc xe giao hàng phải đổ thêm tiền để chạy cùng một quãng đường. Ở đại lộ, nước dâng đến nửa bánh xe, vậy mà ứng dụng vẫn đếm từng phút trễ.",
       "Tiệm Nước Nửa Đêm bật thêm một ngọn đèn nhỏ ở trước hiên, như một dấu chấm sáng cho những người đang chạy dưới mưa."
@@ -186,7 +186,7 @@ const STORY_CH1 = [
   /* ========== ĐÊM 5 — KHANG ========== */
   {
     ch: 1, n: 5, t0: "00:00", icon: "🧵", title: "Mùi Sáp Ong Và Sợi Chỉ Gai",
-    guests: ["khang"], end: "solo:khang",
+    guests: ["khang"], end: null,
     intro: [
       "Đêm thứ năm. Giá da thuộc nhập khẩu lại nhích lên, giá điện của những xưởng nhỏ tăng theo từng bậc. Trên mạng, hàng loạt trang bán túi xách với hình ảnh dựng bằng trí tuệ nhân tạo, đẹp lung linh mà giá chỉ bằng một phần ba.",
       "Cuối hẻm có một xưởng da sáng đèn muộn hơn mọi nhà. Thỏ Con đặt thêm một thanh gỗ vào bếp than, như thể biết sắp có người cần hơi ấm của gỗ."
@@ -231,7 +231,7 @@ const STORY_CH1 = [
   /* ========== ĐÊM 6 — HOA ========== */
   {
     ch: 1, n: 6, t0: "00:00", icon: "🧶", title: "Chiếc Khăn Len Hổ Phách",
-    guests: ["hoa"], end: "solo:hoa",
+    guests: ["hoa"], end: null,
     intro: [
       "Đêm thứ sáu. Công ty tài chính nơi cô Hoa làm việc vừa cài đặt một phần mềm kế toán tự động. Hàng ngàn dòng số liệu, trước đây phải đối chiếu bằng tay mất cả tuần, nay chỉ mất vài phút. Ai cũng khen tiện lợi, chỉ có những người kế toán lâu năm ngồi im lặng.",
       "Thỏ Con đặt thêm một cuộn len ấm lên chiếc ghế cạnh bếp than, dành cho ai đó đang cần một cái ôm bằng sợi len."
@@ -276,7 +276,7 @@ const STORY_CH1 = [
   /* ========== ĐÊM 7 — AN ========== */
   {
     ch: 1, n: 7, t0: "00:00", icon: "📚", title: "Hiệu Sách Cuối Phố Sắp Đóng Cửa",
-    guests: ["an"], end: "solo:an",
+    guests: ["an"], end: null,
     intro: [
       "Đêm thứ bảy, cũng là đêm cuối của tuần đầu tiên. Tờ thông báo dán trên cửa hiệu sách cũ cuối phố nói rằng nơi này sẽ đóng cửa trong ít ngày nữa để nhường chỗ cho một trung tâm thương mại. Lương hưu của những người già mua được ít gạo hơn so với năm ngoái.",
       "Thỏ Con kê sáu chiếc ghế quanh quầy, rồi chiếc thứ bảy ở cạnh cửa sổ. Sáu đêm qua, mỗi người một ly, một câu chuyện. Còn một người nữa chưa tới."

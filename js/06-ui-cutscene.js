@@ -269,7 +269,7 @@ function syncGameHUD() {
   const guests = getCurrentNightGuests();
   const modeBadge = document.getElementById("hud-mode-badge");
   modeBadge.textContent = guests.length > 1 ? `👥 ${guests.length} Vị Khách` : "👤 Đơn Khách";
-  modeBadge.className = "hidden sm:inline-block px-2.5 py-1 rounded-xl bg-stone-900 border border-stone-700 text-stone-200 text-xs";
+  modeBadge.className = "hidden sm:inline-flex hud-pill hud-pill-soft bg-stone-900 border border-stone-700 text-stone-200";
   const present = getStageVisibleGuests();
   document.getElementById("stage-guest-label").textContent = present.length
     ? present.map((g) => `${g.avatar} ${g.name.split(" (")[0]}`).join(" & ")

@@ -32,7 +32,8 @@ const DRINK_ACCENTS = [
   { id: "jasmine", name: "Hoa Nhài Đêm", icon: "🌼", emotion: "nostalgic" },
   { id: "lemongrass", name: "Sả Tươi Đập Dập", icon: "🌾", emotion: "awake" },
   { id: "lavender", name: "Oải Hương Khô", icon: "🪻", emotion: "gentle" },
-  { id: "osmanthus", name: "Hoa Quế Ngâm Đường", icon: "🏵️", emotion: "nostalgic" }
+  { id: "osmanthus", name: "Hoa Quế Ngâm Đường", icon: "🏵️", emotion: "nostalgic" },
+  { id: "pandan", name: "Lá Dứa Thơm", icon: "🍃", emotion: "gentle" }
 ];
 
 /* Cặp hương vị "chọi nhau": chọn cả hai sẽ bị trừ điểm hợp vị */
@@ -43,7 +44,8 @@ const CLASH_PAIRS = [
   ["jasmine", "sea_salt"],
   ["lemongrass", "lavender"],
   ["osmanthus", "mint"],
-  ["orange_peel", "lavender"]
+  ["orange_peel", "lavender"],
+  ["pandan", "sea_salt"]
 ];
 
 /* Khách không nói thẳng "tôi cần cảm xúc gì" — họ chỉ bóng gió. Người chơi phải tự đoán (hoặc hỏi thẳng, nhưng đánh đổi). */

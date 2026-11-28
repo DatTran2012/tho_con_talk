@@ -71,6 +71,36 @@ const TWIST_CUTSCENES = [
     caption: "Thỏ Con không nói gì. Cô đặt tờ giấy hẹn lên quầy rồi để im lặng nói thay. Không ai hỏi, không ai khuyên. Cô Hoa khoác chiếc khăn len lên vai cô. Anh Khang kéo chiếc ghế gần bếp than lại. Bác An đọc rất khẽ một bài thơ.\n\nLần đầu sau nhiều tháng, Thỏ Con ngủ gục ngay trên quầy, ly nước vẫn còn ấm bên tay. Bảy người ngồi canh đèn thay cô, không ai dám bật radio, cho đến khi mặt trời lên hẳn.\n\nKhi Thỏ Con tỉnh dậy, nắng đã rọi đầy quán. Trên quầy là bảy ly nước đã nguội và bảy mẩu giấy nhỏ: “Khi nào em muốn nói, tụi anh chị vẫn ở đây.”" }
 ];
 
+/* KẾT THỨ NHẤT sau 28 đêm — "Tấm Biển Tạm Nghỉ": quán vẫn rôm rả, không ai biết gì, rồi quán đóng cửa vô thời hạn.
+   Cố ý KHÔNG nói Thỏ Con bị gì. Sự thật nằm ở kết thứ hai (Cánh Cửa Thứ Hai). */
+const QUIET_CUTSCENES = [
+  { id: "quiet_01", icon: "🏮🍵😄", location: "ĐÊM THỨ 28 • QUÁN VẪN RÔM RẢ", title: "Một Đêm Rất Bình Thường",
+    caption: "Đêm cuối của Tháng Mưa, quán đông như chưa từng đông. Cô Hoa chia bát cháo nóng cho cả quầy, anh Tuấn lần đầu tắt máy xe mà không nhìn đồng hồ, bác An đọc bài thơ mới viết cho quán, anh Khang đặt lên quầy chiếc thẻ đánh dấu sách da mới khâu, Minh bật cười vì một dòng mã chạy đúng ngay lần đầu. Chị Linh và Vy hứa sẽ nhắc nhau những điều đã định làm trong năm tới.\n\nThỏ Con pha nước, rót trà, nghe chuyện, pha trò đúng chỗ. Ai cũng nghĩ: người này lúc nào cũng vững vàng. Không một ai để ý bàn tay cầm ấm trà dừng lại thật lâu mỗi lần nhìn lên đồng hồ." },
+  { id: "quiet_02", icon: "🪧🌅🚪", location: "05:40 • “MÌNH QUAY LẠI NGAY”", title: "Tấm Biển Gỗ Treo Lúc Không Ai Thấy",
+    caption: "Hơn năm giờ rưỡi, Thỏ Con nhìn đồng hồ, mỉm cười: “Mình có một cuộc hẹn sớm. Mọi người cứ ngồi thêm một lát, mình quay lại ngay.”\n\nBảy người ngồi chờ bên chiếc quầy còn ấm. Tới trưa. Tới chiều. Thỏ Con không quay lại.\n\nTối hôm ấy, trên cánh cửa có thêm một tấm biển gỗ nhỏ, nét chữ ngay ngắn quen thuộc: “Quán tạm nghỉ. Cảm ơn mọi người đã ghé. Hẹn một ngày không xa.” Không ai thấy ai treo nó lên. Không lý do, không số điện thoại, không lời nhắn riêng cho ai. Bảy vị khách đoán đủ điều: chắc đi xa, chắc về quê, chắc mệt rồi cần nghỉ ngơi. Họ ghé thêm vài đêm, đứng trước cánh cửa đóng, rồi lặng lẽ đi." },
+  { id: "quiet_03", icon: "📻🕯️🐱", location: "MỘT MÙA MƯA SAU • KHÔNG AI BIẾT", title: "Ngọn Đèn Không Ai Thấy Tắt",
+    caption: "Tấm biển “tạm nghỉ” treo mãi, rồi bụi phủ lên, rồi không ai còn hỏi tới nữa. Quán Nửa Đêm trở thành một câu chuyện cũ mà cả bảy người thỉnh thoảng nhắc lại: “Hồi đó có một quán nhỏ, chủ quán lắng nghe giỏi lắm… không biết giờ ra sao.”\n\nKhông ai biết Thỏ Con đã mang điều gì suốt những đêm ấy, kể cả lá thư cuối của Hộp Thư Khuya, ký tên “một người gác đêm”, chẳng ai biết là của ai. Không ai biết vì sao ngọn đèn tắt. Mỗi người giữ lại một món đồ nhỏ và một ly nước không bao giờ nếm lại được.\n\nChỉ có chiếc radio cũ trong quán, im lìm trên kệ, và một cánh cửa phía sau quầy mà chưa từng có ai nghĩ tới việc gõ." }
+];
+
+/* BA KẾT LỚN BỔ SUNG (mở theo cách chơi, xem FINALE_ENDINGS trong 10-events-boot.js):
+   last_*   «Người Nghe Cuối Cùng»  — thiên về 🤫, nghe được một phần lời thật; kết bỏ ngỏ
+   hands_*  «Bảy Chiếc Chìa Khóa»   — đã có kết tốt (tim/trí) của cả 7 khách
+   heal_*   «Ngày Thỏ Con Khỏe Lại»  — đã xem đủ 3 biến thể Cánh Cửa Thứ Hai */
+const FINALE_CUTSCENES = [
+  { id: "last_01", icon: "🎙️🌧️🐰", location: "09:00 • SAU CUỘC HẸN SỚM", title: "Một Câu Hỏi Không Để Đăng Báo",
+    caption: "Sáng hôm sau đêm thứ 28, Thỏ Con trở về đúng như đã hẹn: “mình quay lại ngay”. Quán đã vãn, chỉ còn Vy ngồi đợi ở cuối quầy. Cô tắt máy ghi âm, đặt nó úp xuống mặt gỗ như một lời hứa không cần nói ra.\n\n“Em hỏi một câu thôi, không để viết đâu. Lá thư cuối của Hộp Thư Khuya, người gác đêm ấy… là chị, đúng không? Suốt tháng nay ai cũng kể cho chị nghe. Còn chị thì sao?”\n\nThỏ Con đang lau một chiếc ly đã sạch từ lâu. Lau thêm một lúc nữa." },
+  { id: "last_02", icon: "🍵🤍🕯️", location: "09:30 • MỘT NỬA CÂU CHUYỆN", title: "Nửa Còn Lại Chưa Kể",
+    caption: "“Có một chuyện mình chưa nói hết được,” Thỏ Con nói, rất chậm. “Cho mình thêm một mùa mưa nữa nhé. Mình sẽ kể, khi mình kể được.”\n\nVy không hỏi thêm một chữ. Cô rót ly nước đầu tiên của buổi sáng ấy, và lần đầu tiên là rót cho người đứng sau quầy.\n\nQuán đóng cửa như thường lệ. Tấm biển “tạm nghỉ” không bị treo lên. Không ai biết nửa còn lại là gì, chỉ biết có một người đang kiên nhẫn chờ nghe, và ngọn đèn vẫn còn sáng." },
+  { id: "hands_01", icon: "🗝️🏮🚪", location: "BẢY ĐÊM SAU • QUÁN TỐI ĐÈN", title: "Bảy Chiếc Chìa Khóa",
+    caption: "Có một tối quán không mở. Trên cửa chỉ có mảnh giấy ngắn bằng nét chữ quen: “Quầy là của mọi người. Cứ pha thứ mình muốn uống.”\n\nBảy người đứng trước cánh cửa tối, mỗi người cầm theo món đồ mình từng gửi lại cho quán: cuộn băng cassette, chú vịt cao su, cuốn sổ bìa đỏ, chiếc cờ lê bạc, thẻ đánh dấu sách, chiếc khăn len, cây bút máy. Anh Khang là người đầu tiên đẩy cửa, nhóm lại bếp than." },
+  { id: "hands_02", icon: "📅🏮🪑", location: "MỘT MÙA SAU • ĐÈN LUÂN PHIÊN", title: "Ngọn Đèn Của Tất Cả Mọi Người",
+    caption: "Trên tường quán có thêm tấm lịch trực: anh Khang nhóm bếp, cô Hoa nấu cháo, Minh lo radio và tin nhắn, chị Linh đọc sách trước giờ đóng cửa, anh Tuấn chở khách khuya về tận nhà, bác An tưới chậu cây, Vy giữ hộp thư của Đài FM Nửa Đêm.\n\nKhi Thỏ Con trở lại, đèn đã sáng, chiếc ghế sau quầy được để trống, một ly nước còn ấm. Hóa ra quán chưa bao giờ chỉ là của một người." },
+  { id: "heal_01", icon: "🗓️🖍️🌸", location: "MỘT SÁNG ĐẦU XUÂN • Ô CUỐI CỦA TẤM LỊCH", title: "Ô Trống Trên Tấm Lịch",
+    caption: "Buổi hẹn khám sáng hôm ấy, bác sĩ nói bằng giọng rất bình tĩnh: “Kết quả đã ổn rồi. Từ giờ chỉ cần tái khám định kỳ.” Thỏ Con ngồi lặng trong hành lang bệnh viện thật lâu, rồi bật cười, nước mắt chảy ra cùng lúc. Tờ kết quả lần này không còn làm ai sợ nữa.\n\nThỏ Con về quán, đứng trước tấm lịch dán trên tường từ mùa mưa năm ấy. Ô cuối cùng, ô để trống, ghi “Ngày Thỏ Con khỏe lại”, được chị Linh tô một nét bút đỏ thật tròn, còn Minh chèn thêm một dấu cười." },
+  { id: "heal_02", icon: "🪧🏮🌅", location: "SÁNG HÔM SAU • TẤM BIỂN LẬT MẶT", title: "Hôm Nay Quán Mở Cửa",
+    caption: "Sáng hôm sau, tấm biển gỗ ở cửa được lật sang mặt còn lại, vẫn nét chữ ngay ngắn quen thuộc: “Hôm nay quán mở cửa.”\n\nBảy người khách ngồi vào đúng chỗ của mình. Lần này ly nước đầu tiên là Thỏ Con pha, rồi tự rót cho mình một ly, ngồi xuống giữa bảy người.\n\nDưới đáy ly, dòng chữ cũ vẫn còn đó: “Giữ ngọn đèn này sáng không phải vì có ai đến, mà vì ai cũng có thể đến.” Và lần này, có người đến thật." }
+];
+
 const CUTSCENE_CATALOG = [
   { id: "origin_thocon_1", icon: "🌧️🐰", location: "KHỞI NGUỒN • ĐÊM MƯA BA NĂM TRƯỚC", title: "Người Lạc Hướng Giữa Thành Phố Đêm", caption: "Ba năm trước, giữa một đêm mưa tầm tã của mùa suy thoái, Thỏ Con từng lang thang qua những con phố tắt đèn với đôi vai trĩu nặng nỗi hoang mang về tương lai." },
   { id: "origin_thocon_2", icon: "🏮🍵", location: "KHỞI NGUỒN • ÁNH ĐÈN HIÊN NHỎ", title: "Tách Trà Ấm Không Hỏi Tên", caption: "Một người chủ quán già nơi cuối hẻm đã mở cửa lúc 2 giờ sáng, rót mời Thỏ Con một chén trà hoa cúc mật ong ấm nóng và chỉ lặng lẽ lắng nghe mà không hề phán xét." },
@@ -112,5 +142,7 @@ const CUTSCENE_CATALOG = [
     caption: s.story
   })),
 
+  ...QUIET_CUTSCENES,
+  ...FINALE_CUTSCENES,
   ...TWIST_CUTSCENES
 ];

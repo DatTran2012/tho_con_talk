@@ -282,7 +282,9 @@ function renderStoryStep(step, story) {
           persistentArchive.truthsHeard = { ...(persistentArchive.truthsHeard || {}), [key]: true };
           saveArchive();
           truthLine = `\n\n💬 “${t}”`;
-          showToast(`💬 ${sn} nói thêm một lời thật (${Object.keys(persistentArchive.truthsHeard).length}/28)`);
+          const tn = Object.keys(persistentArchive.truthsHeard).length;
+          const goal = persistentArchive.quietEndingSeen && typeof TWIST_TRUTHS_NEEDED !== "undefined" ? ` • mở cửa: ${Math.min(tn, TWIST_TRUTHS_NEEDED)}/${TWIST_TRUTHS_NEEDED}` : "";
+          showToast(`💬 ${sn} nói thêm một lời thật (${tn}/28${goal})`);
         }
       }
       setDialogue(guest.name, guest.role, guest.avatar, `[${runState.lastDrinkName} — ${lastD.quality || runState.lastBrewQuality}]\n\n${LEAD[0]}\n\n${qk === "plain" ? plainReflection(guest.id) : runState.lastDrinkReflectionText}${truthLine}`, true, storyTimeOpts({ narr: true }));

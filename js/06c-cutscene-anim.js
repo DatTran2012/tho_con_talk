@@ -63,7 +63,7 @@ const CutsceneAnim = (function () {
     [[0.5, day ? "#6f6a9a" : "#171233", 150, 62], [1, day ? "#4b4577" : "#0f0b24", 120, 78]].forEach(([k, col, hh, bw], li) => {
       const off = (T * spd * k) % (bw * 6);
       for (let i = -1; i < 12; i++) {
-        const bx = i * bw - off, bh = 50 + rnd(i + li * 31 + Math.floor((T * spd * k) / (bw * 6)) * 0) * (hh - 50);
+        const bx = i * bw - off;
         const idx = ((i + Math.floor((T * spd * k) / (bw * 6)) * 6) % 6 + 6) % 6;
         const h2 = 50 + rnd(idx + li * 31) * (hh - 50);
         c.fillStyle = col; c.fillRect(bx, H * 0.78 - h2, bw - 3, h2);

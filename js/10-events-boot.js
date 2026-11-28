@@ -62,11 +62,97 @@ function guestMetOrEnded(gid, a = persistentArchive) {
   return ["heart", "mind", "silent"].some((b) => a.unlockedEndings[`${gid}_${b}`]) || (idx >= 0 && Boolean(a.unlockedCutscenes[`story_1_${idx + 1}`]));
 }
 
-/* Cánh Cửa Thứ Hai mở ngay sau khi bạn đi trọn Tháng Mưa một lượt (28 đêm).
-   Các kết cục, bí mật… là phần sưu tầm thêm, không còn là điều kiện bắt buộc. */
+/* Hai cái kết sau 28 đêm:
+   1) Lần đầu đi trọn Tháng Mưa → KẾT THỨ NHẤT "Tấm Biển Tạm Nghỉ" (quán đóng cửa, không ai biết Thỏ Con bị gì).
+   2) Cánh Cửa Thứ Hai (sự thật) chỉ mở khi đã xem kết thứ nhất VÀ đã nghe đủ TWIST_TRUTHS_NEEDED lời thật của khách. Ai đã xem Cánh Cửa từ trước thì giữ nguyên quyền mở. */
+const TWIST_TRUTHS_NEEDED = 10;
+
+function truthsHeardCount(a = persistentArchive) {
+  return Object.keys(a.truthsHeard || {}).length;
+}
+
 function isTwistUnlocked() {
   const a = persistentArchive;
-  return SHIFT_MODES.every((m) => a.completedModes[m.id]);
+  if (a.twistEndingSeen || Object.keys(a.twistEndings || {}).length) return true;
+  if (!SHIFT_MODES.every((m) => a.completedModes[m.id]) || !a.quietEndingSeen) return false;
+  return truthsHeardCount(a) >= TWIST_TRUTHS_NEEDED;
+}
+
+function twistLockHint(a = persistentArchive) {
+  return `Hãy lắng nghe thêm lời thật của khách (${Math.min(truthsHeardCount(a), TWIST_TRUTHS_NEEDED)}/${TWIST_TRUTHS_NEEDED}).`;
+}
+
+/* Dữ liệu cho các cảnh động của kết lớn (Vy, 7 kỷ vật) */
+function endingFxExtras() {
+  const order = typeof STANDARD_GUEST_ORDER !== "undefined" ? STANDARD_GUEST_ORDER : [];
+  return { vy: CHARACTERS.vy, icons: order.map((g) => CHARACTERS[g] && CHARACTERS[g].keepsake && CHARACTERS[g].keepsake.icon).filter(Boolean) };
+}
+
+/* Cảnh chữ đầu → cảnh động → các cảnh chữ còn lại */
+function playEndingSequence(ids, fx, done) {
+  playCutscene(ids[0], () => twistFx2(fx, endingFxExtras(), () => playCutsceneChain(ids.slice(1), done)));
+}
+
+/* Kết thứ nhất: phát 3 cảnh (có cảnh động ở giữa) rồi gọi done */
+function startQuietEnding(done) {
+  cancelActiveBrewAnimation();
+  closeModal("mobile-drawer");
+  playEndingSequence(["quiet_01", "quiet_02", "quiet_03"], "end_quiet", () => {
+    persistentArchive.quietEndingSeen = true;
+    saveArchive();
+    updateAllProgressBadges();
+    if (done) done();
+  });
+}
+
+/* Các kết lớn bổ sung. Mỗi kết chỉ tự phát MỘT lần (cờ finalesSeen); xem lại trong Sổ Cảnh.
+   stance = số lần chọn ❤️/🧠/🤫 của lượt chơi vừa xong (null nếu không có). */
+const FINALE_ENDINGS = [
+  { id: "last_listener", ids: ["last_01", "last_02"], fx: "end_last", icon: "🎙️", title: "Người Nghe Cuối Cùng",
+    eligible: (a, st) => Boolean(st) && st.silent > 0 && st.silent >= st.heart && st.silent >= st.mind && truthsHeardCount(a) >= 5 },
+  { id: "all_hands", ids: ["hands_01", "hands_02"], fx: "end_hands", icon: "🗝️", title: "Bảy Chiếc Chìa Khóa",
+    eligible: (a) => STANDARD_GUEST_ORDER.every((g) => a.unlockedEndings[`${g}_heart`] || a.unlockedEndings[`${g}_mind`]) },
+  { id: "recovery", ids: ["heal_01", "heal_02"], fx: "end_heal", icon: "🌸", title: "Ngày Thỏ Con Khỏe Lại",
+    eligible: (a) => ["heart", "mind", "silent"].every((k) => (a.twistEndings || {})[k]) }
+];
+
+function playFinaleEnding(def, done) {
+  playEndingSequence(def.ids, def.fx, () => {
+    persistentArchive.finalesSeen = { ...(persistentArchive.finalesSeen || {}), [def.id]: true };
+    saveArchive();
+    showToast(`${def.icon} Kết mới: ${def.title}`);
+    updateAllProgressBadges();
+    if (done) done();
+    if (computeGameProgress().percent >= 100 && !persistentArchive.thanksSeen) setTimeout(showThanksPage, 800);
+  });
+}
+
+function pendingFinaleEnding(stance) {
+  const a = persistentArchive;
+  return FINALE_ENDINGS.find((d) => d.id !== "recovery" && !(a.finalesSeen || {})[d.id] && d.eligible(a, stance));
+}
+
+/* Sau tổng kết 28 đêm: lần đầu → kết thứ nhất; các lần sau → kết lớn theo cách chơi (nếu có);
+   rồi hỏi Cánh Cửa nếu đủ điều kiện → trang cảm ơn */
+function afterMonthComplete(stance = null) {
+  const goOn = () => {
+    if (isTwistUnlocked() && !persistentArchive.twistAsked && !Object.keys(persistentArchive.twistEndings || {}).length) {
+      persistentArchive.twistAsked = true;
+      persistentArchive.twistAnnounced = true;
+      saveArchive();
+      openModal("modal-twist-ask");
+      return;
+    }
+    showFinalePage();
+    if (!isTwistUnlocked() && persistentArchive.quietEndingSeen) showToast(`🕊️ Hình như quán vẫn còn một cánh cửa chưa mở… ${twistLockHint()}`);
+  };
+  if (!persistentArchive.quietEndingSeen) {
+    startQuietEnding(goOn);
+    return;
+  }
+  const def = pendingFinaleEnding(stance);
+  if (def) playFinaleEnding(def, goOn);
+  else goOn();
 }
 
 function playCutsceneChain(ids, done) {
@@ -233,6 +319,7 @@ function showThanksPage() {
   const a = persistentArchive;
   const stats = [
     ["🎭 Kết cục", `${countUnlockedEndings(a)}/${TOTAL_ENDINGS}`],
+    ["👑 Kết lớn", `${bigEndingsCount(a)}/${TOTAL_BIG_ENDINGS}`],
     ["🗝️ Bí mật", `${Object.keys(a.unlockedSecrets || {}).length}/${SECRET_VAULT.length}`],
     ["🍹 Ly nước đã pha", `${a.totalDrinksServed || 0}`],
     ["🌟 Ly hoàn hảo", `${a.perfectBrewsCount || 0}`],
@@ -262,8 +349,13 @@ function finishTwistEnding() {
   saveArchive();
   updateAllProgressBadges();
   document.getElementById("dialogue-action-area").innerHTML = "";
-  switchScreen("screen-welcome");
-  if ((computeGameProgress().percent >= 100 && !persistentArchive.thanksSeen) || (typeof isDevMode === "function" && isDevMode())) setTimeout(showThanksPage, 600);
+  const leave = () => {
+    switchScreen("screen-welcome");
+    if ((computeGameProgress().percent >= 100 && !persistentArchive.thanksSeen) || (typeof isDevMode === "function" && isDevMode())) setTimeout(showThanksPage, 600);
+  };
+  const rec = FINALE_ENDINGS.find((d) => d.id === "recovery");
+  if (rec.eligible(persistentArchive) && !(persistentArchive.finalesSeen || {}).recovery) playFinaleEnding(rec, leave);
+  else leave();
 }
 
 function startTwistEnding() {
@@ -456,6 +548,7 @@ function showFinalePage() {
   const a = persistentArchive;
   const stats = [
     ["🎭 Kết cục", `${countUnlockedEndings(a)}/${TOTAL_ENDINGS}`],
+    ["👑 Kết lớn", `${bigEndingsCount(a)}/${TOTAL_BIG_ENDINGS}`],
     ["🍹 Công thức nước", `${recipesDiscoveredCount()}/${regularRecipes().length}`],
     ["🎴 Lá bài DRINK", `${countUnlockedIn(DRINK_CARDS, a.unlockedDrinkCards)}/${DRINK_CARDS.length}`],
     ["🍵 Ly nước đã pha", `${a.totalDrinksServed || 0}`]
@@ -596,7 +689,7 @@ function renderRulesScreenControls() {
 
 /* ---- Tiến độ hoàn thành game (0–100%) ---- */
 const PROGRESS_WEIGHTS = [
-  { id: "endings", label: "🎭 Kết cục", weight: 30 },
+  { id: "endings", label: "🎭 Kết cục", weight: 26 },
   { id: "chapters", label: "🌙 Tháng Mưa hoàn thành", weight: 15 },
   { id: "secrets", label: "🗝️ Kho bí mật", weight: 15 },
   { id: "cards", label: "🎴 Lá bài DRINK", weight: 8 },
@@ -604,8 +697,15 @@ const PROGRESS_WEIGHTS = [
   { id: "achievements", label: "🏅 Thành tựu", weight: 8 },
   { id: "signatures", label: "🍹 Công thức độc quyền", weight: 6 },
   { id: "eggs", label: "🥚 Bí mật quán", weight: 6 },
-  { id: "twist", label: "🕊️ Cánh Cửa Thứ Hai", weight: 4 }
+  { id: "big", label: "👑 Kết lớn", weight: 8 }
 ];
+
+/* 5 kết lớn: Tấm Biển Tạm Nghỉ, Cánh Cửa Thứ Hai, Người Nghe Cuối Cùng, Bảy Chiếc Chìa Khóa, Ngày Thỏ Con Khỏe Lại */
+const TOTAL_BIG_ENDINGS = 5;
+function bigEndingsCount(a = persistentArchive) {
+  const f = a.finalesSeen || {};
+  return (a.quietEndingSeen ? 1 : 0) + (a.twistEndingSeen ? 1 : 0) + FINALE_ENDINGS.filter((d) => f[d.id]).length;
+}
 
 function computeGameProgress(a = persistentArchive) {
   const counts = {
@@ -620,7 +720,7 @@ function computeGameProgress(a = persistentArchive) {
     ],
     signatures: [countUnlockedIn(SIGNATURE_RECIPES, a.unlockedSignatures), SIGNATURE_RECIPES.length],
     eggs: [getDiscoveredEggs(a).length, EASTER_EGGS.length],
-    twist: [a.twistEndingSeen ? 1 : 0, 1]
+    big: [bigEndingsCount(a), TOTAL_BIG_ENDINGS]
   };
   let total = 0;
   const rows = PROGRESS_WEIGHTS.map((w) => {
@@ -655,7 +755,15 @@ function renderGameProgress() {
   const note = document.getElementById("progress-note");
   if (note) {
     note.textContent =
-      percent >= 100 ? "🌟 Bạn đã hoàn thành trọn vẹn Tiệm Nước Nửa Đêm!" : "Hoàn thành mọi mục để đạt 100% và mở cánh cửa cuối cùng.";
+      percent >= 100
+        ? "🌟 Bạn đã hoàn thành trọn vẹn Tiệm Nước Nửa Đêm!"
+        : isTwistUnlocked()
+          ? "🕊️ Cánh cửa cuối cùng đã mở: vào Menu → «Cánh Cửa Thứ Hai». Hoàn thành thêm các mục còn lại để đạt 100%."
+          : persistentArchive.quietEndingSeen
+            ? `Còn một cánh cửa chưa mở. ${twistLockHint()}`
+            : persistentArchive.completedModes.standard
+              ? "Bạn đã đi trọn 28 đêm. Vào Menu → «Xem Kết Thứ Nhất» để xem kết thúc của Tháng Mưa."
+              : "Đi trọn 28 đêm để xem kết thúc của Tháng Mưa. Hoàn thành thêm các mục còn lại để đạt 100%.";
   }
 }
 
@@ -666,8 +774,8 @@ function renderAutoControls() {
   if (q) {
     q.innerHTML = auto ? '⏩<span class="hidden sm:inline"> Tự động</span>' : "⏩";
     q.className = auto
-      ? "min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/50 text-xs text-emerald-200 cursor-pointer"
-      : "min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer";
+      ? "hud-btn bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/50 text-emerald-200 cursor-pointer"
+      : "hud-btn bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-300 cursor-pointer";
   }
   const m = document.getElementById("btn-toggle-auto");
   if (m) {
@@ -702,8 +810,8 @@ function renderVoiceControls() {
   if (quick) {
     quick.innerHTML = on ? '🗣️<span class="hidden sm:inline"> Bật</span>' : "🗣️";
     quick.className = on
-      ? "min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/50 text-xs text-emerald-200 cursor-pointer"
-      : "min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer";
+      ? "hud-btn bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/50 text-emerald-200 cursor-pointer"
+      : "hud-btn bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-300 cursor-pointer";
   }
   if (quick) quick.classList.toggle("hidden", !voiceAllowedNow);
   btn.textContent = on ? "Bật" : "Tắt";
@@ -815,6 +923,9 @@ function updateAllProgressBadges() {
   if (secretsBtn) secretsBtn.classList.toggle("hidden", secretsFound === 0);
   const twistBtn = document.getElementById("btn-twist-ending");
   if (twistBtn) twistBtn.classList.toggle("hidden", !isTwistUnlocked());
+  // Save cũ: đã xong 28 đêm từ trước khi có kết thứ nhất → cho xem kết đó từ Menu (không phải chơi lại 28 đêm)
+  const quietBtn = document.getElementById("btn-quiet-ending");
+  if (quietBtn) quietBtn.classList.toggle("hidden", !(persistentArchive.completedModes.standard && !persistentArchive.quietEndingSeen));
 }
 
 function openCutsceneGallery() {
@@ -1190,8 +1301,8 @@ function openSecretsModal() {
   door.innerHTML = isTwistUnlocked()
     ? `<div class="font-bold text-rose-200">🕊️ Cánh cửa cuối cùng đã mở</div><p class="text-stone-300">Hãy mở Menu và chọn «🕊️ Cánh Cửa Thứ Hai». Kết cuối của Thỏ Con có 3 cách: ${Object.keys(persistentArchive.twistEndings || {}).length}/3 đã mở.</p>`
     : `<div class="font-bold text-rose-200">🕊️ Còn một cánh cửa cuối cùng…</div>
-       <p class="text-stone-300">Nó sẽ mở khi bạn đã đi trọn bốn chương của Tháng Mưa (Gặp Gỡ → Trở Lại → Hiện Tại → Tương Lai) đến bình minh đêm thứ 28.</p>
-       <div class="text-[11px] font-mono-code text-amber-300">Tháng Mưa đã hoàn thành: ${doneModes}/1</div>`;
+       <p class="text-stone-300">${persistentArchive.quietEndingSeen ? twistLockHint() : "Hãy đi trọn bốn chương của Tháng Mưa (Gặp Gỡ → Trở Lại → Hiện Tại → Tương Lai) đến bình minh đêm thứ 28 để xem kết thúc đầu tiên."}</p>
+       <div class="text-[11px] font-mono-code text-amber-300">Tháng Mưa đã hoàn thành: ${doneModes}/1 • Lời thật: ${truthsHeardCount()}/${TWIST_TRUTHS_NEEDED}</div>`;
   grid.appendChild(door);
   openModal("modal-secrets");
 }
@@ -1603,6 +1714,15 @@ function bindAllUIEvents() {
 
   document.getElementById("btn-night8-secret").addEventListener("click", startSecretNight8Reunion);
   document.getElementById("btn-twist-ending").addEventListener("click", startTwistEnding);
+  const quietBtnEl = document.getElementById("btn-quiet-ending");
+  if (quietBtnEl) quietBtnEl.addEventListener("click", () => {
+    closeModal("mobile-drawer");
+    switchScreen("screen-game");
+    startQuietEnding(() => {
+      switchScreen("screen-welcome");
+      showToast(isTwistUnlocked() ? "🕊️ Cánh Cửa Thứ Hai đã mở trong Menu." : `🕊️ ${twistLockHint()}`);
+    });
+  });
   document.getElementById("btn-restart-run").addEventListener("click", restartRunFromSave);
   document.getElementById("btn-welcome-restart").addEventListener("click", restartRunFromSave);
 
@@ -1657,10 +1777,19 @@ function bindAllUIEvents() {
   document.getElementById("btn-epilogue-next-week").addEventListener("click", proceedToNextWeekWithRecap);
 
   document.getElementById("btn-epilogue-new-week").addEventListener("click", () => {
+    const stance = runState && runState.monthlyStanceCounts ? { ...runState.monthlyStanceCounts } : null;
     closeModal("modal-epilogue");
     safeRemoveItem(STORAGE_KEY_RUN);
     runState = null;
     switchScreen("screen-rules");
+    afterMonthComplete(stance);
+  });
+  document.getElementById("btn-twist-ask-open").addEventListener("click", () => {
+    closeModal("modal-twist-ask");
+    startTwistEnding();
+  });
+  document.getElementById("btn-twist-ask-later").addEventListener("click", () => {
+    closeModal("modal-twist-ask");
     showFinalePage();
   });
   document.getElementById("btn-finale-replay").addEventListener("click", () => {

@@ -235,28 +235,25 @@
     <!-- Top HUD -->
     <header class="cafe-panel rounded-2xl p-2 sm:p-3 flex flex-wrap items-center justify-between gap-1.5 sm:gap-2">
       <div class="flex flex-wrap items-center gap-1 sm:gap-2">
-        <span id="hud-chapter-badge" class="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-xl bg-rose-500/20 border border-rose-400/40 text-rose-200 font-bold text-[11px] sm:text-xs font-mono-code" title="Chặng hiện tại">🌧️ Chặng 1/3</span>
-        <span id="hud-week-badge" class="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-xl bg-purple-500/20 border border-purple-400/40 text-purple-200 font-bold text-[11px] sm:text-xs font-mono-code">Tuần 1/4</span>
-        <span id="hud-night-badge" class="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-200 font-bold text-[11px] sm:text-xs font-mono-code">Đêm 1/7</span>
-        <span id="hud-mode-badge" class="hidden sm:inline-block px-2.5 py-1 rounded-xl bg-stone-900 border border-stone-700 text-stone-200 text-xs">👤 Đơn Khách</span>
-        <button type="button" id="hud-weather-badge" class="max-w-[120px] sm:max-w-none truncate px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-stone-700 hover:border-amber-400/50 text-stone-200 text-xs transition-all cursor-pointer" title="Chạm để đổi 4 mùa &amp; custom quán">🍂 Thu Mưa Hẻm Nhỏ</button>
+        <span id="hud-chapter-badge" class="hud-pill bg-rose-500/20 border border-rose-400/40 text-rose-200" title="Chặng hiện tại">🌧️ Chặng 1/3</span>
+        <span id="hud-week-badge" class="hud-pill bg-purple-500/20 border border-purple-400/40 text-purple-200">Tuần 1/4</span>
+        <span id="hud-night-badge" class="hud-pill bg-amber-500/20 border border-amber-400/40 text-amber-200">Đêm 1/7</span>
+        <span id="hud-mode-badge" class="hidden sm:inline-flex hud-pill hud-pill-soft bg-stone-900 border border-stone-700 text-stone-200">👤 Đơn Khách</span>
+        <button type="button" id="hud-weather-badge" class="hud-pill hud-pill-soft bg-stone-900/90 hover:bg-stone-800 border border-stone-700 hover:border-amber-400/50 text-stone-200 transition-all cursor-pointer" title="Chạm để đổi 4 mùa &amp; custom quán">🍂 Thu Mưa Hẻm Nhỏ</button>
       </div>
 
       <div class="flex flex-wrap items-center gap-1 sm:gap-2 w-full sm:w-auto">
-        <div class="flex items-center gap-2 px-2 sm:px-2.5 py-1 rounded-xl bg-stone-950/90 border border-stone-800 text-[11px] sm:text-xs font-mono-code mr-auto sm:mr-0">
+        <div class="hud-stats bg-stone-950/90 border border-stone-800 mr-auto sm:mr-0">
           <span title="Trái Tim">❤️ <strong id="hud-trust-val" class="text-rose-300">0</strong></span>
-          <span class="hidden sm:inline text-stone-700">|</span>
           <span title="Lý Trí">✨ <strong id="hud-clarity-val" class="text-sky-300">0</strong></span>
-          <span class="hidden sm:inline text-stone-700">|</span>
           <span title="Im Lặng (số lần bạn chọn lặng lẽ ở bên khách)">🤫 <strong id="hud-silent-val" style="color:#c4b5fd">0</strong></span>
-          <span class="hidden sm:inline text-stone-700">|</span>
           <span title="Kết Nối Giao Thoa">🤝 <strong id="hud-bond-val" class="text-amber-300">0</strong></span>
         </div>
-        <button type="button" id="btn-quick-save" class="min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/40 text-xs text-emerald-200 cursor-pointer" title="Lưu game">💾<span class="hidden sm:inline"> Lưu</span></button>
-        <button type="button" id="btn-quick-auto" class="min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer" title="Tự động chuyển thoại">⏩</button>
-        <button type="button" id="btn-quick-voice" class="hidden min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-300 cursor-pointer" title="Bật/tắt giọng đọc">🗣️</button>
-        <button type="button" id="btn-quick-log" class="min-h-[34px] min-w-[34px] px-2 sm:px-2.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-xs text-stone-200 cursor-pointer" title="Nhật ký thoại">📜</button>
-        <button type="button" id="btn-open-drawer" class="min-h-[34px] px-2 sm:px-3 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-xs font-semibold text-amber-200 cursor-pointer">☰ Menu</button>
+        <button type="button" id="btn-quick-save" class="hud-btn bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/40 text-emerald-200 cursor-pointer" title="Lưu game">💾<span class="hidden sm:inline"> Lưu</span></button>
+        <button type="button" id="btn-quick-auto" class="hud-btn bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-300 cursor-pointer" title="Tự động chuyển thoại">⏩</button>
+        <button type="button" id="btn-quick-voice" class="hidden hud-btn bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-300 cursor-pointer" title="Bật/tắt giọng đọc">🗣️</button>
+        <button type="button" id="btn-quick-log" class="hud-btn bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-200 cursor-pointer" title="Nhật ký thoại">📜</button>
+        <button type="button" id="btn-open-drawer" class="hud-btn hud-btn-wide bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 font-semibold text-amber-200 cursor-pointer">☰ Menu</button>
       </div>
     </header>
 
@@ -407,6 +404,9 @@
         <button type="button" id="btn-drawer-secrets" data-drawer-action="secrets" class="hidden min-h-[44px] px-3 py-2 rounded-xl bg-fuchsia-500/15 hover:bg-fuchsia-500/25 border border-fuchsia-400/35 text-xs text-fuchsia-200 flex items-center justify-between cursor-pointer">
           <span>🗝️ Kho Bí Mật</span><span id="mobile-secrets-badge" class="font-mono-code text-[11px]">0</span>
         </button>
+        <button type="button" id="btn-quiet-ending" class="hidden min-h-[44px] px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/45 text-xs text-amber-200 font-semibold flex items-center justify-between cursor-pointer">
+          <span>🪧 Xem Kết Thứ Nhất</span><span class="font-mono-code text-[11px]">✨</span>
+        </button>
         <button type="button" id="btn-twist-ending" class="hidden min-h-[44px] px-3 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/45 text-xs text-rose-200 font-semibold flex items-center justify-between cursor-pointer">
           <span>🕊️ Cánh Cửa Thứ Hai</span><span class="font-mono-code text-[11px]">✨</span>
         </button>
@@ -523,7 +523,7 @@
       <p class="text-[11px] font-mono-code text-amber-300/90">TIỆM NƯỚC NỬA ĐÊM • 100%</p>
       <p class="font-serif-story text-sm sm:text-base text-stone-200 leading-relaxed">
         Cảm ơn bạn đã ở lại đến tận cùng — qua từng đêm mưa, từng ly nước, từng câu chuyện được lắng nghe.
-        Bạn đã mở trọn 21 cái kết, giữ gìn mọi bí mật của quán, và cùng Thỏ Con thắp ngọn đèn ấy sáng suốt đêm dài.
+        Bạn đã mở trọn 21 cái kết cùng cả 5 kết lớn, giữ gìn mọi bí mật của quán, và cùng Thỏ Con thắp ngọn đèn ấy sáng suốt đêm dài.
       </p>
       <div id="thanks-stats" class="grid grid-cols-2 gap-2 text-xs text-stone-300"></div>
       <p class="font-serif-story italic text-sm text-amber-200/95 leading-relaxed">
@@ -753,6 +753,20 @@
         <button type="button" data-close-modal="modal-history" class="shrink-0 w-9 h-9 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 flex items-center justify-center cursor-pointer">✕</button>
       </div>
       <div id="history-body" class="overflow-y-auto py-3 space-y-2 pr-1"></div>
+    </div>
+  </div>
+
+  <!-- Hỏi mở Cánh Cửa Thứ Hai ngay sau khi xong 28 đêm -->
+  <div id="modal-twist-ask" class="hidden fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="max-w-md w-full cafe-panel rounded-3xl p-6 text-center space-y-4">
+      <div class="text-4xl">🚪</div>
+      <h3 class="font-serif-story text-xl font-bold text-amber-100">Còn Một Cánh Cửa Nữa</h3>
+      <p class="text-sm text-stone-300 leading-relaxed">Bạn vừa thấy quán lặng lẽ đóng cửa, không ai biết vì sao. Nhưng nếu đêm ấy, trước giờ Thỏ Con rời quán, có người dám gõ vào cánh cửa nhỏ cuối quầy gỗ, ánh đèn phía sau vẫn còn sáng.</p>
+      <p class="text-[11px] text-stone-500">Đây là phần kết cuối của câu chuyện. Bạn có thể mở ngay, hoặc để sau (nút vẫn nằm trong Menu).</p>
+      <div class="flex flex-col sm:flex-row gap-2 justify-center pt-1">
+        <button type="button" id="btn-twist-ask-open" class="min-h-[44px] px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-stone-950 font-bold text-sm cursor-pointer">🚪 Mở Cánh Cửa</button>
+        <button type="button" id="btn-twist-ask-later" class="min-h-[44px] px-5 py-2.5 rounded-2xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-stone-200 text-sm cursor-pointer">Để Sau</button>
+      </div>
     </div>
   </div>
 

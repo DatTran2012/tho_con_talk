@@ -39,6 +39,7 @@ function devUnlockEverything() {
     const ch = CHARACTERS[g];
     if (ch && ch.cassette) a.unlockedCassettes[ch.cassette.id] = true;
   });
+  a.quietEndingSeen = true;
   a.playthroughCount = Math.max(a.playthroughCount || 0, 3);
   a.totalDrinksServed = Math.max(a.totalDrinksServed || 0, 100);
   a.perfectBrewsCount = Math.max(a.perfectBrewsCount || 0, 50);
@@ -127,6 +128,12 @@ function renderDevTools() {
     btn("fxobj", "🧸 Xem thử cận cảnh ĐỒ VẬT (chai, hồ cá, bếp, tủ, cây, ly, đồng hồ, radio, sách, cửa sổ, Thỏ Con, khách, đèn lồng) — bấm để đổi") +
     btn("twdrink", "🍵 Xem thử LY CUỐI Cánh Cửa Thứ Hai (xoay: mật ong → chanh → hoa cúc)") +
     btn("twplay", "🚪 Chơi THẲNG Cánh Cửa Thứ Hai từ đầu (bỏ qua điều kiện mở khóa; thử chọn nguyên liệu + 3 kết)") +
+    btn("truths", "💬 Đặt số LỜI THẬT đã nghe (0–28) để thử ngưỡng mở cửa") +
+    btn("quiet", "🪧 Xem thử KẾT THỨ NHẤT (quán tạm nghỉ, không ai biết)") +
+    btn("finales", "🎬 Xem thử 3 KẾT MỚI (Người Nghe Cuối Cùng → Bảy Chiếc Chìa Khóa → Ngày Thỏ Con Khỏe Lại; bấm để đổi)") +
+    btn("simlast", "🎯 Tái hiện luồng thật: «Người Nghe Cuối Cùng» (sau tổng kết 28 đêm)") +
+    btn("simhands", "🎯 Tái hiện luồng thật: «Bảy Chiếc Chìa Khóa» (sau tổng kết 28 đêm)") +
+    btn("simheal", "🎯 Tái hiện luồng thật: «Ngày Thỏ Con Khỏe Lại» (chơi Cánh Cửa, chọn 🤫)") +
     btn("enddrink", "🍹 Xem thử trang LY NƯỚC trong cảnh kết (xoay khách × Hoàn Hảo/Chuẩn Vị/Mộc Mạc)") +
     btn("voicehold", "🔇 Thử giữ giọng: đọc một câu thoại NGAY LÚC đang chiếu cảnh (phải đọc sau khi cảnh xong)") +
     btn("clips", "📼 Thống kê file thoại mp3 / nhạc đã có") +
@@ -173,6 +180,24 @@ function renderDevTools() {
     else if (k === "fxserve") devPreviewServeFX();
     else if (k === "twdrink") devPreviewTwistDrink();
     else if (k === "twplay") devPlayTwist();
+    else if (k === "truths") {
+      const cur = Object.keys(persistentArchive.truthsHeard || {}).length;
+      const v = window.prompt(`Số lời thật hiện có: ${cur}/28. Mốc mở Cánh Cửa: ${TWIST_TRUTHS_NEEDED}. Đặt thành bao nhiêu (0–28)?`, String(cur));
+      if (v !== null && v !== "" && !Number.isNaN(Number(v))) {
+        const n = Math.max(0, Math.min(28, Math.floor(Number(v)))), keys = [];
+        STANDARD_GUEST_ORDER.forEach((g) => [1, 2, 3, 4].forEach((c) => keys.push(`${g}_${c}`)));
+        persistentArchive.truthsHeard = {};
+        keys.slice(0, n).forEach((key) => (persistentArchive.truthsHeard[key] = true));
+        saveArchive();
+        updateAllProgressBadges();
+        showToast(`🛠️ DEV: đã đặt ${n}/28 lời thật • cửa ${isTwistUnlocked() ? "ĐÃ mở" : "chưa mở"}`);
+      }
+    }
+    else if (k === "quiet") { panel.style.display = "none"; switchScreen("screen-game"); startQuietEnding(() => switchScreen("screen-welcome")); }
+    else if (k === "finales") { panel.style.display = "none"; window.__devFin = ((window.__devFin || 0) % FINALE_ENDINGS.length); const d = FINALE_ENDINGS[window.__devFin++]; switchScreen("screen-game"); playEndingSequence(d.ids, d.fx, () => { switchScreen("screen-welcome"); showToast("🛠️ DEV: xong " + d.title); }); }
+    else if (k === "simlast") devSimFinale("last");
+    else if (k === "simhands") devSimFinale("hands");
+    else if (k === "simheal") devSimFinale("recovery");
     else if (k === "enddrink") devPreviewEndingDrink();
     else if (k === "voicehold") devTestVoiceHold();
     else if (k === "simlow" || k === "simmid" || k === "simfull") devSimulateMonthEnd(k);
@@ -253,6 +278,36 @@ function devPlayTwist() {
   const pn = document.getElementById("dev-panel"); if (pn) pn.style.display = "none";
   startTwistEnding();
   setTimeout(() => { window.__devForceTwist = false; }, 500);
+}
+/* Tái hiện đúng luồng thật của 3 kết lớn bổ sung (đặt sẵn điều kiện rồi chạy tổng kết 28 đêm / Cánh Cửa) */
+function devSimFinale(kind) {
+  if (kind === "recovery") {
+    if (!safeGetItem(DEV_BACKUP_KEY)) safeSetItem(DEV_BACKUP_KEY, JSON.stringify(persistentArchive));
+    persistentArchive.twistEndings = { heart: true, mind: true };
+    persistentArchive.finalesSeen = {};
+    saveArchive();
+    showToast("🛠️ DEV: đã xem sẵn 2/3 biến thể. Ở cảnh bảy người hãy chọn 🤫 (lặng) để ra biến thể thứ 3 → kết «Ngày Thỏ Con Khỏe Lại»");
+    devPlayTwist();
+    return;
+  }
+  devSimulateMonthEnd("full");
+  const a = persistentArchive;
+  a.quietEndingSeen = true;
+  a.finalesSeen = {};
+  a.twistEndings = {};
+  a.twistAsked = true;
+  a.truthsHeard = {};
+  if (kind === "last") {
+    for (let i = 1; i <= 7; i++) a.truthsHeard["dev_" + i] = true;
+    Object.keys(a.unlockedEndings).forEach((k) => delete a.unlockedEndings[k]);
+    runState.monthlyStanceCounts = { ...runState.monthlyStanceCounts, heart: 3, mind: 2, silent: 9 };
+  } else {
+    for (let i = 1; i <= 5; i++) a.truthsHeard["dev_" + i] = true;
+    STANDARD_GUEST_ORDER.forEach((g) => (a.unlockedEndings[g + "_heart"] = true));
+  }
+  saveArchive();
+  saveRunState();
+  showToast(kind === "last" ? "🛠️ DEV: đã đặt 🤫 nhiều nhất + 7 lời thật. Bấm nút cuối bảng tổng kết để xem «Người Nghe Cuối Cùng»" : "🛠️ DEV: đã có kết tim của cả 7 khách. Bấm nút cuối bảng tổng kết để xem «Bảy Chiếc Chìa Khóa»");
 }
 let devEndDrinkIdx = 0;
 function devPreviewEndingDrink() {
@@ -446,6 +501,10 @@ function devSimulateMonthEnd(mode) {
   }
   persistentArchive.twistEndingSeen = false;
   persistentArchive.twistAnnounced = false;
+  persistentArchive.twistAsked = false;
+  persistentArchive.twistEndings = {};
+  persistentArchive.quietEndingSeen = false;
+  persistentArchive.finalesSeen = {};
   persistentArchive.thanksSeen = false;
   persistentArchive.completedModes = {};
   persistentArchive.maxChapter = 4;

@@ -90,7 +90,7 @@ const CHARACTERS = {
     outfitColor: "#7e22ce",
     accessory: "shawl",
     preferredBases: ["peach_tea", "yuzu", "lotus_milk"],
-    preferredAccents: ["honey", "ginger", "chamomile", "lavender"],
+    preferredAccents: ["honey", "ginger", "chamomile", "lavender", "pandan"],
     needEmotion: "gentle",
     keepsake: { icon: "🧣", name: "Chiếc Khăn Len Đan Tay", desc: "Chiếc khăn len màu hổ phách cô Hoa tự tay đan tặng để giữ ấm cho quầy nước nửa đêm." },
     postcard: { title: "Bưu Thiếp Từ Căn Bếp Cuối Tuần", text: "Hai mẹ con cô vừa cùng nhau nấu bữa tối và trò chuyện suốt hai tiếng liền. Cảm ơn cháu đã giúp cô mở lòng." },

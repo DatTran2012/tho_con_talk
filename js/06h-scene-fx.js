@@ -76,7 +76,7 @@ const SceneFX = (function () {
     ctx.save(); ctx.translate(sx, sy); ctx.scale(Math.max(0.05, Math.abs(sc)), 1);
     const open = f > 0.5;
     ctx.fillStyle = open ? "#f3e2c0" : "#c7b08a"; ctx.fillRect(-34, -13, 68, 26); ctx.strokeStyle = "#6b4413"; ctx.lineWidth = 2; ctx.strokeRect(-34, -13, 68, 26);
-    ctx.fillStyle = open ? "#b45309" : "#6b7280"; ctx.font = "bold 10px 'Inter',sans-serif"; ctx.textAlign = "center"; ctx.fillText(open ? "MỞ CỬA" : "ĐÓNG CỬA", 0, 5);
+    ctx.fillStyle = open ? "#b45309" : "#6b7280"; ctx.font = "bold 10px 'Inter',sans-serif"; ctx.textAlign = "center"; ctx.fillText(open ? (o.signOpen || "MỞ CỬA") : (o.signClosed || "ĐÓNG CỬA"), 0, 5);
     ctx.restore();
   }
   function drift(T, kind, n) { // hạt rơi theo mùa
@@ -537,6 +537,88 @@ const SceneFX = (function () {
         serif("🌙 Giấc ngủ đầu tiên", W / 2, 36, 18, "#fde68a", ease(seg(k, 0.05, 0.22)));
         text("Không ai hỏi, không ai khuyên. Bảy người canh đèn thay cô.", W / 2, 58, 12, "rgba(253,230,200,.92)", ease(seg(k, 0.12, 0.3)), "normal");
         text("Khi nào em muốn nói, tụi anh chị vẫn ở đây", W / 2, H - 20, 13, "#fde68a", ease(seg(k, 0.74, 0.92)));
+      }
+    } },
+    /* ===== Các kết lớn bổ sung ===== */
+    /* Tấm Biển Tạm Nghỉ: bảy người đứng chờ trước cửa, đèn tắt dần, biển lật sang TẠM NGHỈ, họ lặng lẽ đi */
+    end_quiet: { dur: () => 7.0, draw(T, d) {
+      const k = T / 7.0, av = (d.avatars && d.avatars.length ? d.avatars : ["🎓", "💻", "🖋️", "🚚", "🧵", "🧶", "👓"]).slice(0, 7);
+      const dusk = ease(seg(k, 0.15, 0.9));
+      shopFront(T, { skyTop: `rgb(${70 - 52 * dusk},${70 - 50 * dusk},${110 - 62 * dusk})`, skyBot: `rgb(${150 - 90 * dusk},${120 - 80 * dusk},${120 - 60 * dusk})`, stars: 0.9 * dusk, moon: dusk > 0.6,
+        lit: 1 - ease(seg(k, 0.3, 0.55)), lantern: 1 - ease(seg(k, 0.35, 0.6)), flip: 1 - ease(seg(k, 0.3, 0.45)), signClosed: "TẠM NGHỈ", signOpen: "MỞ CỬA" });
+      // bảy người chờ trước cửa rồi lần lượt đi mất
+      av.forEach((e, i) => { const x = W * 0.2 + i * (W * 0.6 / 6), arrive = ease(seg(k, 0.02 + i * 0.015, 0.14 + i * 0.015)), leave = ease(seg(k, 0.62 + i * 0.04, 0.8 + i * 0.04));
+        emoji(e, x + (i % 2 ? leave * 70 : -leave * 70), H * 0.86 + Math.sin(T * 2 + i) * 1.5, 30, arrive * (1 - leave)); });
+      // mảnh giấy nhỏ dán trên cửa: không có lý do
+      const pa = ease(seg(k, 0.5, 0.62)); if (pa > 0) { ctx.save(); ctx.globalAlpha = pa; ctx.translate(W / 2, 214); ctx.rotate(-0.04); ctx.fillStyle = "#f3e2c0"; ctx.fillRect(-38, -16, 76, 32); ctx.strokeStyle = "#6b4413"; ctx.lineWidth = 1.5; ctx.strokeRect(-38, -16, 76, 32); ctx.fillStyle = "#6b4413"; ctx.font = "9px 'Lora',Georgia,serif"; ctx.textAlign = "center"; ctx.fillText("Hẹn một ngày", 0, -2); ctx.fillText("không xa.", 0, 10); ctx.restore(); }
+      const fo = 0.5 * ease(seg(k, 0.82, 1)); if (fo > 0) { ctx.fillStyle = `rgba(4,2,8,${fo})`; ctx.fillRect(0, 0, W, H); }
+      serif("🪧 Quán tạm nghỉ", W / 2, 36, 18, "#fde68a", ease(seg(k, 0.05, 0.22)));
+      text("Không lý do. Không lời nhắn riêng cho ai.", W / 2, 58, 12, "rgba(253,230,200,.92)", ease(seg(k, 0.12, 0.3)), "normal");
+      text("Không ai biết Thỏ Con đã mang điều gì.", W / 2, H - 20, 13, "#fde68a", ease(seg(k, 0.74, 0.92)));
+    } },
+    /* Người Nghe Cuối Cùng: Vy úp máy ghi âm, rót ly nước đầu tiên cho Thỏ Con */
+    end_last: { dur: () => 6.4, draw(T, d) {
+      const k = T / 6.4, cy = 322, cx = W / 2; warmBg();
+      const win = ease(seg(T, 0, 2.4)); ctx.fillStyle = `rgb(${110 + 120 * win},${100 + 100 * win},${120 + 40 * win})`; ctx.fillRect(W - 170, 52, 118, 92); ctx.strokeStyle = "#2a160c"; ctx.lineWidth = 5; ctx.strokeRect(W - 170, 52, 118, 92);
+      counter(cy);
+      if (d.vy) { ctx.save(); ctx.globalAlpha = ease(seg(T, 0.2, 0.9)); person(cx - 170, cy + 14, 1.5, d.vy, T > 3.4 ? "thinking" : "neutral", T); ctx.restore(); }
+      bunny(cx + 130, cy - 4, 1.8, T > 3.0 ? "thinking" : "neutral", T);
+      // máy ghi âm: đặt xuống rồi úp
+      const put = ease(seg(T, 0.8, 1.6)), flip = ease(seg(T, 1.6, 2.2)); ctx.save(); ctx.translate(cx - 50, cy - 14 - (1 - put) * 40); ctx.rotate(Math.PI * flip); ctx.globalAlpha = put; emoji("🎙️", 0, 0, 30, 1); ctx.restore();
+      // chiếc ly lau mãi
+      const lau = Math.sin(T * 4) * 3 * (1 - ease(seg(T, 3.6, 4.2))); cupIcon(cx + 60 + lau, cy - 6, 0.9, "#c8963c", 0.95);
+      // ba chấm lặng
+      for (let i = 0; i < 3; i++) { const a = ease(seg(T, 2.6 + i * 0.35, 3.0 + i * 0.35)) * (1 - ease(seg(T, 4.2, 4.6))); emoji("•", cx + 14 + i * 16, cy - 120, 20, a); }
+      // ly nước đầu tiên trượt về phía Thỏ Con
+      const slide = ease(seg(T, 4.2, 5.2)); if (slide > 0) { cupIcon(cx - 120 + slide * 190, cy - 6, 0.95, "#e8b24a", 1); for (let i = 0; i < 3; i++) { const p = (T * 0.5 + i / 3) % 1; emoji("♨️", cx - 120 + slide * 190, cy - 52 - p * 30, 12, Math.sin(p * Math.PI) * 0.7); } }
+      for (let i = 0; i < 8; i++) { const p = (T * 0.2 + rnd(i)) % 1; emoji("✨", 60 + rnd(i + 3) * (W - 120), 260 - p * 170, 9 + rnd(i + 7) * 6, Math.sin(p * Math.PI) * 0.6 * ease(seg(T, 3.6, 4.6))); }
+      serif("🎙️ Một câu hỏi không để đăng báo", W / 2, 36, 17, "#fde68a", ease(seg(k, 0.05, 0.22)));
+      text("“Còn chị thì sao?” — Thỏ Con lau thêm một lúc nữa", W / 2, 58, 12, "rgba(253,230,200,.92)", ease(seg(k, 0.12, 0.3)), "normal");
+      text("Nửa còn lại chưa kể. Nhưng đã có người ngồi chờ.", W / 2, H - 20, 13, "#fde68a", ease(seg(k, 0.76, 0.93)));
+    } },
+    /* Bảy Chiếc Chìa Khóa: quán tối, bảy kỷ vật hiện ra, cánh cửa sáng đèn trở lại */
+    end_hands: { dur: () => 7.0, draw(T, d) {
+      const k = T / 7.0, icons = (d.icons && d.icons.length ? d.icons : ["🎙️", "🦆", "📕", "🔧", "🔖", "🧣", "✒️"]).slice(0, 7);
+      const lightUp = ease(seg(T, 4.3, 6.0));
+      shopFront(T, { skyTop: "#0d1230", skyBot: "#241a3a", stars: 0.9, moon: true, lit: lightUp, lantern: lightUp, flip: ease(seg(T, 5.2, 5.9)), signClosed: "TẠM NGHỈ", signOpen: "MỞ CỬA" });
+      // bảy kỷ vật xếp thành vòng cung phía trên cửa, sáng lần lượt
+      icons.forEach((e, i) => { const a = ease(seg(T, 0.6 + i * 0.45, 1.2 + i * 0.45)); if (a <= 0) return; const ang = Math.PI * (1 - i / 6), x = W / 2 + Math.cos(ang) * 190, y = 215 - Math.sin(ang) * 120 - (1 - a) * 30;
+        const glow = ease(seg(T, 3.8 + i * 0.1, 4.6 + i * 0.1)); ctx.save(); ctx.globalCompositeOperation = "lighter"; const g = ctx.createRadialGradient(x, y, 2, x, y, 36); g.addColorStop(0, `rgba(255,210,120,${0.55 * glow})`); g.addColorStop(1, "rgba(255,210,120,0)"); ctx.fillStyle = g; ctx.fillRect(x - 40, y - 40, 80, 80); ctx.restore();
+        emoji(e, x, y + 10, 30, a);
+        const th = ease(seg(T, 3.9 + i * 0.1, 4.8 + i * 0.1)); if (th > 0) { ctx.strokeStyle = `rgba(255,214,120,${0.5 * th})`; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x, y + 24); ctx.lineTo(W / 2 + (x - W / 2) * (1 - th), y + 24 + (250 - y - 24) * th); ctx.stroke(); } });
+      // tờ giấy trên cửa
+      const pa = ease(seg(T, 0.3, 0.9)) * (1 - lightUp); if (pa > 0) { ctx.save(); ctx.globalAlpha = pa; ctx.fillStyle = "#f3e2c0"; ctx.fillRect(W / 2 - 30, 232, 60, 24); ctx.fillStyle = "#6b4413"; ctx.font = "8px 'Lora',Georgia,serif"; ctx.textAlign = "center"; ctx.fillText("Quầy là của", W / 2, 242); ctx.fillText("mọi người.", W / 2, 252); ctx.restore(); }
+      serif("🗝️ Bảy chiếc chìa khóa", W / 2, 36, 18, "#fde68a", ease(seg(k, 0.05, 0.22)));
+      text("Mỗi người mang một món đồ mình từng gửi lại cho quán", W / 2, 58, 12, "rgba(253,230,200,.92)", ease(seg(k, 0.12, 0.3)), "normal");
+      text("Quán chưa bao giờ chỉ là của một người.", W / 2, H - 20, 13, "#fde68a", ease(seg(k, 0.76, 0.93)));
+    } },
+    /* Ngày Thỏ Con Khỏe Lại: ô cuối tấm lịch được khoanh đỏ, rồi tấm biển lật sang MỞ CỬA trong nắng sớm */
+    end_heal: { dur: () => 7.4, draw(T, d) {
+      const cx = W / 2;
+      if (T < 3.6) {
+        warmBg(); const gx = cx - 190, gy = 96, cw = 54, ch = 40, cols = 7, rows = 4;
+        ctx.fillStyle = "#f6ecd2"; ctx.fillRect(gx - 14, gy - 34, cols * cw + 28, rows * ch + 48); ctx.strokeStyle = "#6b2e22"; ctx.lineWidth = 4; ctx.strokeRect(gx - 14, gy - 34, cols * cw + 28, rows * ch + 48);
+        ctx.fillStyle = "#b9422e"; ctx.fillRect(gx - 14, gy - 34, cols * cw + 28, 24); text("Tấm lịch của Thỏ Con", cx, gy - 17, 12, "#fff3d6", 1, "bold");
+        const av = (d.avatars && d.avatars.length ? d.avatars : ["🎓", "💻", "🖋️", "🚚", "🧵", "🧶", "👓"]);
+        for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) { const i = r * cols + c, x = gx + c * cw, y = gy + r * ch, last = i === rows * cols - 1; ctx.strokeStyle = "rgba(107,46,34,.35)"; ctx.lineWidth = 1; ctx.strokeRect(x, y, cw, ch);
+          if (!last) { ctx.fillStyle = ["#fde68a", "#fbcfe8", "#bae6fd", "#bbf7d0", "#fed7aa", "#ddd6fe", "#fecaca"][i % 7]; ctx.fillRect(x + 3, y + 3, cw - 6, ch - 6); emoji(av[i % 7], x + cw / 2, y + ch / 2 + 7, 18, 0.9); } }
+        // nét bút đỏ khoanh tròn ô cuối rồi vẽ mặt cười
+        const lx = gx + 6 * cw + cw / 2, ly = gy + 3 * ch + ch / 2, p = ease(seg(T, 0.8, 2.0)); ctx.strokeStyle = "#d62828"; ctx.lineWidth = 4; ctx.lineCap = "round"; ctx.beginPath(); ctx.ellipse(lx, ly, 31, 24, -0.1, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * p); ctx.stroke();
+        const sm = ease(seg(T, 2.0, 2.8)); if (sm > 0) { ctx.globalAlpha = sm; emoji("😊", lx, ly + 8, 26, 1); ctx.globalAlpha = 1; }
+        for (let i = 0; i < 10; i++) { const q = (T * 0.3 + rnd(i)) % 1; emoji("🌸", 60 + rnd(i + 3) * (W - 120), 300 - q * 220, 10 + rnd(i + 7) * 8, Math.sin(q * Math.PI) * 0.8 * ease(seg(T, 1.6, 2.6))); }
+        serif("🌸 Ô cuối tấm lịch", W / 2, 34, 18, "#fde68a", ease(seg(T, 0.1, 0.8)));
+        text("“Ngày Thỏ Con khỏe lại” — không còn để trống", W / 2, H - 22, 13, "#fde68a", ease(seg(T, 2.2, 3.0)));
+        const fo = ease(seg(T, 3.0, 3.6)); if (fo > 0) { ctx.fillStyle = `rgba(255,240,210,${fo})`; ctx.fillRect(0, 0, W, H); }
+      } else {
+        const t2 = T - 3.6, dawn = ease(seg(t2, 0, 1.2));
+        shopFront(T, { skyTop: `rgb(${180 - 30 * (1 - dawn)},${190 - 20 * (1 - dawn)},${230 - 40 * (1 - dawn)})`, skyBot: "#ffe2b0", stars: 0, moon: false, lit: 1, lantern: 0.6, flip: ease(seg(t2, 0.8, 1.6)), signClosed: "TẠM NGHỈ", signOpen: "MỞ CỬA" });
+        ctx.save(); ctx.globalCompositeOperation = "lighter"; const sg = ctx.createRadialGradient(W * 0.82, 60, 6, W * 0.82, 60, 200); sg.addColorStop(0, `rgba(255,230,160,${0.6 * dawn})`); sg.addColorStop(1, "rgba(255,230,160,0)"); ctx.fillStyle = sg; ctx.fillRect(0, 0, W, H); ctx.restore();
+        const av = (d.avatars && d.avatars.length ? d.avatars : ["🎓", "💻", "🖋️", "🚚", "🧵", "🧶", "👓"]).slice(0, 7);
+        av.forEach((e, i) => { const a = ease(seg(t2, 1.4 + i * 0.25, 1.9 + i * 0.25)); emoji(e, W * 0.2 + i * (W * 0.6 / 6), H * 0.83 + Math.sin(T * 2 + i) * 1.5, 26, a); });
+        for (let i = 0; i < 14; i++) { const q = (T * 0.15 + rnd(i)) % 1; emoji("🌸", rnd(i + 2) * W + Math.sin(T + i) * 18, -10 + q * (H + 20), 10 + rnd(i + 8) * 10, 0.7); }
+        const fi = 1 - ease(seg(t2, 0, 0.35)); if (fi > 0) { ctx.fillStyle = `rgba(255,240,210,${fi})`; ctx.fillRect(0, 0, W, H); }
+        serif("🪧 Hôm nay quán mở cửa", W / 2, 36, 18, "#5a2c14", ease(seg(t2, 0.5, 1.3)));
+        text("Ai cũng có thể đến — kể cả người gác đèn.", W / 2, H - 14, 13, "#fff3d6", ease(seg(t2, 2.0, 2.8)));
       }
     } }
   };

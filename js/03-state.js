@@ -51,6 +51,8 @@ function createDefaultArchive() {
     twistEndings: {},
     truthsHeard: {},
     endingDrinks: {},
+    quietEndingSeen: false,
+    finalesSeen: {},
     thanksSeen: false
   };
 }
@@ -111,6 +113,8 @@ function sanitizeArchive(rawObj) {
     twistEndings: safeObj(rawObj.twistEndings, {}),
     truthsHeard: safeObj(rawObj.truthsHeard, {}),
     endingDrinks: safeObj(rawObj.endingDrinks, {}),
+    quietEndingSeen: Boolean(rawObj.quietEndingSeen),
+    finalesSeen: safeObj(rawObj.finalesSeen, {}),
     thanksSeen: Boolean(rawObj.thanksSeen)
   };
 }
